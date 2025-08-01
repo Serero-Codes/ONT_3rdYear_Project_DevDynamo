@@ -1,0 +1,73 @@
+﻿@model ONT_3rdyear_Project.Models.Treatment
+
+<h2>Edit Treatment</h2>
+
+<form asp-action="EditTreatment" method="post">
+    <input type="hidden" asp-for="TreatmentID" />
+    <input type="hidden" asp-for="PatientID" />
+
+    <div class="form-group">
+        <label>Patient</label>
+        <input type="text" class="form-control" value="@Model.Patient?.FirstName @Model.Patient?.LastName" disabled />
+    </div>
+
+    @* <div class="form-group">
+        <label asp-for="VisitID"></label>
+        <select asp-for="VisitID" class="form-control" asp-items="@(ViewBag.VisitList as SelectList)">
+            <option value="">-- Select Visit --</option>
+        </select>
+    </div> *@
+
+    <div class="form-group">
+        <label asp-for="TreatmentType" class="control-label"></label>
+        <select asp-for="TreatmentType" class="form-control" asp-items="ViewBag.TreatmentTypes"></select>
+        <span asp-validation-for="TreatmentType" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2">
+        <input type="text" id="TreatmentTypeOther" name="TreatmentTypeOther" class="form-control" placeholder="Enter custom treatment" style="display:none;" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="TreatmentDate"></label>
+        <input asp-for="TreatmentDate" class="form-control" type="datetime-local" />
+        <span asp-validation-for="TreatmentDate" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a asp-action="Treatments" class="btn btn-secondary">Back to List</a>
+</form>
+
+@section Scripts {
+    <script>
+        // Show/hide "Other" input based on treatment type selection
+        const treatmentSelect = document.querySelector("select[name='TreatmentType']");
+        const otherInput = document.getElementById("TreatmentTypeOther");
+
+        function toggleOtherInput() {
+            if (treatmentSelect.value === "Other") {
+                otherInput.style.display = "block";
+            } else {
+                otherInput.style.display = "none";
+                otherInput.value = "";
+            }
+        }
+
+        treatmentSelect.addEventListener("change", toggleOtherInput);
+
+        // Trigger on page load (in case "Other" was selected)
+        toggleOtherInput();
+
+        // Optionally pre-fill Other if treatment type is custom
+        // You can do this by checking if the current treatment type matches any of the predefined values
+        const predefined = ["Wound Dressing", "IV Drip", "Catheter Change", "Physiotherapy", "Other"];
+        if (!predefined.includes(treatmentSelect.value)) {
+            treatmentSelect.value = "Other";
+            otherInput.style.display = "block";
+            otherInput.value = treatmentSelect.value;
+        }
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+}

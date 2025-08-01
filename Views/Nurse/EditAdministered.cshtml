@@ -1,0 +1,40 @@
+﻿@model ONT_3rdyear_Project.Models.PatientMedicationScript
+
+<h2>Edit Administered Medication</h2>
+
+<form asp-action="EditAdministered" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="mb-3">
+        <label class="form-label">Patient Name</label>
+        <input type="text" class="form-control" value="@Model.Patient?.FirstName @Model.Patient?.LastName" readonly />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="MedicationId">Medication</label>
+        <select asp-for="MedicationId" class="form-control" asp-items="ViewBag.MedicationList">
+            <option value="">-- Select Medication --</option>
+        </select>
+        <span asp-validation-for="MedicationId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Dosage"></label>
+        <input asp-for="Dosage" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="AdministeredDate"></label>
+        <input asp-for="AdministeredDate" type="date" class="form-control" />
+    </div>
+
+  
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <a asp-action="MedicationIndex" class="btn btn-secondary">Back</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

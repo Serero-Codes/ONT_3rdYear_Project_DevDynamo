@@ -1,0 +1,59 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.Models.PatientMedicationScript>
+@{
+	ViewData["Title"] = "Administered Medication";
+	
+	
+}
+@* int userId = 0; // Declare it first
+	int parsedId = 0;
+
+	if (ViewBag.CurrentUserId != null && int.TryParse(ViewBag.CurrentUserId.ToString(), out parsedId))
+	{
+		userId = parsedId;
+	} *@
+
+<div class="container mt-4">
+<h2>List of administered medications</h2>
+
+	@if (Model != null && Model.Any())
+    {
+		<div class="table-responsive">
+			<table class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>Patient</th>
+						<th>Medication</th>
+						<th>Dosage</th>
+						<th>Administered By</th>
+						<th>Date</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var item in Model)
+					{
+						<tr>
+							<td>@item.Patient.FirstName @item.Patient.LastName</td>
+							<td>@item.Medication?.Name</td>
+							<td>@item.Dosage</td>
+							<td>@item.AdministeredBy?.FullName</td>
+							<td>@item.AdministeredDate</td>
+							<td>
+								<a asp-action="EditAdministered" asp-route-id="@item.Id" class="btn btn-warning">Edit</a>
+								<a asp-action="DeleteAdministered" asp-route-id="@item.Id" class="btn btn-danger">Delete</a>
+								
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+
+		</div>
+	}
+	else
+	{
+		<div class="alert alert-info text-center" role="alert">
+			No scheduled medications available.
+		</div>
+	}
+</div>

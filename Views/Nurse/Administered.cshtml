@@ -1,0 +1,39 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.Models.PatientMedicationScript>
+
+
+<div class="container mt-4">
+    <h2>Administered Medication</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Medication</th>
+                <th>Dosage</th>
+                <th>Date</th>
+    @*             <th>Time</th>
+     *@         <th>Administered By</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Patient?.FirstName @item.Patient?.LastName</td>
+                    <td>@item.Medication?.Name</td>
+                    <td>@item.Dosage</td>
+                    <td>@item.AdministeredDate.ToShortDateString()</td>
+                    @* <td>@item.TimeAdministered</td> *@
+                    <td>@item.AdministeredBy?.FullName</td>
+                    <td>
+                        <a asp-action="EditAdministered" class="btn btn-secondary" asp-route-id="@item.Id">Edit</a> 
+                        <a asp-action="Details" class="btn btn-warning" asp-route-id="@item.Id">Details</a> 
+                        <a asp-action="Delete" class="btn btn-danger" asp-route-id="@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a asp-action="Create" class="btn btn-primary mb-3">Administer New Medication</a>
+</div>

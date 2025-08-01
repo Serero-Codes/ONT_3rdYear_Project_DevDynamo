@@ -1,0 +1,59 @@
+﻿@model ONT_3rdyear_Project.Models.Treatment
+@{
+    ViewData["Title"] = "Add Treatment";
+}
+
+<h2>Add Treatment for @ViewBag.PatientName</h2>
+
+<form asp-action="CreateTreatment" method="post">
+    <input type="hidden" asp-for="PatientID" />
+
+    <div class="form-group">
+        <label>Patient</label>
+        <input type="text" class="form-control" value="@ViewBag.PatientName" disabled />
+    </div>
+
+    <@* div class="form-group">
+        <label asp-for="VisitID"></label>
+        <select asp-for="VisitID" class="form-control" asp-items="ViewBag.VisitList">
+            <option value="">-- Select Visit (optional) --</option>
+        </select>
+        <span asp-validation-for="VisitID" class="text-danger"></span>
+    </div> *@
+
+    <div class="form-group">
+        <label asp-for="TreatmentType"></label>
+        <select asp-for="TreatmentType" class="form-control" asp-items="ViewBag.TreatmentTypes">
+            <option value="">-- Select Treatment Type --</option>
+        </select>
+        <span asp-validation-for="TreatmentType" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2" style="display:none;" id="otherTreatmentDiv">
+        <input type="text" id="TreatmentTypeOther" name="TreatmentTypeOther" class="form-control" placeholder="Enter custom treatment" />
+@*         <span asp-validation-for="TreatmentTypeOther" class="text-danger"></span>
+ *@    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Dashboard" class="btn btn-secondary">Back</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const treatmentSelect = document.querySelector("select[name='TreatmentType']");
+        const otherDiv = document.getElementById("otherTreatmentDiv");
+
+        treatmentSelect.addEventListener("change", function () {
+            if (this.value === "Other") {
+                otherDiv.style.display = "block";
+            } else {
+                otherDiv.style.display = "none";
+                document.getElementById("TreatmentTypeOther").value = "";
+            }
+        });
+    </script>
+}

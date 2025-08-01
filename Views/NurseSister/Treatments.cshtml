@@ -1,0 +1,36 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.Models.Treatment>
+@{
+	ViewData["Title"] = "Treatments";
+}
+
+<h2>Treaments</h2>
+
+<table class="table table-responsive">
+	<thead>
+		<tr>
+			<th>Patient</th>
+			@* <th>Visit Date</th> *@
+			<th>Treated by</th>
+			<th>Treatment Type</th>
+			<th>Treatment Time</th>
+			<th>Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var treatment in Model)
+		{
+			<tr>
+				<td>@treatment.Patient?.FirstName @treatment.Patient?.LastName</td>
+				@* <td>@treatment.VisitSchedule?.VisitDate</td> *@
+				<td>@treatment.User.FullName</td>
+				<td>@treatment.TreatmentType</td>
+				<td>@treatment.TreatmentDate</td>
+				<td>
+					<a asp-action="Details" asp-route-id="@treatment.TreatmentID" class="btn btn-warning btn-sm">Details</a>
+					<a asp-action="EditTreatment" asp-route-id="@treatment.TreatmentID" class="btn btn-secondary btn-sm">Edit</a>
+					<a asp-action="DeleteTreatment" asp-route-id="@treatment.TreatmentID" class="btn btn-danger btn-sm">Delete</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>

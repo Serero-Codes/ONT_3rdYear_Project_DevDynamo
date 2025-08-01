@@ -1,0 +1,46 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
+@{
+    ViewData["Title"] = "Patients";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Patients Records</h2>
+
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="keyword" class="form-control" placeholder="Search by name..." value="@Context.Request.Query["keyword"]" />
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Patient Name</th>
+                    <th>Ward</th>
+                    <th>Bed</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var patient in Model)
+                {
+                    <tr>
+                        <td>@patient.FirstName @patient.LastName</td>
+                        <td>@patient.WardName</td>
+                        <td>@patient.BedNo</td>
+                        <td>
+                            <a asp-controller="Nursesister" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="btn btn-danger btn-sm">Vitals</a>
+                            <a asp-controller="NurseSister" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="btn btn-success btn-sm">Treatment</a>
+                            <a asp-controller="NurseSister" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="btn btn-warning btn-sm">Medication</a>
+                            <a asp-controller="NurseSister" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="btn btn-info btn-sm">Instructions</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+

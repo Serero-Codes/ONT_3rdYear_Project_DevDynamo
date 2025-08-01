@@ -1,0 +1,42 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.Models.Vital>
+@{
+	ViewData["Title"] = "Vitals";
+}
+
+<div class="container mt-4">
+
+	<h2>List of patients Vitals</h2>
+	<div class="table-responsive">
+		<table class="table custom-table">
+			<thead>
+				<tr>
+					<th>Patient Name</th>
+					<th>BP</th>
+					<th>Sugar Level</th>
+					<th>Temperature</th>
+					<th>Recorded On</th>
+					<th>Recorded by</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var vital in Model)
+				{
+					<tr>
+						<td>@vital.Patient?.FirstName @vital.Patient?.LastName</td>
+						<td>@vital.BP</td>
+						<td>@vital.SugarLevel</td>
+						<td>@vital.Temperature</td>
+						<td>@vital.Date</td>S
+						<td>@vital.User?.FullName</td>
+						<td>
+							<a asp-action="" class="btn btn-warning">Details</a>
+							<a asp-action="EditVital" asp-route-id="@vital.VitalID" class=" btn btn-primary">Edit</a>
+							<a asp-action="DeleteVital" asp-route-id="@vital.VitalID" class="btn btn-danger">Delete</a>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+</div>

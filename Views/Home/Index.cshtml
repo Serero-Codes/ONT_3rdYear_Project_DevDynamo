@@ -1,0 +1,414 @@
+﻿@* @{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a<a href="c:\users\user\downloads\ont_3rdyear_project\ont_3rdyear_project\views\home\index.cshtml">c:\users\user\downloads\ont_3rdyear_project\ont_3rdyear_project\views\home\index.cshtml</a>>.</p>
+
+    <a class="btn btn-primary mb-3" asp-area="Identity" asp-page="/Account/Login">Get Started</a>
+
+</div>
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .welcome-container {
+        /* Full screen background image */
+        background-image: url('/wwwroot/images/background23.jpeg'); /* Change to your actual image path */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.5); /* fallback overlay */
+        position: relative;
+    }
+
+    .overlay {
+        background-color: rgba(0, 0, 0, 0.6);
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        z-index: 0;
+    }
+
+    .welcome-content {
+        z-index: 1;
+        max-width: 700px;
+        padding: 20px;
+    }
+
+        .welcome-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-content p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+    .btn-get-started {
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 0.5rem;
+    }
+</style>
+
+<div class="welcome-container">
+    <div class="overlay"></div>
+    <div class="welcome-content">
+        <h1>Welcome to the Ward Management System</h1>
+        <p>Your all-in-one platform for managing patients, treatment, and care with ease.</p>
+        <a class="btn btn-primary btn-get-started" asp-area="Identity" asp-page="/Account/Login">Get Started</a>
+    </div>
+</div>
+ *@
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        color: white;
+        text-align: center;
+    }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 800px;
+        padding: 2rem;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        line-height: 1.2;
+    }
+
+    .hero-subtitle {
+        font-size: 1.4rem;
+        margin-bottom: 2.5rem;
+        opacity: 0.95;
+        font-weight: 300;
+        line-height: 1.6;
+    }
+
+    .cta-button {
+        display: inline-block;
+        background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+        padding: 1rem 2.5rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 50px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+    .features-section {
+        padding: 5rem 0;
+        background: #f8f9fa;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .section-title {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 3rem;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+        color: white;
+    }
+
+    .feature-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .feature-description {
+        color: #666;
+        line-height: 1.6;
+        font-size: 1rem;
+    }
+
+    .stats-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 0;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        text-align: center;
+    }
+
+    .stat-item {
+        padding: 1rem;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .hero-title
+
+    {
+        font-size: 2.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+
+    .cta-button {
+        font-size: 1rem;
+        padding: 0.8rem 2rem;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    }
+
+    @@media (max-width: 480px) {
+        .hero-content
+
+    {
+        padding: 1rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .feature-card {
+        padding: 2rem;
+    }
+
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Ward Management System</h1>
+        <p class="hero-subtitle">
+            Streamline healthcare operations with our comprehensive platform for patient care,
+            treatment tracking, and ward administration.
+        </p>
+        <a class="cta-button" asp-area="Identity" asp-page="/Account/Login">Get Started</a>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <h2 class="section-title">Why Choose Our System?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3 class="feature-title">Patient Management</h3>
+                <p class="feature-description">
+                    Efficiently manage patient records, admissions, and discharge processes
+                    with our intuitive interface.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3 class="feature-title">Treatment Tracking</h3>
+                <p class="feature-description">
+                    Monitor treatment progress, medication schedules, and care plans
+                    all in one centralized system.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Analytics & Reports</h3>
+                <p class="feature-description">
+                    Generate comprehensive reports and gain insights into ward
+                    performance and patient outcomes.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3 class="feature-title">Secure & Compliant</h3>
+                <p class="feature-description">
+                    HIPAA-compliant security ensures patient data protection
+                    with enterprise-grade encryption.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3 class="feature-title">Mobile Ready</h3>
+                <p class="feature-description">
+                    Access the system from any device - desktop, tablet, or mobile
+                    for maximum flexibility.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title">Real-time Updates</h3>
+                <p class="feature-description">
+                    Get instant notifications and real-time updates on patient status
+                    and critical alerts.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">System Availability</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">99.9%</span>
+                <span class="stat-label">Uptime Guarantee</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">500+</span>
+                <span class="stat-label">Healthcare Facilities</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">50k+</span>
+                <span class="stat-label">Patients Managed</span>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,47 @@
+﻿@model ONT_3rdyear_Project.Models.PatientMedicationScript
+@{
+	ViewData["Title"] = "Administer Medication";
+}
+<div class="container mt-4">
+    <h2>Administer Medication</h2>
+
+    <form asp-action="Create" method="post">
+        <div class="form-group">
+            <label>Patient</label>
+            <input type="hidden" name="PatientId" value="@ViewBag.PatientId" />
+            <input type="text" class="form-control" value="@ViewBag.PatientName" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="MedicationId">Medication</label>
+            <select asp-for="MedicationId" class="form-control" asp-items="ViewBag.MedicationList">
+                <option value="">-- Select Medication --</option>
+            </select>
+            <span asp-validation-for="MedicationId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Dosage"></label>
+            <input asp-for="Dosage" class="form-control" />
+            <span asp-validation-for="Dosage" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="AdministeredDate"></label>
+            <input asp-for="AdministeredDate" type="date" class="form-control" />
+            <span asp-validation-for="AdministeredDate" class="text-danger"></span>
+
+        </div>
+
+
+
+        <button type="submit" class="btn btn-success mt-4 mb-5">Save</button>
+        <a asp-action="patientsList" class="btn btn-secondary mt-4 mb-5">Cancel</a>
+    </form>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+

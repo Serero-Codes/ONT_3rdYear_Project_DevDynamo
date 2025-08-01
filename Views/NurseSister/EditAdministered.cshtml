@@ -1,0 +1,78 @@
+﻿@model ONT_3rdyear_Project.Models.PatientMedicationScript
+<div class="container mt-4">
+    <h2>Edit Administered Medication</h2>
+
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+
+    <form asp-action="EditAdministered" method="post">
+        <input type="hidden" asp-for="Id" />
+        <div class="mb-3">
+            <label class="form-label">Patient Name</label>
+            <input type="text" class="form-control" value="@Model.Patient?.FirstName @Model.Patient?.LastName" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="MedicationId">Medication</label>
+            <select asp-for="MedicationId" class="form-control" asp-items="ViewBag.MedicationList"></select>
+            <span asp-validation-for="MedicationId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Dosage"></label>
+            <input asp-for="Dosage" class="form-control" />
+        </div>
+       
+
+
+        <div class="form-group">
+            <label asp-for="AdministeredDate"></label>
+            <input asp-for="AdministeredDate" type="date" class="form-control" />
+        </div>
+
+
+        <div class="mt-3 mb-3">
+            <button type="submit" class="btn btn-success">Save</button>
+            <a asp-action="ListAdministered" class="btn btn-secondary">Back</a>
+        </div>
+        
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+@* <!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-success">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @TempData["SuccessMessage"]
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var hasMessage = '@TempData["SuccessMessage"]';
+            if (hasMessage) {
+                var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+            }
+        });
+    </script>
+} *@
+

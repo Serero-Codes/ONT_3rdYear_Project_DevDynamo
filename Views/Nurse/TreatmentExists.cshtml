@@ -1,0 +1,15 @@
+﻿@model ONT_3rdyear_Project.Models.Treatment
+
+<h3>Treatment already exist for this patient: </h3>
+
+<table class="table">
+    <tr><th>Patient: </th><td>@Model.Patient?.FirstName @Model.Patient?.LastName</td></tr>
+    <tr><th>Treatment Type: </th><td>@Model.TreatmentType</td></tr>
+    <tr><th>Date: </th><td>@Model.TreatmentDate</td></tr>
+    <tr><th>Treated by: </th><td>@Model.User?.FullName</td></tr>
+    
+</table>
+
+<a asp-action="EditTreatment" asp-route-id="@Model.TreatmentID" class="btn btn-warning">Edit</a>
+<a asp-action="DeleteTreatment" asp-route-id="@Model.TreatmentID" class="btn btn-danger">Delete</a>
+<a asp-action="Dashboard" class="btn btn-secondary">Back</a>

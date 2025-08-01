@@ -1,0 +1,15 @@
+﻿@model ONT_3rdyear_Project.Models.Vital
+
+<h3>Vitals already exist for this patient</h3>
+
+<table class="table">
+    <tr><th>Blood Pressure</th><td>@Model.BP</td></tr>
+    <tr><th>Temperature</th><td>@Model.Temperature</td></tr>
+    <tr><th>Sugar Level</th><td>@Model.SugarLevel</td></tr>
+    @* <tr><th>Recorded At</th><td>@Model.RecordedAt</td></tr> *@
+    <tr><th>Recorded By</th><td>@Model.User?.FullName</td></tr>
+</table>
+
+<a asp-action="EditVital" asp-route-id="@Model.VitalID" class="btn btn-warning">Edit</a>
+<a asp-action="DeleteVital" asp-route-id="@Model.VitalID" class="btn btn-danger">Delete</a>
+<a asp-action="Dashboard" class="btn btn-secondary">Back</a>
