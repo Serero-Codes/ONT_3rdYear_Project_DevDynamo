@@ -1,0 +1,30 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.Models.Medication>
+@{
+	ViewData["Title"] = "List  of Medications";
+}
+<h2>A list of all Medications</h2>
+
+<table class="table table-responsive">
+	<thead>
+		<tr>
+			<th>Medication Name</th>
+			<th>Schedule</th>
+			<th>Expiry Date</th>
+			<th>Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach(var med in Model)
+		{
+			<tr>
+				<td>@med.Name</td>
+				<td>@med.Schedule</td>
+				<td>@med.ExpiryDate</td>
+				<td>
+					<a asp-action="EditMedication" class="btn btn-primary" asp-route-id="@med.MedicationId">Edit</a>
+					<a asp-action="DeleteMedication" class="btn btn-Danger" asp-route-id="@med.MedicationId">Delete</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>

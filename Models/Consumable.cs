@@ -22,6 +22,11 @@ namespace ONT_3rdyear_Project.Models
         public virtual Ward Ward { get; set; }
 
         public virtual ICollection<ConsumableOrder> ConsumableOrders { get; set; }
+        public virtual ICollection<WardConsumable> WardConsumables { get; set; }
+		public virtual ICollection<DeliveryItem> DeliveryItems { get; set; }
+		public virtual ICollection<SupplierItem> SupplierItems { get; set; }
+		public virtual ICollection<StockTakeItem> StockTakeItems { get; set; }
+       
 
-	}
+    }
 }

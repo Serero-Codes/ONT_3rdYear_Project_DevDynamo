@@ -1,0 +1,26 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.ViewModels.EmployeeViewModel>
+@{
+	ViewData["Title"] = "List of employees";
+}
+
+<h2>Employees</h2>
+
+<table class="table table-responsive">
+	<thead>
+		<tr>
+			<th>Employee Name & Surname</th>
+			<th>Email</th>
+			<th>Role</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach(var emp in Model)
+		{
+			<tr>
+				<td>@emp.FullName</td>
+				<td>@emp.Email</td>
+				<td>@emp.Role</td>
+			</tr>
+		}
+	</tbody>
+</table>

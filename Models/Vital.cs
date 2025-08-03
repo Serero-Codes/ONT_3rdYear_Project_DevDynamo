@@ -28,13 +28,17 @@ namespace ONT_3rdyear_Project.Models
 
 
 		[Required]
-       
         public double Temperature { get; set; }
+
+
 		[Required]
 		public string SugarLevel { get; set; }
 
 
-		[Required]
+        [Required]
+        public string PulseRate { get; set; }
+
+        [Required]
 		public DateTime Date { get; set; }
 
 		public bool IsActive { get; set; } = true;

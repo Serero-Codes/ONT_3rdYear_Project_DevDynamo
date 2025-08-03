@@ -1,0 +1,25 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="4" class="text-center">No results found.</td>
+    </tr>
+}
+else
+{
+    foreach (var patient in Model)
+    {
+        <tr>
+            <td>@patient.FirstName @patient.LastName</td>
+            <td>@patient.WardName</td>
+            <td>@patient.BedNo</td>
+            <td>
+                <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="btn btn-danger btn-sm">Vitals</a>
+                <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="btn btn-success btn-sm">Treatment</a>
+                <a asp-controller="Nurse" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="btn btn-warning btn-sm">Medication</a>
+                <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="btn btn-info btn-sm">Instructions</a>
+            </td>
+        </tr>
+    }
+}

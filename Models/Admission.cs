@@ -26,11 +26,12 @@ namespace ONT_3rdyear_Project.Models
 
 		public DateOnly AdmissionDate { get; set; }
 
-		[Required]
+	
 		public string Notes { get; set; }
+        [Required]
+        public string  ReasonForAdmission { get; set; }
 
-
-		public virtual Patient Patient { get; set; }
+        public virtual Patient Patient { get; set; }
 		public virtual Bed Bed { get; set; }
 		public virtual Ward Ward { get; set; }
 	}

@@ -13,5 +13,6 @@ namespace ONT_3rdyear_Project.Models
 		public DateOnly SuppliedDate { get; set; }
 
 		public ICollection<Order> Orders { get; set; }
-	}
+		public virtual ICollection<SupplierItem> SupplierItems { get; set; }
+    }
 }

@@ -478,6 +478,22 @@
     .patients-table-section {
         animation: fadeInUp 0.6s ease-out;
     }
+
+    .filter-select {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--gray-200);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: var(--white);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
 </style>
 
 <div class="container patients-container">
@@ -491,17 +507,37 @@
     </div>
 
     <!-- Search Section -->
-    <div class="search-section">
-        <form method="get" class="search-form">
-            <input type="text" name="keyword" class="search-input" 
-                   placeholder="🔍 Search by patient name..." 
-                   value="@Context.Request.Query["keyword"]" />
+    @* <div class="search-section">
+        <form asp-action="SearchPatients" method="get" class="search-form">
+            <input type="text" name="query" class="search-input" placeholder="🔍 Search by patient name..."  value="@Context.Request.Query["query"]"  />
             <button type="submit" class="search-btn">
                 <i class="fas fa-search"></i>
                 Search
             </button>
         </form>
+    </div> *@
+
+    <div class="search-section">
+        <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
+
+        <select id="wardFilter" class="filter-select">
+            <option value="">All Wards</option>
+            <!-- Populate dynamically from your server or hardcoded options -->
+            <option value="Ward1">Ward 1</option>
+            <option value="Ward2">Ward 2</option>
+            <option value="Ward3">Ward 3</option>
+        </select>
+
+        <select id="bedFilter" class="filter-select">
+            <option value="">All Beds</option>
+            <!-- Populate dynamically as well -->
+            <option value="Bed1">Bed 1</option>
+            <option value="Bed2">Bed 2</option>
+            <option value="Bed3">Bed 3</option>
+        </select>
+        
     </div>
+
 
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
@@ -512,7 +548,7 @@
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="searchResults">
             @foreach (var patient in Model)
             {
                 <tr>
@@ -530,4 +566,72 @@
         </tbody>
     </table>
 </div>
+
+
+@* <script>
+    const searchInput = document.getElementById('liveSearchInput');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const query = searchInput.value.trim();
+            const url = query.length > 0
+                ? `/Nurse/LiveSearch?query=${encodeURIComponent(query)}`
+                : `/Nurse/LiveSearchAll`;
+
+            fetch(url)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('searchResults').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Search failed:', error);
+                });
+        }, 300); // wait 300ms after last keystroke
+    });
+</script> *@
+
+<script>
+    const searchInput = document.getElementById('liveSearchInput');
+    const wardFilter = document.getElementById('wardFilter');
+    const bedFilter = document.getElementById('bedFilter');
+
+    function performSearch() {
+        const query = searchInput.value.trim();
+        const ward = wardFilter.value;
+        const bed = bedFilter.value;
+
+        // Build query parameters
+        const params = new URLSearchParams();
+
+        if (query.length > 0) params.append('query', query);
+        if (ward) params.append('ward', ward);
+        if (bed) params.append('bed', bed);
+
+        const url = params.toString()
+            ? `/Nurse/LiveSearch?${params.toString()}`
+            : `/Nurse/LiveSearchAll`;
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('searchResults').innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Search failed:', error);
+            });
+    }
+
+    // Add event listeners on input and selects
+    searchInput.addEventListener('input', performSearch);
+    wardFilter.addEventListener('change', performSearch);
+    bedFilter.addEventListener('change', performSearch);
+</script>
+
+
+
+
+
+
    

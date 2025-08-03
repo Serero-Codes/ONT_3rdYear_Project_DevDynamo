@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using ONT_3rdyear_Project.Data;
 using ONT_3rdyear_Project.Models;
 using ONT_3rdyear_Project.ViewModels;
+using System.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
@@ -70,18 +71,47 @@ namespace ONT_3rdyear_Project.Controllers
             return View(data);
         }
 
-        public async Task<IActionResult> SearchPatients(string keyword)
+        /*public async Task<IActionResult> SearchPatients(string query)
         {
-            var results = await _context.Patients
+            var results = await _context.Patients.Include(p => p.Admissions)
+                    .ThenInclude(a => a.Ward)
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Bed)
+                .Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query))
+                .ToListAsync();
+
+            return View("Dashboard", results);
+
+        }*/
+
+        public async Task<IActionResult> SearchPatients(string query)
+        {
+            var patients = await _context.Patients
                 .Include(p => p.Admissions)
                     .ThenInclude(a => a.Ward)
                 .Include(p => p.Admissions)
                     .ThenInclude(a => a.Bed)
-                .Where(p => p.FirstName.Contains(keyword) || p.LastName.Contains(keyword))
+                .Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query))
                 .ToListAsync();
 
-            return View("Dashboard", results); 
+            // Map to ViewModel
+            var patientViewModels = patients.Select(p =>
+            {
+                var admission = p.Admissions;
+                return new PatientDashboardViewModel
+                {
+                    PatientID = p.PatientID,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    // Gender = p.Gender,
+                    WardName = admission?.Ward?.Name ?? "N/A",
+                    BedNo = admission?.Bed?.BedNo ?? "N/A"
+                };
+            }).ToList();
+
+            return View("PatientsList", patientViewModels);
         }
+
 
 
         /*public async Task<IActionResult> Dashboard()
@@ -813,6 +843,108 @@ namespace ONT_3rdyear_Project.Controllers
 
             return RedirectToAction("InstructionList");
         }
+
+        /*[HttpGet]
+        public async Task<IActionResult> LiveSearch(string query)
+        {
+            var patients = await _context.Patients
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Ward)
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Bed)
+                .Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query))
+                .ToListAsync();
+
+            var viewModel = patients.Select(p =>
+            {
+                var admission = p.Admissions; // single admission assumed
+
+                return new PatientDashboardViewModel
+                {
+                    PatientID = p.PatientID,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    WardName = admission?.Ward?.Name ?? "N/A",
+                    BedNo = admission?.Bed?.BedNo ?? "N/A"
+                };
+            }).ToList();
+
+            return PartialView("_PatientSearchResults", viewModel);
+        }
+
+*/
+
+        [HttpGet]
+        public async Task<IActionResult> LiveSearch(string query, string ward, string bed)
+        {
+            var patientsQuery = _context.Patients
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Ward)
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Bed)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                patientsQuery = patientsQuery.Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query));
+            }
+
+            if (!string.IsNullOrWhiteSpace(ward))
+            {
+                patientsQuery = patientsQuery.Where(p => p.Admissions.Ward.Name == ward);
+            }
+
+            if (!string.IsNullOrWhiteSpace(bed))
+            {
+                patientsQuery = patientsQuery.Where(p => p.Admissions.Bed.BedNo == bed);
+            }
+
+            var patients = await patientsQuery.ToListAsync();
+
+            var viewModel = patients.Select(p =>
+            {
+                var admission = p.Admissions;
+
+                return new PatientDashboardViewModel
+                {
+                    PatientID = p.PatientID,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    WardName = admission?.Ward?.Name ?? "N/A",
+                    BedNo = admission?.Bed?.BedNo ?? "N/A"
+                };
+            }).ToList();
+
+            return PartialView("_PatientSearchResults", viewModel);
+        }
+        [HttpGet]
+        public async Task<IActionResult> LiveSearchAll()
+        {
+            var patients = await _context.Patients
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Ward)
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Bed)
+                .ToListAsync();
+
+            var viewModel = patients.Select(p =>
+            {
+                var admission = p.Admissions;
+
+                return new PatientDashboardViewModel
+                {
+                    PatientID = p.PatientID,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    WardName = admission?.Ward?.Name ?? "N/A",
+                    BedNo = admission?.Bed?.BedNo ?? "N/A"
+                };
+            }).ToList();
+
+            return PartialView("_PatientSearchResults", viewModel);
+        }
+
+
 
 
 

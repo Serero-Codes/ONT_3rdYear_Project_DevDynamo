@@ -17,8 +17,8 @@ namespace ONT_3rdyear_Project.Models
 		public Patient Patient { get; set; }
 
 		public DateOnly DateIssued { get; set; }
-
-		public string PrescriptionInstruction { get; set; }
+        public string Status { get; set; } = "New";
+        public string PrescriptionInstruction { get; set; }
 
 		public ICollection<PrescribeMedication> Prescribed_Medication { get; set; }
 		public virtual ICollection<PrescriptionForwarding> PrescriptionForwarding { get; set; }

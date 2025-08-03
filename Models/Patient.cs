@@ -17,7 +17,7 @@ namespace ONT_3rdyear_Project.Models
 		[Required]
 		public string Gender { get; set; }
 		[Required]
-		public string ChronicMed { get; set; }
+		public string ChronicIllness { get; set; }
 		[Required]
 		public bool Admitted { get; set; } = false;
 

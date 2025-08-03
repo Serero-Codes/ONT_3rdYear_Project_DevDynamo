@@ -26,12 +26,20 @@ namespace ONT_3rdyear_Project.Data
         public DbSet<Patient> Patients { get; set; }
         public DbSet<PatientAllergy> PatientAllergies { get; set; }
         public DbSet<Pharmacy> Pharmacies { get; set; }
+        //Ward Consumable De Sets......
+        public DbSet<StockTake> StockTakes { get; set; }
+        public DbSet<StockTakeItem> StockTakeItems { get; set; }
+        public DbSet<Delivery> Deliveries { get; set; }
+        public DbSet<DeliveryItem> DeliveryItems { get; set; }
+        public DbSet<WardConsumable> WardConsumables { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<SupplierItem> SupplierItems { get; set; }
         public DbSet<PharmacyMedication> PharmacyMedications { get; set; }
         public DbSet<PrescribeMedication> PrescribeMedications { get; set; }
         public DbSet<Prescription> Prescriptions { get; set; }
         public DbSet<PrescriptionForwarding> PrescriptionForwardings { get; set; }
         public DbSet<PrescriptionRejection> PrescriptionRejections { get; set; }
-        public DbSet<Supplier> Suppliers { get; set; }
+       
         public DbSet<TreatVisit> TreatVisits { get; set; }
         public DbSet<Treatment> Treatments { get; set; }
         public DbSet<VisitSchedule> VisitSchedules { get; set; }
@@ -60,21 +68,72 @@ namespace ONT_3rdyear_Project.Data
                 .HasForeignKey(pr => pr.PrescriptionID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //// Employee-Patient many-to-many join
-            //modelBuilder.Entity<EmployeePatient>()
-            //    .HasKey(ep => ep.Id);
+           
 
-            //modelBuilder.Entity<EmployeePatient>()
-            //    .HasOne(ep => ep.User)
-            //    .WithMany(e => e.EmployeePatients)
-            //    .HasForeignKey(ep => ep.ApplicationUserID)
-            //    .OnDelete(DeleteBehavior.Restrict);
+            //wardconsumable many-to-many join
+            modelBuilder.Entity<WardConsumable>()
+                .HasKey(wc => new { wc.WardID, wc.ConsumableID });
 
-            //modelBuilder.Entity<EmployeePatient>()
-            //    .HasOne(ep => ep.Patient)
-            //    .WithMany(p => p.EmployeePatients)
-            //    .HasForeignKey(ep => ep.PatientID)
-            //    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<WardConsumable>()
+                .HasOne(wc => wc.Ward)
+                .WithMany(w => w.WardConsumables)
+                .HasForeignKey(wc => wc.WardID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<WardConsumable>()
+                .HasOne(wc => wc.Consumable)
+                .WithMany(c => c.WardConsumables)
+                .HasForeignKey(wc => wc.ConsumableID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //delivery items many-to-many join
+            modelBuilder.Entity<DeliveryItem>()
+                .HasKey(di => new { di.DeliveryID, di.ConsumableID });
+
+            modelBuilder.Entity<DeliveryItem>()
+                .HasOne(di => di.Delivery)
+                .WithMany(d => d.DeliveryItems)
+                .HasForeignKey(di => di.DeliveryID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DeliveryItem>()
+                .HasOne(di => di.Consumable)
+                .WithMany(c => c.DeliveryItems)
+                .HasForeignKey(di => di.ConsumableID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // SupplierItem many-to-many join
+            modelBuilder.Entity<SupplierItem>()
+                .HasKey(si => new { si.SupplierID, si.ConsumableID });
+
+            modelBuilder.Entity<SupplierItem>()
+                .HasOne(si => si.Supplier)
+                .WithMany(s => s.SupplierItems)
+                .HasForeignKey(si => si.SupplierID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SupplierItem>()
+                .HasOne(si => si.Consumable)
+                .WithMany(c => c.SupplierItems)
+                .HasForeignKey(si => si.ConsumableID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //stocktake items many-to-many join
+            modelBuilder.Entity<StockTakeItem>()
+                .HasKey(sti => new { sti.StockTakeID, sti.ConsumableID });
+
+            modelBuilder.Entity<StockTakeItem>()
+                .HasOne(sti => sti.StockTake)
+                .WithMany(st => st.StockTakes)
+                .HasForeignKey(sti => sti.StockTakeID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StockTakeItem>()
+                .HasOne(sti => sti.Consumable)
+                .WithMany(c => c.StockTakeItems)
+                .HasForeignKey(sti => sti.ConsumableID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Consumable_Order many-to-many join
             modelBuilder.Entity<ConsumableOrder>()
@@ -233,13 +292,16 @@ namespace ONT_3rdyear_Project.Data
                 .OnDelete(DeleteBehavior.Restrict); // avoid cascade cycle
 
 
-
-            modelBuilder.Entity<IdentityRole<int>>().HasData(
+           /* modelBuilder.Entity<IdentityRole<int>>().HasData(
                 new IdentityRole<int> { Id = 1, Name = "Admin", NormalizedName = "ADMIN" },
                 new IdentityRole<int> { Id = 2, Name = "Doctor", NormalizedName = "DOCTOR" },
                 new IdentityRole<int> { Id = 3, Name = "Nurse", NormalizedName = "NURSE" },
-                new IdentityRole<int> { Id = 4, Name = "Sister", NormalizedName = "SISTER" }
-            );
+                new IdentityRole<int> { Id = 4, Name = "Sister", NormalizedName = "SISTER" },
+                new IdentityRole<int> { Id = 5, Name = "ConsumableManager", NormalizedName = "ConsumableManager"},
+                new IdentityRole<int> { Id = 6, Name = "ScriptManager", NormalizedName = "ScriptManager"},
+                new IdentityRole<int> { Id = 7, Name = "WardManager", NormalizedName = "WardAdmin"}
+
+            );*/
 
             var hasher = new PasswordHasher<ApplicationUser>();
             modelBuilder.Entity<ApplicationUser>().HasData(
@@ -249,9 +311,9 @@ namespace ONT_3rdyear_Project.Data
 
             // Seed Patients
             modelBuilder.Entity<Patient>().HasData(
-                new Patient{PatientID = 1,FirstName = "Naledi",LastName = "Kgomo", DateOfBirth = new DateOnly(2000, 01, 15),Gender = "Female",ChronicMed = "Hypertension", Admitted = false},
-                new Patient{PatientID = 2, FirstName = "Tshepo",LastName = "Mabasa",DateOfBirth = new DateOnly(1995, 06, 21),Gender = "Male",ChronicMed = "Diabetes", Admitted = true},
-                new Patient { PatientID = 3, FirstName = "Thando", LastName = "Smith", DateOfBirth = new DateOnly(2003, 02, 28), Gender = "Female", ChronicMed = "Herpertension", Admitted = true}
+                new Patient{PatientID = 1,FirstName = "Naledi",LastName = "Kgomo", DateOfBirth = new DateOnly(2000, 01, 15),Gender = "Female",ChronicIllness = "Hypertension", Admitted = false},
+                new Patient{PatientID = 2, FirstName = "Tshepo",LastName = "Mabasa",DateOfBirth = new DateOnly(1995, 06, 21),Gender = "Male",ChronicIllness = "Diabetes", Admitted = true},
+                new Patient { PatientID = 3, FirstName = "Thando", LastName = "Smith", DateOfBirth = new DateOnly(2003, 02, 28), Gender = "Female", ChronicIllness = "Herpertension", Admitted = true}
             );
 
             // Seed Wards
@@ -274,8 +336,8 @@ namespace ONT_3rdyear_Project.Data
 
             // Seed Vitals
             modelBuilder.Entity<Vital>().HasData(
-                new Vital { VitalID = 1,Date = new DateTime(2025, 07, 03, 09, 30, 00, DateTimeKind.Utc), BP = "120/80", Temperature = 38.27, SugarLevel = "72/80", PatientID = 1, ApplicationUserID = 1, IsActive = true },
-                new Vital {  VitalID = 2, Date = new DateTime(2025, 07, 03, 10, 30, 00, DateTimeKind.Utc), BP = "130/85", Temperature = 37.12, SugarLevel = "78/89",  PatientID = 2, ApplicationUserID = 2 , IsActive = true }
+                new Vital { VitalID = 1,Date = new DateTime(2025, 07, 03, 09, 30, 00, DateTimeKind.Utc), BP = "120/80", Temperature = 38.27, PulseRate = "72bpm", SugarLevel = "72/80", PatientID = 1, ApplicationUserID = 1, IsActive = true },
+                new Vital {  VitalID = 2, Date = new DateTime(2025, 07, 03, 10, 30, 00, DateTimeKind.Utc), BP = "130/85", Temperature = 37.12, PulseRate = "60bpm", SugarLevel = "78/89",  PatientID = 2, ApplicationUserID = 2 , IsActive = true }
             );
             modelBuilder.Entity<VisitSchedule>().HasData(
                 new VisitSchedule{VisitID = 1,ApplicationUserID = 1,PatientID = 1, VisitDate = new DateTime(2025, 09, 10, 09, 30,00),Feedback = "Initial checkup - stable condition.", NextVisit = new DateTime(2025, 8, 1),IsActive = true},

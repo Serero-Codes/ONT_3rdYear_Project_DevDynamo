@@ -2,6 +2,7 @@
 @model RegisterModel
 @{
     ViewData["Title"] = "Register";
+ 
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -39,6 +40,10 @@
                     <option value="Nurse">Nurse</option>
                     <option value="Doctor">Doctor</option>
                     <option value="Sister">Sister</option>
+                    <option value="WardAdmin">Ward Admin</option>
+                    <option value="ScriptManager">Script Manager</option>
+                    <option value="ConsumableManager">Consumable Manager</option>
+                    
                 </select>
                 <label asp-for="Input.Role">Role</label>
                 <span asp-validation-for="Input.Role" class="text-danger"></span>

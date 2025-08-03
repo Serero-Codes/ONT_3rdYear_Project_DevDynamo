@@ -15,5 +15,8 @@ namespace ONT_3rdyear_Project.Models
 		[ForeignKey("Order")]
 		public int OrderId { get; set; }
 		public virtual Order Order { get; set; }
-	}
+        public int QuantityRequested { get; set; }
+        public int QuantityApproved { get; set; }
+        public string Reason { get; set; }
+    }
 }
