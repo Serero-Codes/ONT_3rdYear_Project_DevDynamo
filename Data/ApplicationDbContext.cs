@@ -337,8 +337,8 @@ namespace ONT_3rdyear_Project.Data
 
             // Seed Vitals
             modelBuilder.Entity<Vital>().HasData(
-                new Vital { VitalID = 1,Date = new DateTime(2025, 07, 03, 09, 30, 00, DateTimeKind.Utc), BP = "120/80", Temperature = 38.27, PulseRate = "72bpm", SugarLevel = "72/80", PatientID = 1, ApplicationUserID = 1, IsActive = true },
-                new Vital {  VitalID = 2, Date = new DateTime(2025, 07, 03, 10, 30, 00, DateTimeKind.Utc), BP = "130/85", Temperature = 37.12, PulseRate = "60bpm", SugarLevel = "78/89",  PatientID = 2, ApplicationUserID = 2 , IsActive = true }
+                new Vital { VitalID = 1,Date = new DateTime(2025, 07, 03, 09, 30, 00, DateTimeKind.Utc), BP = "120/80", Temperature = 38.27, PulseRate = 72, SugarLevel = 5.5, PatientID = 1, ApplicationUserID = 1, IsActive = true },
+                new Vital {  VitalID = 2, Date = new DateTime(2025, 07, 03, 10, 30, 00, DateTimeKind.Utc), BP = "130/85", Temperature = 37.12, PulseRate = 60, SugarLevel = 7.2,  PatientID = 2, ApplicationUserID = 2 , IsActive = true }
             );
             modelBuilder.Entity<VisitSchedule>().HasData(
                 new VisitSchedule{VisitID = 1,ApplicationUserID = 1,PatientID = 1, VisitDate = new DateTime(2025, 09, 10, 09, 30,00),Feedback = "Initial checkup - stable condition.", NextVisit = new DateTime(2025, 8, 1),IsActive = true},

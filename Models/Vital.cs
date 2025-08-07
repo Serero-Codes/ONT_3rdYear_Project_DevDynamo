@@ -32,11 +32,13 @@ namespace ONT_3rdyear_Project.Models
 
 
 		[Required]
-		public string SugarLevel { get; set; }
+        [Range(1.0, 30.0, ErrorMessage = "Sugar level must be a realistic value.")]
+        public double SugarLevel { get; set; }
 
 
         [Required]
-        public string PulseRate { get; set; }
+        [Range(30, 220, ErrorMessage = "Pulse rate must be between 30 and 220.")]
+        public int PulseRate { get; set; }
 
         [Required]
 		public DateTime Date { get; set; }

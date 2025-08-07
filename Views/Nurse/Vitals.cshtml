@@ -1,41 +1,542 @@
 ﻿@model IEnumerable<ONT_3rdyear_Project.Models.Vital>
 @{
-	ViewData["Title"] = "Vitals";
+    ViewData["Title"] = "Vitals";
 }
 
-<div class="container mt-4">
-	<h2>List of patients Vitals</h2>
-	<div class="table-responsive">
-		<table class="table custom-table">
-			<thead>
-				<tr>
-					<th>Patient Name</th>
-					<th>BP</th>
-					<th>Sugar Level</th>
-					<th>Temperature</th>
-					<th>Recorded On</th>
-					<th>Recorded by</th>
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach(var vital in Model)
-				{
-					<tr>
-						<td>@vital.Patient?.FirstName @vital.Patient?.LastName</td>
-						<td>@vital.BP</td>
-						<td>@vital.SugarLevel</td>
-						<td>@vital.Temperature</td>
-						<td>@vital.Date</td>S
-						<td>@vital.User?.FullName</td>
-						<td>
-							<a asp-action="" class="btn btn-warning">Details</a>
-							<a asp-action="EditVital" asp-route-id="@vital.VitalID" class=" btn btn-primary">Edit</a>
-							<a asp-action="DeleteVital" asp-route-id="@vital.VitalID" class="btn btn-danger">Delete</a>
-						</td>
-					</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-</div>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: #2563eb;
+        --secondary-color: #1e40af;
+        --accent-color: #3b82f6;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #06b6d4;
+        --dark-color: #1f2937;
+        --light-bg: #f8fafc;
+        --white: #ffffff;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    body {
+    @*background: var(--light-bg);*@
+        background: url('/images/background3.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .patients-container {
+        padding: 2rem 0;
+    }
+
+    .page-header {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+        .page-title i {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+
+    .page-subtitle {
+        color: var(--gray-500);
+        margin-top: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .search-section {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+    }
+
+    .search-form {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 300px;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--gray-200);
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: var(--white);
+    }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+    .search-btn {
+        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 2rem;
+        color: var(--white);
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .search-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .search-btn:hover::before {
+            left: 100%;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+        }
+
+    .patients-table-section {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 0;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+
+    .table-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--gray-100) 0%, var(--white) 100%);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .patient-count {
+        background: var(--primary-color);
+        color: var(--white);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+    }
+
+        .custom-table thead th {
+            background: linear-gradient(135deg, var(--dark-color) 0%, var(--gray-600) 100%);
+            color: var(--white);
+            padding: 1.25rem 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+            .custom-table thead th:first-child {
+                border-top-left-radius: 0;
+            }
+
+            .custom-table thead th:last-child {
+                border-top-right-radius: 0;
+            }
+
+        .custom-table tbody td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--white);
+            transition: all 0.3s ease;
+            vertical-align: middle;
+        }
+
+        .custom-table tbody tr:hover td {
+            background: var(--gray-100);
+            transform: scale(1.001);
+        }
+
+        .custom-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    .patient-name {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 1rem;
+    }
+
+    .patient-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .patient-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        font-weight: 600;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .ward-info, .bed-info {
+        font-weight: 500;
+        color: var(--gray-600);
+    }
+
+    .ward-badge {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary-color);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .bed-badge {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        position: relative;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+    .btn-vitals {
+        background: linear-gradient(45deg, var(--danger-color), #ff6b6b);
+        color: var(--white);
+    }
+
+    .btn-treatment {
+        background: linear-gradient(45deg, var(--success-color), #34d399);
+        color: var(--white);
+    }
+
+    .btn-medication {
+        background: linear-gradient(45deg, var(--warning-color), #fbbf24);
+        color: var(--white);
+    }
+
+    .btn-instructions {
+        background: linear-gradient(45deg, var(--info-color), #38bdf8);
+        color: var(--white);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--gray-500);
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--gray-600);
+        }
+
+    .table-responsive {
+        max-height: 70vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gray-300) transparent;
+    }
+
+        .table-responsive::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+
+            .table-responsive::-webkit-scrollbar-thumb:hover {
+                background: var(--gray-500);
+            }
+
+    @@media (max-width: 768px) {
+        .patients-container {
+            padding: 1rem 0;
+        }
+
+        .page-header {
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .search-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-input {
+            min-width: auto;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .action-btn {
+            text-align: center;
+            justify-content: center;
+        }
+
+        .custom-table {
+            font-size: 0.9rem;
+        }
+
+            .custom-table thead th,
+            .custom-table tbody td {
+                padding: 1rem 0.5rem;
+            }
+
+        .patient-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .patients-table-section {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .filter-select {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--gray-200);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: var(--white);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+</style>
+
+
+<div class="container patient-container mt-3">
+    <!--page header-->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-heartbeat"></i>
+            List of Vitals
+        </h1>
+    </div>
+   
+
+    <div class="search-section">
+        <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
+
+    </div>
+
+    
+        <table class="custom-table mb-3">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-user"></i>Patient Name</th>
+                    <th><i class="fas fa-heartbeat"></i>BP</th>
+                    <th><i class="fas fa-tint"></i>Sugar Level</th>
+                    <th><i class="fas fa-thermometer-half"></i>Temperature</th>
+                    <th><i class="fas fa-heartbeat"></i>Pulse Rate</th>
+                    <th><i class="fas fa-calendar"></i>Recorded On</th>
+                    <th><i class="fas fa-user"></i>Recorded by</th>
+                    <th><i class="fas fa-cog"></i>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="searchResults">
+                @foreach (var vital in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="patient-info">
+                                <div class="patient-avatar">
+                                    @(vital.Patient?.FirstName?.Substring(0, 1))@(vital.Patient?.LastName?.Substring(0, 1))
+                                </div>
+                                <div class="patient-name">@vital.Patient?.FirstName @vital.Patient?.LastName</div>
+                            </div>
+                         </td>
+                        <td>@vital.BP</td>
+                        <td>@vital.SugarLevel</td>
+                        <td>@vital.Temperature</td>
+                        <td>@vital.PulseRate</td>
+                        <td>@vital.Date</td>
+                        <td>@vital.User?.FullName</td>
+                        <td>
+                            <div class="action-buttons">
+                            <a asp-action="VitalsDetails" asp-route-id="@vital.VitalID" class="action-btn btn-vitals">Details</a>
+                            <a asp-action="EditVital" asp-route-id="@vital.VitalID" class=" action-btn btn-treatment">Edit</a>
+                            <a asp-action="DeleteVital" asp-route-id="@vital.VitalID" class="action-btn btn-medication">Delete</a>
+                            </div>
+                            
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+<script>
+    const searchInput = document.getElementById('liveSearchInput');
+
+    function performSearch() {
+        const query = searchInput.value.trim();
+
+        const url = query.length > 0
+            ? `/Nurse/LiveSearchVitals?query=${encodeURIComponent(query)}`
+            : `/Nurse/LiveSearchAllVitals`;
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('searchResults').innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Search failed:', error);
+            });
+    }
+
+    searchInput.addEventListener('input', performSearch);
+</script>

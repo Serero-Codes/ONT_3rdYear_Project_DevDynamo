@@ -7,5 +7,6 @@
         public string LastName { get; set; }
         public string WardName { get; set; }
         public string BedNo { get; set; }
+        public string Status { get; set; }
     }
 }

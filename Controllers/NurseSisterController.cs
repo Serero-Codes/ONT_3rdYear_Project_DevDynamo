@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -134,6 +135,17 @@ namespace ONT_3rdyear_Project.Controllers
             return View(vital);
         }
 
+        //vitals details
+        public async Task<IActionResult> VitalsDetails(int? id)
+        {
+            if (id == null || _context.Vitals == null)
+            {
+                return NotFound();
+            }
+            var vitals = await _context.Vitals.Include(v => v.Patient).Include(v => v.User).FirstOrDefaultAsync(v => v.VitalID == id);
+            return View(vitals);
+        }
+
         public async Task<IActionResult> VitalsExists(int patientId)
         {
             var vital = await _context.Vitals.Include(v => v.User).FirstOrDefaultAsync(v => v.PatientID == patientId);
@@ -155,6 +167,9 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 return NotFound();
             }
+            var nurseId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var nurse = await _context.Users.FindAsync(nurseId);
+            ViewBag.NurseName = nurse?.FullName;
             ViewBag.PatientList = new SelectList(_context.Patients, "PatientID", "FirstName", vital.PatientID);
             ViewBag.UserList = new SelectList(_context.Users, "Id", "FullName", vital.ApplicationUserID);
             ViewBag.VisitList = new SelectList(_context.VisitSchedules, "VisitID", "VisitDate", vital.VisitID);
@@ -174,6 +189,7 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 try
                 {
+                    vital.ApplicationUserID = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
                     _context.Update(vital);
                     await _context.SaveChangesAsync();
                 }
@@ -188,8 +204,9 @@ namespace ONT_3rdyear_Project.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Dashboard));
+                return RedirectToAction(nameof(Vitals));
             }
+
 
             ViewBag.PatientList = new SelectList(_context.Patients, "PatientID", "FirstName", vital.PatientID);
             ViewBag.UserList = new SelectList(_context.Users, "Id", "FullName", vital.ApplicationUserID);
@@ -253,10 +270,7 @@ namespace ONT_3rdyear_Project.Controllers
         public async Task<IActionResult> CreateAdminister(int patientId)
         {
             var patient = await _context.Patients.FindAsync(patientId);
-            if (patient == null)
-            {
-                return NotFound();
-            }
+            if (patient == null) return NotFound();
 
             var existingAdministered = await _context.PatientMedicationScripts
                 .Where(t => t.PatientId == patientId && t.isActive)
@@ -264,49 +278,90 @@ namespace ONT_3rdyear_Project.Controllers
 
             if (existingAdministered != null)
             {
-                // Redirect to manage existing administration
                 return RedirectToAction("ManageAdministered", new { id = existingAdministered.Id });
             }
 
-            ViewBag.PatientId = patient.PatientID;
-            ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
+            var meds = _context.Medications
+                .Select(m => new
+                {
+                    m.MedicationId,
+                    DisplayName = m.Name + " (Schedule " + m.Schedule + ")"
+                })
+                .ToList();
 
-            // Nursing Sister only administers Schedule 5 or 6 meds
-            ViewBag.MedicationList = new SelectList(_context.Medications./*.Where(m => m.Schedule >= 5).*/ToList(),
-                "MedicationId", "Name"
-            );
+            var nurses = _context.Users
+                .Where(u => u.RoleType == "NursingSister")
+                .Select(u => new { u.Id, u.FullName })
+                .ToList();
 
-            // Only show nursing sisters in user list
-            ViewBag.UserList = new SelectList(_context.Users.Where(u => u.RoleType == "NursingSister").ToList(),"Id", "Name");
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var user = await _context.Users.FindAsync(userId);
 
-            return View();
+            ViewBag.UserList = new SelectList(new[] {
+    new { Id = user.Id, Name = user.FullName }
+}, "Id", "Name", userId);
+
+            var model = new AdministerMedicationViewModel
+            {
+                PatientId = patient.PatientID,
+                PatientName = $"{patient.FirstName} {patient.LastName}",
+                ApplicationUserID = userId,
+                AdministeredDate = DateTime.Today,
+                MedicationList = new SelectList(meds, "MedicationId", "DisplayName"),
+                UserList = new SelectList(nurses, "Id", "FullName")
+            };
+
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAdminister(PatientMedicationScript medication)
+        public async Task<IActionResult> CreateAdminister(AdministerMedicationViewModel vm)
         {
-            try
+            var med = await _context.Medications.FindAsync(vm.MedicationId);
+            if (med == null) ModelState.AddModelError("", "Medication not found.");
+
+            if (med?.Schedule > 4 && string.IsNullOrWhiteSpace(vm.PrescriptionNote))
             {
-                _context.PatientMedicationScripts.Add(medication);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Medication successfully administered.";
-                return RedirectToAction(nameof(ListAdministered));
-            }
-            catch (DbUpdateException)
-            {
-                ModelState.AddModelError("", "An error has occurred while saving.");
+                ModelState.AddModelError("PrescriptionNote", "Prescription is required for Schedule 5 and above.");
             }
 
-            var patient = await _context.Patients.FindAsync(medication.PatientId);
-            ViewBag.PatientId = patient?.PatientID;
-            ViewBag.PatientName = $"{patient?.FirstName} {patient?.LastName}";
+            if (!ModelState.IsValid)
+            {
+                var meds = _context.Medications
+                    .Select(m => new {
+                        m.MedicationId,
+                        DisplayName = m.Name + " (Schedule " + m.Schedule + ")"
+                    })
+                    .ToList();
 
-            ViewBag.MedicationList = new SelectList(_context.Medications.Where(m => m.Schedule == 5 || m.Schedule == 6).ToList(),"MedicationId", "Name", medication.MedicationId);
+                var nurses = _context.Users
+                    .Where(u => u.RoleType == "NursingSister")
+                    .Select(u => new { u.Id, u.FullName })
+                    .ToList();
 
-            ViewBag.UserList = new SelectList(_context.Users.Where(u => u.RoleType == "NursingSister").ToList(),"Id", "Name", medication.ApplicationUserID);
+                vm.MedicationList = new SelectList(meds, "MedicationId", "DisplayName", vm.MedicationId);
+                vm.UserList = new SelectList(nurses, "Id", "FullName", vm.ApplicationUserID);
 
-            return View(medication);
+                return View(vm);
+            }
+
+            var script = new PatientMedicationScript
+            {
+                PatientId = vm.PatientId,
+                MedicationId = vm.MedicationId,
+                Dosage = vm.Dosage,
+                AdministeredDate = vm.AdministeredDate,
+                ApplicationUserID = vm.ApplicationUserID,
+                isActive = true,
+                // You can link prescription here later
+            };
+
+            _context.PatientMedicationScripts.Add(script);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Medication successfully administered.";
+            return RedirectToAction("ListAdministered");
         }
 
         public async Task<IActionResult> ManageAdministered(int id)
@@ -772,6 +827,28 @@ namespace ONT_3rdyear_Project.Controllers
 
             return RedirectToAction(nameof(Treatments));
         }
+
+        public IActionResult LiveSearchVitals(string query)
+        {
+            var results = _context.Vitals
+                .Include(v => v.Patient)
+                .Include(v => v.User)
+                .Where(v => v.Patient.FirstName.Contains(query) || v.Patient.LastName.Contains(query))
+                .ToList();
+
+            return PartialView("_VitalSearchResultsPartial", results);
+        }
+
+        public IActionResult LiveSearchAllVitals()
+        {
+            var allVitals = _context.Vitals
+                .Include(v => v.Patient)
+                .Include(v => v.User)
+                .ToList();
+
+            return PartialView("_VitalSearchResultsPartial", allVitals);
+        }
+
 
 
     }

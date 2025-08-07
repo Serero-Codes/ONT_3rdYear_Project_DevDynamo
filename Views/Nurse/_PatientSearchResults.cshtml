@@ -8,17 +8,54 @@
 }
 else
 {
-    foreach (var patient in Model)
+    @foreach (var patient in Model)
     {
         <tr>
-            <td>@patient.FirstName @patient.LastName</td>
-            <td>@patient.WardName</td>
-            <td>@patient.BedNo</td>
             <td>
-                <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="btn btn-danger btn-sm">Vitals</a>
-                <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="btn btn-success btn-sm">Treatment</a>
-                <a asp-controller="Nurse" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="btn btn-warning btn-sm">Medication</a>
-                <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="btn btn-info btn-sm">Instructions</a>
+                <div class="patient-info">
+                    <div class="patient-avatar">
+                        @(patient.FirstName?.Substring(0, 1))@(patient.LastName?.Substring(0, 1))
+                    </div>
+                    <div>
+                        <div class="patient-name">@patient.FirstName @patient.LastName</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span class="ward-badge">@patient.WardName</span>
+            </td>
+            <td>
+                <span class="bed-badge">Bed @patient.BedNo</span>
+            </td>
+            <td>
+                @if (patient.Status == "Admitted")
+                {
+                    <span class="badge bg-success">Admitted</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Not Admitted</span>
+                }
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="action-btn btn-vitals">
+                        <i class="fas fa-heartbeat"></i>
+                        Vitals
+                    </a>
+                    <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment">
+                        <i class="fas fa-user-md"></i>
+                        Treatment
+                    </a>
+                    <a asp-controller="Nurse" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication">
+                        <i class="fas fa-pills"></i>
+                        Medication
+                    </a>
+                    <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions">
+                        <i class="fas fa-clipboard-list"></i>
+                        Instructions
+                    </a>
+                </div>
             </td>
         </tr>
     }
