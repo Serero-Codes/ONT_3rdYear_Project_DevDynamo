@@ -15,13 +15,13 @@ namespace ONT_3rdyear_Project.Services
 
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            var smtpClient = new SmtpClient("smtp.gmail.com")
+            var smtpClient = new SmtpClient(_config["EmailSettings:Host"])
             {
-                Port = 587,
+                Port = int.Parse(_config["EmailSettings:Port"]),
                 Credentials = new NetworkCredential(
                     _config["EmailSettings:SenderEmail"],
                     _config["EmailSettings:SenderPassword"]),
-                EnableSsl = true,
+                EnableSsl = bool.Parse(_config["EmailSettings:EnableSSL"]),
             };
 
             var mailMessage = new MailMessage
@@ -35,6 +35,7 @@ namespace ONT_3rdyear_Project.Services
             mailMessage.To.Add(email);
             await smtpClient.SendMailAsync(mailMessage);
         }
+
     }
 
 }

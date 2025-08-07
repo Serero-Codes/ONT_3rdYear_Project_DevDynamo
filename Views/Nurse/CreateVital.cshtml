@@ -1,50 +1,364 @@
 ﻿@model ONT_3rdyear_Project.Models.Vital
 @{
-	ViewData["Title"] = "Add Vitals";
+    ViewData["Title"] = "Add Vitals";
 }
 
-<h2>Record Vitals for @ViewBag.PatientName</h2>
+<style>
+    .vitals-form-container {
+        background: url('/images/background3.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        padding: 30px 0;
+    }
 
-<form asp-action="AddVitals" method="post">
+    .form-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        text-align: center;
+    }
 
-	<input type="hidden" asp-for="PatientID" value="@ViewBag.PatientId" />
+    .vitals-form-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(15px);
+        border-radius: 25px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        max-width: 800px;
+        margin: 0 auto;
+    }
 
-	<div class="form-group">
-		<label>Patient</label>
-		<input type="text" class="form-control" value="@ViewBag.PatientName" disabled />
-	</div>
+    .patient-info-card {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 35px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+    }
 
-	<div class="form-group">
-		<label asp-for="BP"></label>
-		<input asp-for="BP" class="form-control" />
-		<span asp-validation-for="BP" class="text-danger"></span>
-	</div>
+    .form-group-custom {
+        margin-bottom: 25px;
+        position: relative;
+    }
 
-	<div class="form-group">
-		<label asp-for="Temperature"></label>
-		<input asp-for="Temperature" class="form-control" />
-		<span asp-validation-for="Temperature" class="text-danger"></span>
-	</div>
+    .form-label-custom {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 12px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 
-	<div class="form-group">
-		<label asp-for="SugarLevel"></label>
-		<input asp-for="SugarLevel" class="form-control" />
-		<span asp-validation-for="SugarLevel" class="text-danger"></span>
-	</div>
+    .vital-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        opacity: 0.8;
+    }
 
-	<div class="form-group">
-		<label asp-for="ApplicationUserID">Recorded By</label>
-		<select asp-for="ApplicationUserID" class="form-control" asp-items="ViewBag.UserList"></select>
-		<span asp-validation-for="ApplicationUserID" class="text-danger"></span>
-	</div>
+    .form-control-custom {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 15px 20px;
+        font-size: 16px;
+        font-weight: 500;
+        background: #f8faff;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
 
-	<button type="submit" class="btn btn-success mt-3">Save</button>
-	<a asp-action="Dashboard" class="btn btn-secondary mt-3">Back</a>
-</form>
+        .form-control-custom:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15), 0 4px 20px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
 
+        .form-control-custom:disabled {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+    .input-group-custom {
+        position: relative;
+    }
+
+    .input-unit {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .form-control-custom.with-unit {
+        padding-right: 50px;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+        margin-right: 15px;
+    }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+            color: white;
+        }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+    }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(108, 117, 125, 0.4);
+            color: white;
+        }
+
+    .text-danger {
+        color: #e74c3c !important;
+        font-weight: 500;
+        font-size: 13px;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+    }
+
+        .text-danger:before {
+            content: "⚠";
+            margin-right: 5px;
+            font-size: 12px;
+        }
+
+    .page-title {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 10px;
+        font-size: 2rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-row-custom {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    @@media (max-width: 768px) {
+        .form-row-custom
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    .vitals-form-card {
+        padding: 25px;
+        margin: 0 15px;
+    }
+
+    .btn-save, .btn-back {
+        width: 100%;
+        margin-bottom: 10px;
+        margin-right: 0;
+    }
+
+    }
+
+    .floating-label {
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        color: #6c757d;
+        font-size: 16px;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+
+    .form-control-custom:focus + .floating-label,
+    .form-control-custom:not(:placeholder-shown) + .floating-label {
+        top: -8px;
+        left: 15px;
+        font-size: 12px;
+        color: #667eea;
+        background: white;
+        padding: 0 5px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="vitals-form-container">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="form-header">
+            <h1 class="page-title">
+                <i class="fas fa-plus-circle" style="color: #28a745; margin-right: 15px;"></i>
+                Record Patient Vitals
+            </h1>
+            <p style="color: #6c757d; font-weight: 500; margin: 0;">Enter comprehensive vital signs data</p>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="vitals-form-card">
+            <!-- Patient Info Section -->
+            <div class="patient-info-card">
+                <h3 style="margin: 0; font-size: 1.4rem;">
+                    <i class="fas fa-user-md" style="margin-right: 10px;"></i>
+                    @ViewBag.PatientName
+                </h3>
+                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Patient Information</p>
+            </div>
+
+            <!-- Vitals Form -->
+            <form asp-action="CreateVital" method="post">
+                <input type="hidden" asp-for="PatientID" value="@ViewBag.PatientId" />
+                <input type="hidden" asp-for="Date" value="@DateTime.Now" />
+                <!-- Patient Name (Disabled) -->
+                <div class="form-group-custom">
+                    <label class="form-label-custom">
+                        <svg class="vital-icon" fill="#6c757d" viewBox="0 0 24 24">
+                            <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                        </svg>
+                        Patient
+                    </label>
+                    <input type="text" class="form-control form-control-custom" value="@ViewBag.PatientName" disabled />
+                </div>
+
+                <!-- Vital Signs Grid -->
+                <div class="form-row-custom">
+                    <!-- Blood Pressure -->
+                    <div class="form-group-custom">
+                        <label asp-for="BP" class="form-label-custom">
+                            <svg class="vital-icon" fill="#e74c3c" viewBox="0 0 24 24">
+                                <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
+                            </svg>
+                            Blood Pressure
+                        </label>
+                        <div class="input-group-custom">
+                            <input asp-for="BP" class="form-control form-control-custom with-unit" placeholder="120/80" />
+                            <span class="input-unit">mmHg</span>
+                        </div>
+                        <span asp-validation-for="BP" class="text-danger"></span>
+                    </div>
+
+                    <!-- Temperature -->
+                    <div class="form-group-custom">
+                        <label asp-for="Temperature" class="form-label-custom">
+                            <svg class="vital-icon" fill="#f39c12" viewBox="0 0 24 24">
+                                <path d="M15 13V5A3 3 0 0 0 9 5V13A5 5 0 1 0 15 13M12 4A1 1 0 0 1 13 5V8H11V5A1 1 0 0 1 12 4Z" />
+                            </svg>
+                            Temperature
+                        </label>
+                        <div class="input-group-custom">
+                            <input asp-for="Temperature" class="form-control form-control-custom with-unit" placeholder="36.5" />
+                            <span class="input-unit">°C</span>
+                        </div>
+                        <span asp-validation-for="Temperature" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-row-custom">
+                    <!-- Sugar Level -->
+                    <div class="form-group-custom">
+                        <label asp-for="SugarLevel" class="form-label-custom">
+                            <svg class="vital-icon" fill="#3498db" viewBox="0 0 24 24">
+                                <path d="M12,3A3,3 0 0,1 15,6V8.17C16.78,9.47 18,11.61 18,14C18,17.31 15.31,20 12,20C8.69,20 6,17.31 6,14C6,11.61 7.22,9.47 9,8.17V6A3,3 0 0,1 12,3M12,5A1,1 0 0,0 11,6V8.5L10.5,8.77C9.08,9.54 8,11 8,14C8,16.21 9.79,18 12,18C14.21,18 16,16.21 16,14C16,11 14.92,9.54 13.5,8.77L13,8.5V6A1,1 0 0,0 12,5Z" />
+                            </svg>
+                            Sugar Level
+                        </label>
+                        <div class="input-group-custom">
+                            <input asp-for="SugarLevel" class="form-control form-control-custom with-unit" placeholder="90" />
+                            <span class="input-unit">mg/dL</span>
+                        </div>
+                        <span asp-validation-for="SugarLevel" class="text-danger"></span>
+                    </div>
+
+                    <!-- Pulse Rate -->
+                    <div class="form-group-custom">
+                        <label asp-for="PulseRate" class="form-label-custom">
+                            <svg class="vital-icon" fill="#e74c3c" viewBox="0 0 24 24">
+                                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M17,13H11V7H12.5V11.5H17V13Z" />
+                            </svg>
+                            Pulse Rate
+                        </label>
+                        <div class="input-group-custom">
+                            <input asp-for="PulseRate" class="form-control form-control-custom with-unit" placeholder="72" />
+                            <span class="input-unit">BPM</span>
+                        </div>
+                        <span asp-validation-for="PulseRate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Recorded By -->
+                <div class="form-group-custom">
+                    <label asp-for="ApplicationUserID" class="form-label-custom">
+                        <svg class="vital-icon" fill="#9b59b6" viewBox="0 0 24 24">
+                            <path d="M16,4C18.11,4 19.81,5.69 19.81,7.8C19.81,9.91 18.11,11.6 16,11.6C13.89,11.6 12.2,9.91 12.2,7.8C12.2,5.69 13.89,4 16,4M16,13.4C18.66,13.4 21.8,14.73 21.8,17.4V19.2H10.2V17.4C10.2,14.73 13.34,13.4 16,13.4M8,6A2,2 0 0,1 10,8A2,2 0 0,1 8,10A2,2 0 0,1 6,8A2,2 0 0,1 8,6M8,11.4C10.07,11.4 12,12.36 12,13.4V15H2V13.4C2,12.36 3.93,11.4 8,11.4Z" />
+                        </svg>
+                        Recorded By
+                    </label>
+                    <select asp-for="ApplicationUserID" class="form-control form-control-custom" asp-items="ViewBag.UserList">
+                        <option value="">Select a healthcare provider...</option>
+                    </select>
+                    <span asp-validation-for="ApplicationUserID" class="text-danger"></span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-save">
+                        <i class="fas fa-save" style="margin-right: 8px;"></i>
+                        Save Vitals
+                    </button>
+                    <a asp-action="Dashboard" class="btn btn-back">
+                        <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 @section Scripts {
-	@{
-		await Html.RenderPartialAsync("_ValidationScriptsPartial");
-	}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

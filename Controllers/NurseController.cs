@@ -9,6 +9,7 @@ using ONT_3rdyear_Project.Models;
 using ONT_3rdyear_Project.ViewModels;
 using System.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Security.Claims;
 
 
 namespace ONT_3rdyear_Project.Controllers
@@ -48,7 +49,7 @@ namespace ONT_3rdyear_Project.Controllers
             return View(data);
         }
         // NurseController.cs
-        public async Task<IActionResult> PatientsList()
+        /*public async Task<IActionResult> PatientsList()
         {
             var data = await (
                 from p in _context.Patients
@@ -69,7 +70,32 @@ namespace ONT_3rdyear_Project.Controllers
             ).ToListAsync();
 
             return View(data);
+        }*/
+
+        public async Task<IActionResult> PatientsList()
+        {
+            var data = await (
+                from p in _context.Patients
+                join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
+                from a in admissionGroup.DefaultIfEmpty()
+                join w in _context.Wards on a.WardID equals w.WardID into wardGroup
+                from w in wardGroup.DefaultIfEmpty()
+                join b in _context.Beds on a.BedID equals b.BedId into bedGroup
+                from b in bedGroup.DefaultIfEmpty()
+                select new PatientDashboardViewModel
+                {
+                    PatientID = p.PatientID,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    WardName = w != null ? w.Name : "N/A",
+                    BedNo = b != null ? b.BedNo : "N/A",
+                    Status = a != null ? "Admitted" : "Not Admitted"
+                }
+            ).ToListAsync();
+
+            return View(data);
         }
+
 
         /*public async Task<IActionResult> SearchPatients(string query)
         {
@@ -149,7 +175,7 @@ namespace ONT_3rdyear_Project.Controllers
             return View(vitals);
         }
 
-        public async Task<IActionResult> CreateVital(int PatientID)
+        /*public async Task<IActionResult> CreateVital(int PatientID)
         {
             var patient = await _context.Patients.FindAsync(PatientID);
             if (patient == null)
@@ -174,6 +200,49 @@ namespace ONT_3rdyear_Project.Controllers
            
 
             return View(); 
+        }*/
+        public async Task<IActionResult> CreateVital(int PatientID)
+        {
+            var patient = await _context.Patients.FindAsync(PatientID);
+            if (patient == null)
+            {
+                return NotFound(); // patient ID doesn't exist
+            }
+
+            ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
+            ViewBag.PatientId = PatientID;
+
+            // Check if there's a record for today
+            var today = DateTime.Today;
+            var existingVitals = await _context.Vitals
+                .Where(v => v.PatientID == PatientID && v.Date.Date == today && v.IsActive)
+                .FirstOrDefaultAsync();
+
+            if (existingVitals != null)
+            {
+                // Redirect to details of existing record for today
+                return RedirectToAction("VitalsExists", new { PatientID });
+            }
+
+            var nurses = await _context.Users
+                .Where(u => u.RoleType == "Nurse")
+                .ToListAsync();
+
+            ViewBag.UserList = new SelectList(nurses, "Id", "FullName");
+
+            return View();
+        }
+
+
+        //vitals details
+        public async Task<IActionResult> VitalsDetails(int? id)
+        {
+            if(id == null || _context.Vitals == null)
+            {
+                return NotFound();
+            }
+            var vitals = await _context.Vitals.Include(v => v.Patient).Include(v => v.User).FirstOrDefaultAsync(v => v.VitalID == id);
+            return View(vitals);
         }
 
         [HttpPost]
@@ -216,6 +285,9 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 return NotFound();
             }
+            var nurseId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var nurse = await _context.Users.FindAsync(nurseId);
+            ViewBag.NurseName = nurse?.FullName;
             ViewBag.PatientList = new SelectList(_context.Patients, "PatientID", "FirstName", vital.PatientID);
             ViewBag.UserList = new SelectList(_context.Users, "Id", "FullName", vital.ApplicationUserID);
             ViewBag.VisitList = new SelectList(_context.VisitSchedules, "VisitID", "VisitDate", vital.VisitID);
@@ -235,6 +307,7 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 try
                 {
+                    vital.ApplicationUserID = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
                     _context.Update(vital);
                     await _context.SaveChangesAsync();
                 }
@@ -249,9 +322,10 @@ namespace ONT_3rdyear_Project.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Dashboard));
+                return RedirectToAction(nameof(Vitals));
             }
 
+           
             ViewBag.PatientList = new SelectList(_context.Patients, "PatientID", "FirstName", vital.PatientID);
             ViewBag.UserList = new SelectList(_context.Users, "Id", "FullName", vital.ApplicationUserID);
             ViewBag.VisitList = new SelectList(_context.VisitSchedules, "VisitID", "VisitDate", vital.VisitID);
@@ -942,6 +1016,27 @@ namespace ONT_3rdyear_Project.Controllers
             }).ToList();
 
             return PartialView("_PatientSearchResults", viewModel);
+        }
+
+        public IActionResult LiveSearchVitals(string query)
+        {
+            var results = _context.Vitals
+                .Include(v => v.Patient)
+                .Include(v => v.User)
+                .Where(v => v.Patient.FirstName.Contains(query) || v.Patient.LastName.Contains(query))
+                .ToList();
+
+            return PartialView("_VitalSearchResultsPartial", results);
+        }
+
+        public IActionResult LiveSearchAllVitals()
+        {
+            var allVitals = _context.Vitals
+                .Include(v => v.Patient)
+                .Include(v => v.User)
+                .ToList();
+
+            return PartialView("_VitalSearchResultsPartial", allVitals);
         }
 
 
