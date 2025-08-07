@@ -23,7 +23,7 @@ namespace ONT_3rdyear_Project.Models
         [Required]
         public bool IsActive { get; set; } = true; // Indicates if the assignment is currently active   
 
-        public virtual ApplicationUser ApplicatiikonUser { get; set; } // Navigation property to ApplicationUser (Doctor)
+        public virtual ApplicationUser ApplicationUser { get; set; } // Navigation property to ApplicationUser (Doctor)
         public virtual Patient Patient { get; set; } // Navigation property to Patient
     }
 }

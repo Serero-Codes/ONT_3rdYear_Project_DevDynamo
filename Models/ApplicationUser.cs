@@ -12,6 +12,7 @@ namespace ONT_3rdyear_Project.Models
 
 		public string RoleType { get; set; } // Admin, Nurse, Doctor, etc.
 		
+		public bool IsDeleted { get; set; } = false;
 
 		// Optional relationships
 		public virtual ICollection<Treatment> Treatments { get; set; }

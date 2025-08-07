@@ -47,6 +47,7 @@ namespace ONT_3rdyear_Project.Data
         public DbSet<Ward> Wards { get; set; }
         public DbSet<ConsumableOrder> ConsumableOrders { get; set; }
         public DbSet<PatientMedicationScript> PatientMedicationScripts { get; set; }
+        public DbSet<HospitalInfo> HospitalInfo { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -364,6 +365,10 @@ namespace ONT_3rdyear_Project.Data
                 new PatientMedicationScript { Id = 2, PatientId = 2, MedicationId = 2, VisitID = 2, ApplicationUserID = 2, PrescriptionId = null, AdministeredDate = new DateTime(2025, 7, 14, 11, 15, 0), Dosage = "1 tablet daily after meal"}
              );
 
+            modelBuilder.Entity<HospitalInfo>().HasData(
+               new HospitalInfo { HospitalInfoId = 1, Name = "Sunrise Medical centre", Address = "123 Health Avenue, Cape Town, Western Cape, 8000", Phone = "+27 21 555 1234", EmailAddress = "info@sunrisemedical.co.za", Description = "Sunrise Medical Centre is a state-of-the-art healthcare facility offering comprehensive care, modern technology, and highly qualified staff.", Website = "https://www.sunrisemedical.co.za", DirectorName = "Dr. Lindiwe Mokoena", LastUpdated = DateTime.Now }
+               //new PatientMedicationScript { Id = 2, PatientId = 2, MedicationId = 2, VisitID = 2, ApplicationUserID = 2, PrescriptionId = null, AdministeredDate = new DateTime(2025, 7, 14, 11, 15, 0), Dosage = "1 tablet daily after meal" }
+            );
         }
     }
 }

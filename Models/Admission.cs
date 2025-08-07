@@ -26,8 +26,9 @@ namespace ONT_3rdyear_Project.Models
 
 		public DateOnly AdmissionDate { get; set; }
 
-	
-		public string Notes { get; set; }
+        public DateOnly? DischargeDate { get; set; }
+
+        public string Notes { get; set; }
         [Required]
         public string  ReasonForAdmission { get; set; }
 
