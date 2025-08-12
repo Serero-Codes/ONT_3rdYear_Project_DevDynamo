@@ -236,6 +236,38 @@ namespace ONT_3rdyear_Project.Controllers
                 return View(patient);
             }
 
+        public async Task<IActionResult> ActiveAdmission()
+        {
+            var admissions = await _context.Admissions
+                .Include(a => a.Patient)
+                .Include(a => a.Bed)
+                .ThenInclude(b => b.Ward)
+                .OrderByDescending(a => a.AdmissionDate)
+                .ToListAsync();
+
+            return View(admissions);
+        }
+
+        public async Task<IActionResult> PatientAdmission(int patientId)
+        {
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.PatientID == patientId);
+
+            if (patient == null || patient.IsDeleted)
+            {
+                return NotFound();
+            }
+
+            var admissions = await _context.Admissions
+                .Include(a => a.Bed)
+                .ThenInclude(b => b.Ward)
+                .Where(a => a.PatientID == patientId)
+                .OrderByDescending(a => a.AdmissionDate)
+                .ToListAsync();
+
+            ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
+            return View(admissions);
+        }
+
             // Discharge patient
             [HttpPost]
             [Authorize(Roles = "WardAdmin")]
@@ -520,6 +552,18 @@ namespace ONT_3rdyear_Project.Controllers
 
             return View(admissions);
         }
-        
+
+        //get bed by ward
+        public async Task<IActionResult> bedIndex(int? wardId)
+        {
+            var beds = _context.Beds.Include(b => b.Ward).AsQueryable();
+
+            if (wardId.HasValue)
+            {
+                beds = beds.Where(b => b.WardID == wardId);
+            }
+
+            return View(await beds.ToListAsync());
+        }
     }
 }
