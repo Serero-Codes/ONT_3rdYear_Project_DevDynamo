@@ -5,6 +5,7 @@ namespace ONT_3rdyear_Project.ViewModels
 {
     public class AdministerMedicationViewModel
     {
+        public int Id { get; set; }
         public int PatientId { get; set; }
 
         public string PatientName { get; set; }
@@ -26,6 +27,8 @@ namespace ONT_3rdyear_Project.ViewModels
         public SelectList UserList { get; set; }
 
         public string? PrescriptionNote { get; set; } // Optional for high schedule meds
+        public int? PrescriptionId { get; set; }  // nullable, because not all meds may need prescription
+        public SelectList PrescriptionList { get; set; }
     }
 
 }

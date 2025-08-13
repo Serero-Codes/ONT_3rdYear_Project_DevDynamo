@@ -14,7 +14,7 @@ using System.Security.Claims;
 
 namespace ONT_3rdyear_Project.Controllers
 {
-    [Authorize(Roles = "Nurse")]
+    [Authorize(Roles = "Nurse, Sister")]
     public class NurseController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -27,27 +27,50 @@ namespace ONT_3rdyear_Project.Controllers
 
         public async Task<IActionResult> Dashboard()
         {
+            var today = DateTime.Today;
 
-            var data = await (
-            from p in _context.Patients
-            join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
-            from a in admissionGroup.DefaultIfEmpty()
-            join w in _context.Wards on a.WardID equals w.WardID into wardGroup
-            from w in wardGroup.DefaultIfEmpty()
-            join b in _context.Beds on a.BedID equals b.BedId into bedGroup
-            from b in bedGroup.DefaultIfEmpty()
-            select new PatientDashboardViewModel
+            var totalPatients = await _context.Patients.CountAsync();
+
+            var treatmentsToday = await _context.Treatments
+                .Where(t => t.IsActive)
+                .CountAsync();
+
+            var medicationsGivenToday = await _context.PatientMedicationScripts
+                .Where(m =>  m.isActive)
+                .CountAsync();
+
+            var model = new DashboardViewModel
             {
-                PatientID = p.PatientID,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
-                WardName = w != null ? w.Name : "N/A",
-                BedNo = b != null ? b.BedNo : "N/A"
-            }
-            ).ToListAsync();
+                Stats = new DashboardStatsViewModel
+                {
+                    TotalPatients = totalPatients,
+                    TreatmentsToday = treatmentsToday,
+                    MedicationsGivenToday = medicationsGivenToday,
+                    HoursOnDuty = 24 // Replace with actual logic if needed
+                },
+                Patients = await (
+                    from p in _context.Patients
+                    join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
+                    from a in admissionGroup.DefaultIfEmpty()
+                    join w in _context.Wards on a.WardID equals w.WardID into wardGroup
+                    from w in wardGroup.DefaultIfEmpty()
+                    join b in _context.Beds on a.BedID equals b.BedId into bedGroup
+                    from b in bedGroup.DefaultIfEmpty()
+                    select new PatientDashboardViewModel
+                    {
+                        PatientID = p.PatientID,
+                        FirstName = p.FirstName,
+                        LastName = p.LastName,
+                        WardName = w != null ? w.Name : "N/A",
+                        BedNo = b != null ? b.BedNo : "N/A"
+                    }
+                ).ToListAsync()
+            };
 
-            return View(data);
+            return View(model);
         }
+
+
         // NurseController.cs
         /*public async Task<IActionResult> PatientsList()
         {
@@ -97,28 +120,12 @@ namespace ONT_3rdyear_Project.Controllers
         }
 
 
+
+
         /*public async Task<IActionResult> SearchPatients(string query)
         {
-            var results = await _context.Patients.Include(p => p.Admissions)
-                    .ThenInclude(a => a.Ward)
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Bed)
-                .Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query))
-                .ToListAsync();
-
-            return View("Dashboard", results);
-
-        }*/
-
-        public async Task<IActionResult> SearchPatients(string query)
-        {
-            var patients = await _context.Patients
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Ward)
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Bed)
-                .Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query))
-                .ToListAsync();
+            var patients = await _context.Patients.Include(p => p.Admissions).ThenInclude(a => a.Ward).Include(p => p.Admissions).ThenInclude(a => a.Bed)
+                                                                                                .Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query)).ToListAsync();
 
             // Map to ViewModel
             var patientViewModels = patients.Select(p =>
@@ -129,14 +136,44 @@ namespace ONT_3rdyear_Project.Controllers
                     PatientID = p.PatientID,
                     FirstName = p.FirstName,
                     LastName = p.LastName,
-                    // Gender = p.Gender,
                     WardName = admission?.Ward?.Name ?? "N/A",
                     BedNo = admission?.Bed?.BedNo ?? "N/A"
                 };
             }).ToList();
 
             return View("PatientsList", patientViewModels);
+        }*/
+        public async Task<IActionResult> SearchPatients(string query)
+        {
+            var data = await (
+                from p in _context.Patients
+                join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
+                from a in admissionGroup.DefaultIfEmpty()
+                join w in _context.Wards on a.WardID equals w.WardID into wardGroup
+                from w in wardGroup.DefaultIfEmpty()
+                join b in _context.Beds on a.BedID equals b.BedId into bedGroup
+                from b in bedGroup.DefaultIfEmpty()
+                where p.FirstName.Contains(query) || p.LastName.Contains(query)
+                select new PatientDashboardViewModel
+                {
+                    PatientID = p.PatientID,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    WardName = w != null ? w.Name : "N/A",
+                    BedNo = b != null ? b.BedNo : "N/A",
+                    Status = a != null ? "Admitted" : "Not Admitted"
+                }
+            ).ToListAsync();
+
+            return View("PatientsList", data);
         }
+
+
+
+
+
+
+
 
 
 
@@ -168,6 +205,9 @@ namespace ONT_3rdyear_Project.Controllers
         }*/
 
 
+
+
+
         //CRUD for Vitals
         public async Task<IActionResult> Vitals()
         {
@@ -175,32 +215,7 @@ namespace ONT_3rdyear_Project.Controllers
             return View(vitals);
         }
 
-        /*public async Task<IActionResult> CreateVital(int PatientID)
-        {
-            var patient = await _context.Patients.FindAsync(PatientID);
-            if (patient == null)
-            {
-                return NotFound(); // patient ID doesn't exist
-            }
-
-            ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
-            ViewBag.PatientId = PatientID;
-
-            // Check if the patient already has vitals 
-            var existingVitals = await _context.Vitals.Where(v => v.PatientID == PatientID && v.IsActive).FirstOrDefaultAsync();
-
-            if (existingVitals != null)
-            {
-                return RedirectToAction("VitalsExists", new {PatientID });
-            }
-
-            var nurses = await _context.Users.Where(u => u.RoleType == "Nurse").ToListAsync();
-
-            ViewBag.UserList = new SelectList(nurses, "Id", "FullName");
-           
-
-            return View(); 
-        }*/
+        
         public async Task<IActionResult> CreateVital(int PatientID)
         {
             var patient = await _context.Patients.FindAsync(PatientID);
@@ -213,22 +228,24 @@ namespace ONT_3rdyear_Project.Controllers
             ViewBag.PatientId = PatientID;
 
             // Check if there's a record for today
-            var today = DateTime.Today;
-            var existingVitals = await _context.Vitals
-                .Where(v => v.PatientID == PatientID && v.Date.Date == today && v.IsActive)
-                .FirstOrDefaultAsync();
+            /* var today = DateTime.Today;
+             var existingVitals = await _context.Vitals
+                 .Where(v => v.PatientID == PatientID && v.Date.Date == today && v.IsActive)
+                 .FirstOrDefaultAsync();
 
-            if (existingVitals != null)
-            {
-                // Redirect to details of existing record for today
-                return RedirectToAction("VitalsExists", new { PatientID });
-            }
+             if (existingVitals != null)
+             {
+                 // Redirect to details of existing record for today
+                 return RedirectToAction("VitalsExists", new { PatientID });
+             }*/
 
-            var nurses = await _context.Users
-                .Where(u => u.RoleType == "Nurse")
-                .ToListAsync();
+            /* var nurses = await _context.Users
+                 .Where(u => u.RoleType == "Nurse," || u.RoleType == "Sister")
+                 .ToListAsync();
 
-            ViewBag.UserList = new SelectList(nurses, "Id", "FullName");
+             ViewBag.UserList = new SelectList(nurses, "Id", "FullName");*/
+            var user = await _userManager.GetUserAsync(User);
+            ViewBag.CurrentUserName = user.FullName;
 
             return View();
         }
@@ -249,10 +266,13 @@ namespace ONT_3rdyear_Project.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateVital(Vital vital)
         {
+            var user = await _userManager.GetUserAsync(User);
+            vital.ApplicationUserID = user.Id;
             if (ModelState.IsValid)
             {
                 _context.Add(vital);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Vitals successfully taken!";
                 return RedirectToAction(nameof(Vitals));
             }
 
@@ -261,6 +281,9 @@ namespace ONT_3rdyear_Project.Controllers
             ViewBag.UserList = new SelectList(nurses, "Id", "FullName", vital.ApplicationUserID);
             ViewBag.VisitList = new SelectList(_context.VisitSchedules.ToList(), "VisitID", "VisitDate", vital.VisitID);
 
+
+            var userId = int.Parse(_userManager.GetUserId(User));
+            vital.ApplicationUserID = userId;
             return View(vital);
         }
 
@@ -310,6 +333,8 @@ namespace ONT_3rdyear_Project.Controllers
                     vital.ApplicationUserID = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
                     _context.Update(vital);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Vitals successfully updated!";
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -357,6 +382,7 @@ namespace ONT_3rdyear_Project.Controllers
                 vital.IsActive = false;
                 _context.Update(vital);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Vitals successfully deleted!";
             }
             return RedirectToAction(nameof(Vitals));
         }
@@ -409,26 +435,34 @@ namespace ONT_3rdyear_Project.Controllers
             return View(treatment);
         }
 
-        // GET: CreateTreatment for a specific patient (and optionally visit)
+        
         public async Task<IActionResult> CreateTreatment(int patientId)
         {
             var patient = await _context.Patients.FindAsync(patientId);
             if (patient == null)
                 return NotFound();
 
-            // Check if an active treatment exists for this patient
-            var existingTreatment = await _context.Treatments.Where(t => t.PatientID == patientId && t.IsActive).FirstOrDefaultAsync();
+            ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
+            ViewBag.PatientId = patientId;
+            // ✅ Correct way to check if there's a treatment today
+            /*var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+
+            var existingTreatment = await _context.Treatments
+                .Where(v => v.PatientID == patientId
+                         && v.TreatmentDate >= today
+                         && v.TreatmentDate < tomorrow
+                         && v.IsActive)
+                .FirstOrDefaultAsync();
 
             if (existingTreatment != null)
             {
-                // Redirect to TreatmentExists page 
                 return RedirectToAction("TreatmentExists", new { patientId });
-            }
+            }*/
 
-            ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
-            ViewBag.PatientId = patientId;
-
+            // Continue as normal
             
+
             var visits = await _context.VisitSchedules.Where(v => v.PatientID == patientId).ToListAsync();
             ViewBag.VisitList = new SelectList(visits, "VisitID", "VisitDate");
 
@@ -443,6 +477,7 @@ namespace ONT_3rdyear_Project.Controllers
 
             return View(new Treatment { PatientID = patientId });
         }
+
 
         // POST: CreateTreatment
         [HttpPost]
@@ -499,7 +534,7 @@ namespace ONT_3rdyear_Project.Controllers
 
             _context.Treatments.Add(treatment);
             await _context.SaveChangesAsync();
-
+            TempData["SuccessMessage"] = "Treatment successfully performed!";
             return RedirectToAction("Treatments", new { PatientId = treatment.PatientID });
         }
 
@@ -530,6 +565,9 @@ namespace ONT_3rdyear_Project.Controllers
                 return x;
             }).ToList();
 
+            var nurseId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var nurse = await _context.Users.FindAsync(nurseId);
+            ViewBag.NurseName = nurse?.FullName;
             return View(treatment);
         }
 
@@ -585,10 +623,14 @@ namespace ONT_3rdyear_Project.Controllers
                 existingTreatment.TreatmentDate = model.TreatmentDate;
 
                 // Keep other fields like PatientID, ApplicationUserID unchanged or adjust as needed
+                model.ApplicationUserID = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+                existingTreatment.ApplicationUserID = int.Parse(
+    User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+);
 
                 _context.Update(existingTreatment);
                 await _context.SaveChangesAsync();
-
+                TempData["SuccessMessage"] = "Treatment successfully updated!";
                 return RedirectToAction("Treatments");
             }
             catch (DbUpdateConcurrencyException)
@@ -607,10 +649,7 @@ namespace ONT_3rdyear_Project.Controllers
                 return NotFound();
             }
 
-            var treatment = await _context.Treatments
-                .Include(t => t.Patient)
-                .Include(t => t.VisitSchedule)
-                .FirstOrDefaultAsync(t => t.TreatmentID == id && t.IsActive);
+            var treatment = await _context.Treatments.Include(t => t.Patient).Include(t => t.VisitSchedule).FirstOrDefaultAsync(t => t.TreatmentID == id && t.IsActive);
 
             if (treatment == null)
             {
@@ -631,6 +670,7 @@ namespace ONT_3rdyear_Project.Controllers
                 treatment.IsActive = false; 
                 _context.Treatments.Update(treatment);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Treatment successfully deleted!";
             }
 
             return RedirectToAction(nameof(Treatments)); 
@@ -694,7 +734,7 @@ namespace ONT_3rdyear_Project.Controllers
                 return NotFound();
             }
 
-            var existingAdministered = await _context.PatientMedicationScripts
+           /* var existingAdministered = await _context.PatientMedicationScripts
                 .Where(t => t.PatientId == patientId && t.isActive)
                 .FirstOrDefaultAsync();
 
@@ -702,7 +742,7 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 // Redirect to TreatmentExists page 
                 return RedirectToAction("ManageAdministered", new { id = existingAdministered.Id });
-            }
+            }*/
 
             ViewBag.PatientId = patient.PatientID;
             ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
@@ -721,6 +761,7 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 _context.PatientMedicationScripts.Add(medication);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Medication administered successfully!";
                 return RedirectToAction(nameof(Administered));
             }
             catch (DbUpdateException)
@@ -768,7 +809,7 @@ namespace ONT_3rdyear_Project.Controllers
             .Include(v => v.VisitSchedule)
             .FirstOrDefaultAsync(m => m.Id == id);
 
-            //var medication = await _context.PatientMedicationScripts.FindAsync(id);
+            
             if (medication == null)
                 return NotFound();
 
@@ -800,6 +841,7 @@ namespace ONT_3rdyear_Project.Controllers
             // DO NOT override isActive or navigation properties like Patient, VisitSchedule
 
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Medication successfully updated!";
             return RedirectToAction(nameof(Administered));
         }
 
@@ -828,6 +870,7 @@ namespace ONT_3rdyear_Project.Controllers
                 medication.isActive = false;
                 _context.PatientMedicationScripts.Update(medication);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Medication successfully Deleted!";
             }
             return RedirectToAction(nameof(Administered));
         }
@@ -914,39 +957,11 @@ namespace ONT_3rdyear_Project.Controllers
 
             _context.Instructions.Add(request);
             await _context.SaveChangesAsync();
-
+            TempData["SuccessMessage"] = "Advice successfully requested!";
             return RedirectToAction("InstructionList");
         }
 
-        /*[HttpGet]
-        public async Task<IActionResult> LiveSearch(string query)
-        {
-            var patients = await _context.Patients
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Ward)
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Bed)
-                .Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query))
-                .ToListAsync();
-
-            var viewModel = patients.Select(p =>
-            {
-                var admission = p.Admissions; // single admission assumed
-
-                return new PatientDashboardViewModel
-                {
-                    PatientID = p.PatientID,
-                    FirstName = p.FirstName,
-                    LastName = p.LastName,
-                    WardName = admission?.Ward?.Name ?? "N/A",
-                    BedNo = admission?.Bed?.BedNo ?? "N/A"
-                };
-            }).ToList();
-
-            return PartialView("_PatientSearchResults", viewModel);
-        }
-
-*/
+        
 
         [HttpGet]
         public async Task<IActionResult> LiveSearch(string query, string ward, string bed)
@@ -991,7 +1006,7 @@ namespace ONT_3rdyear_Project.Controllers
 
             return PartialView("_PatientSearchResults", viewModel);
         }
-        [HttpGet]
+        /*[HttpGet]
         public async Task<IActionResult> LiveSearchAll()
         {
             var patients = await _context.Patients
@@ -1016,7 +1031,54 @@ namespace ONT_3rdyear_Project.Controllers
             }).ToList();
 
             return PartialView("_PatientSearchResults", viewModel);
+        }*/
+
+        public async Task<IActionResult> LiveSearchAll()
+        {
+            var patients = await _context.Patients
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Ward)
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Bed)
+                .ToListAsync();
+
+            var viewModel = patients.Select(p => new PatientDashboardViewModel
+            {
+                PatientID = p.PatientID,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                WardName = p.Admissions != null ? p.Admissions.Ward.Name : "N/A",
+                BedNo = p.Admissions != null ? p.Admissions.Bed.BedNo : "N/A",
+                Status = p.Admissions != null ? "Admitted" : "Not Admitted"
+            }).ToList();
+
+            return PartialView("_PatientSearchResults", viewModel);
         }
+
+        public async Task<IActionResult> LiveSearch(string query)
+        {
+            var patients = await _context.Patients
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Ward)
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Bed)
+                .Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query))
+                .ToListAsync();
+
+            var viewModel = patients.Select(p => new PatientDashboardViewModel
+            {
+                PatientID = p.PatientID,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                WardName = p.Admissions != null ? p.Admissions.Ward.Name : "N/A",
+                BedNo = p.Admissions != null ? p.Admissions.Bed.BedNo : "N/A",
+                Status = p.Admissions != null ? "Admitted" : "Not Admitted"
+            }).ToList();
+
+            return PartialView("_PatientSearchResults", viewModel);
+        }
+
+
 
         public IActionResult LiveSearchVitals(string query)
         {
@@ -1037,6 +1099,36 @@ namespace ONT_3rdyear_Project.Controllers
                 .ToList();
 
             return PartialView("_VitalSearchResultsPartial", allVitals);
+        }
+
+        public IActionResult LiveSearchTreatments(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return LiveSearchAllTreatments();
+            }
+
+            var results = _context.Treatments
+                .Include(v => v.Patient)
+                .Include(v => v.User)
+                .Where(v => v.Patient != null &&
+                    (EF.Functions.Like(v.Patient.FirstName, $"%{query}%") ||
+                     EF.Functions.Like(v.Patient.LastName, $"%{query}%")))
+                .ToList();
+
+            return PartialView("_TreatmentSearchResultsPartial", results);
+        }
+
+
+
+        public IActionResult LiveSearchAllTreatments()
+        {
+            var allTreatments = _context.Treatments
+                .Include(v => v.Patient)
+                .Include(v => v.User)
+                .ToList();
+
+            return PartialView("_TreatmentSearchResultsPartial", allTreatments);
         }
 
 

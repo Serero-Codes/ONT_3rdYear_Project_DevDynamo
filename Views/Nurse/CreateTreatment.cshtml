@@ -281,14 +281,7 @@
                 <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Treatment Plan for Patient</p>
             </div>
 
-            <!-- Form Description -->
-            <div class="form-description">
-                <h4>
-                    <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
-                    Treatment Information
-                </h4>
-                <p>Select the appropriate treatment type from the list below. If your specific treatment is not listed, choose "Other" to enter a custom treatment plan.</p>
-            </div>
+           
 
             <!-- Treatment Form -->
             <form asp-action="CreateTreatment" method="post">
@@ -297,9 +290,7 @@
                 <!-- Patient Name (Disabled) -->
                 <div class="form-group-custom">
                     <label class="form-label-custom">
-                        <svg class="treatment-icon" fill="#6c757d" viewBox="0 0 24 24">
-                            <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
-                        </svg>
+                        
                         Patient
                     </label>
                     <input type="text" class="form-control form-control-custom" value="@ViewBag.PatientName" disabled />
@@ -308,9 +299,7 @@
                 <!-- Treatment Type Selection -->
                 <div class="form-group-custom">
                     <label asp-for="TreatmentType" class="form-label-custom">
-                        <svg class="treatment-icon" fill="#28a745" viewBox="0 0 24 24">
-                            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M17,13H13V17H11V13H7V11H11V7H13V11H17V13Z" />
-                        </svg>
+                       
                         Treatment Type
                     </label>
                     <div class="select-wrapper">
@@ -329,9 +318,6 @@
                 <div class="form-group-custom">
                     <div class="other-treatment-container" id="otherTreatmentDiv">
                         <label class="form-label-custom">
-                            <svg class="treatment-icon" fill="#f39c12" viewBox="0 0 24 24">
-                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-                            </svg>
                             Custom Treatment
                         </label>
                         <input type="text" id="TreatmentTypeOther" name="TreatmentTypeOther" class="form-control form-control-custom other-treatment-input" placeholder="Enter custom treatment details..." />

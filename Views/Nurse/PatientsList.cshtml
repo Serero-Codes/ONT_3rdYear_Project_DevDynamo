@@ -43,7 +43,7 @@
     </div>
 </div>
  *@
- @model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
+@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
 @{
     ViewData["Title"] = "Patients";
 }
@@ -70,6 +70,9 @@
         --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
         --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    html, body{
+        overflow: hidden !important;
     }
 
     body {
@@ -105,10 +108,10 @@
         gap: 1rem;
     }
 
-    .page-title i {
-        color: var(--primary-color);
-        font-size: 1.8rem;
-    }
+        .page-title i {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
 
     .page-subtitle {
         color: var(--gray-500);
@@ -143,11 +146,11 @@
         background: var(--white);
     }
 
-    .search-input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
 
     .search-btn {
         background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
@@ -162,25 +165,25 @@
         overflow: hidden;
     }
 
-    .search-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        transition: left 0.6s;
-    }
+        .search-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
 
-    .search-btn:hover::before {
-        left: 100%;
-    }
+        .search-btn:hover::before {
+            left: 100%;
+        }
 
-    .search-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
-    }
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+        }
 
     .patients-table-section {
         background: var(--white);
@@ -189,6 +192,9 @@
         box-shadow: var(--shadow);
         border: 1px solid var(--gray-200);
         overflow: hidden;
+        max-height: 70vh;
+        display: flex;
+        flex-direction: column;
     }
 
     .table-header {
@@ -198,6 +204,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-shrink: 0;
     }
 
     .table-title {
@@ -219,51 +226,78 @@
         font-weight: 600;
     }
 
+    .table-responsive {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gray-300) transparent;
+    }
+
+        .table-responsive::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+
+            .table-responsive::-webkit-scrollbar-thumb:hover {
+                background: var(--gray-500);
+            }
+
     .custom-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
         margin: 0;
+        min-width: 800px;
     }
 
-    .custom-table thead th {
-        background: linear-gradient(135deg, var(--dark-color) 0%, var(--gray-600) 100%);
-        color: var(--white);
-        padding: 1.25rem 1rem;
-        font-weight: 600;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border: none;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
+        .custom-table thead th {
+            background: linear-gradient(135deg, var(--dark-color) 0%, var(--gray-600) 100%);
+            color: var(--white);
+            padding: 1.25rem 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
 
-    .custom-table thead th:first-child {
-        border-top-left-radius: 0;
-    }
+            .custom-table thead th:first-child {
+                border-top-left-radius: 0;
+            }
 
-    .custom-table thead th:last-child {
-        border-top-right-radius: 0;
-    }
+            .custom-table thead th:last-child {
+                border-top-right-radius: 0;
+            }
 
-    .custom-table tbody td {
-        padding: 1.25rem 1rem;
-        border-bottom: 1px solid var(--gray-200);
-        background: var(--white);
-        transition: all 0.3s ease;
-        vertical-align: middle;
-    }
+        .custom-table tbody td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--white);
+            transition: all 0.3s ease;
+            vertical-align: middle;
+        }
 
-    .custom-table tbody tr:hover td {
-        background: var(--gray-100);
-        transform: scale(1.001);
-    }
+        .custom-table tbody tr:hover td {
+            background: var(--gray-100);
+            transform: scale(1.001);
+        }
 
-    .custom-table tbody tr:last-child td {
-        border-bottom: none;
-    }
+        .custom-table tbody tr:last-child td {
+            border-bottom: none;
+        }
 
     .patient-name {
         font-weight: 600;
@@ -337,26 +371,26 @@
         white-space: nowrap;
     }
 
-    .action-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        transition: left 0.5s;
-    }
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
 
-    .action-btn:hover::before {
-        left: 100%;
-    }
+        .action-btn:hover::before {
+            left: 100%;
+        }
 
-    .action-btn:hover {
-        transform: translateY(-2px);
-        text-decoration: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
 
     .btn-vitals {
         background: linear-gradient(45deg, var(--danger-color), #ff6b6b);
@@ -384,100 +418,83 @@
         color: var(--gray-500);
     }
 
-    .empty-state i {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
 
-    .empty-state h3 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        color: var(--gray-600);
-    }
-
-    .table-responsive {
-        max-height: 70vh;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: var(--gray-300) transparent;
-    }
-
-    .table-responsive::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .table-responsive::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb {
-        background: var(--gray-300);
-        border-radius: 3px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb:hover {
-        background: var(--gray-500);
-    }
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--gray-600);
+        }
 
     @@media (max-width: 768px) {
-        .patients-container {
-            padding: 1rem 0;
-        }
+        .patients-container
 
-        .page-header {
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
+    {
+        padding: 1rem 0;
+    }
 
-        .page-title {
-            font-size: 1.5rem;
-        }
+    .page-header {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
 
-        .search-form {
-            flex-direction: column;
-            align-items: stretch;
-        }
+    .page-title {
+        font-size: 1.5rem;
+    }
 
-        .search-input {
-            min-width: auto;
-        }
+    .search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-        .action-buttons {
-            flex-direction: column;
-            align-items: stretch;
-        }
+    .search-input {
+        min-width: auto;
+    }
 
-        .action-btn {
-            text-align: center;
-            justify-content: center;
-        }
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-        .custom-table {
-            font-size: 0.9rem;
-        }
+    .action-btn {
+        text-align: center;
+        justify-content: center;
+    }
+
+    .custom-table {
+        font-size: 0.9rem;
+    }
 
         .custom-table thead th,
         .custom-table tbody td {
             padding: 1rem 0.5rem;
         }
 
-        .patient-info {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
+    .patient-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
     }
 
     @@keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     }
 
     .patients-table-section {
@@ -499,8 +516,15 @@
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
-</style>
 
+    #btn-back{
+        margin-left: 40%;
+        border-radius:50px;
+    }
+</style>
+@{
+    var medicationController = User.IsInRole("Sister") ? "NurseSister" : "Nurse";
+}
 <div class="container patients-container">
     <!-- Page Header -->
     <div class="page-header">
@@ -511,16 +535,7 @@
         <p class="page-subtitle">Manage and monitor all patient information and care activities</p>
     </div>
 
-    <!-- Search Section -->
-    @* <div class="search-section">
-        <form asp-action="SearchPatients" method="get" class="search-form">
-            <input type="text" name="query" class="search-input" placeholder="🔍 Search by patient name..."  value="@Context.Request.Query["query"]"  />
-            <button type="submit" class="search-btn">
-                <i class="fas fa-search"></i>
-                Search
-            </button>
-        </form>
-    </div> *@
+   
 
     <div class="search-section">
         <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
@@ -540,100 +555,82 @@
             <option value="Bed2">Bed 2</option>
             <option value="Bed3">Bed 3</option>
         </select>
-        
+
+        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
 
-
-    <table class="custom-table">
-        <thead>
-            <tr>
-                <th><i class="fas fa-user"></i> Patient Name</th>
-                <th><i class="fas fa-home"></i> Ward</th>
-                <th><i class="fas fa-bed"></i> Bed</th>
-                <th>Status</th>
-                <th><i class="fas fa-cogs"></i> Actions</th>
-            </tr>
-        </thead>
-        <tbody id="searchResults">
-            @foreach (var patient in Model)
-            {
-                <tr>
-                    <td>
-                        <div class="patient-info">
-                            <div class="patient-avatar">
-                                @(patient.FirstName?.Substring(0, 1))@(patient.LastName?.Substring(0, 1))
-                            </div>
-                            <div>
-                                <div class="patient-name">@patient.FirstName @patient.LastName</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="ward-badge">@patient.WardName</span>
-                    </td>
-                    <td>
-                        <span class="bed-badge">Bed @patient.BedNo</span>
-                    </td>
-                    <td>
-                        @if (patient.Status == "Admitted")
-                        {
-                            <span class="badge bg-success">Admitted</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">Not Admitted</span>
-                        }
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="action-btn btn-vitals">
-                                <i class="fas fa-heartbeat"></i>
-                                Vitals
-                            </a>
-                            <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment">
-                                <i class="fas fa-user-md"></i>
-                                Treatment
-                            </a>
-                            <a asp-controller="Nurse" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication">
-                                <i class="fas fa-pills"></i>
-                                Medication
-                            </a>
-                            <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions">
-                                <i class="fas fa-clipboard-list"></i>
-                                Instructions
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <!-- Patients Table Section -->
+    <div class="patients-table-section">
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-user"></i> Patient Name</th>
+                        <th><i class="fas fa-home"></i> Ward</th>
+                        <th><i class="fas fa-bed"></i> Bed</th>
+                        <th>Status</th>
+                        <th><i class="fas fa-cogs"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="searchResults">
+                    @foreach (var patient in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="patient-info">
+                                    <div class="patient-avatar">
+                                        @(patient.FirstName?.Substring(0, 1))@(patient.LastName?.Substring(0, 1))
+                                    </div>
+                                    <div>
+                                        <div class="patient-name">@patient.FirstName @patient.LastName</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="ward-badge">@patient.WardName</span>
+                            </td>
+                            <td>
+                                <span class="bed-badge">Bed @patient.BedNo</span>
+                            </td>
+                            <td>
+                                @if (patient.Status == "Admitted")
+                                {
+                                    <span class="badge bg-success">Admitted</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Not Admitted</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="action-btn btn-vitals">
+                                        <i class="fas fa-heartbeat"></i>
+                                        Vitals
+                                    </a>
+                                    <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment">
+                                        <i class="fas fa-user-md"></i>
+                                        Treatment
+                                    </a>
+                                    <a asp-controller="@medicationController" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication">
+                                        <i class="fas fa-pills"></i>
+                                        Medication
+                                    </a>
+                                    <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions">
+                                        <i class="fas fa-clipboard-list"></i>
+                                        Instructions
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-
-
-@* <script>
-    const searchInput = document.getElementById('liveSearchInput');
-    let debounceTimer;
-
-    searchInput.addEventListener('input', function () {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            const query = searchInput.value.trim();
-            const url = query.length > 0
-                ? `/Nurse/LiveSearch?query=${encodeURIComponent(query)}`
-                : `/Nurse/LiveSearchAll`;
-
-            fetch(url)
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('searchResults').innerHTML = html;
-                })
-                .catch(error => {
-                    console.error('Search failed:', error);
-                });
-        }, 300); // wait 300ms after last keystroke
-    });
-</script> *@
 
 <script>
     const searchInput = document.getElementById('liveSearchInput');
@@ -671,10 +668,6 @@
     wardFilter.addEventListener('change', performSearch);
     bedFilter.addEventListener('change', performSearch);
 </script>
-
-
-
-
 
 
    

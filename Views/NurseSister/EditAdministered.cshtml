@@ -1,5 +1,10 @@
-﻿@model ONT_3rdyear_Project.Models.PatientMedicationScript
-<div class="container mt-4">
+﻿@* @model ONT_3rdyear_Project.Models.PatientMedicationScript *@
+@model ONT_3rdyear_Project.ViewModels.AdministerMedicationViewModel
+
+@{
+    ViewData["Title"] = "Edit Administered Medication";
+}
+@* <div class="container mt-4">
     <h2>Edit Administered Medication</h2>
 
 
@@ -38,12 +43,87 @@
         </div>
         
     </form>
+</div> *@
+<div class="container mt-4">
+    <h2>Edit Administered Medication</h2>
+
+    <form asp-action="EditAdministered" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="PatientId" />
+        <input type="hidden" id="MedicationSchedule" />
+
+        <div class="form-group">
+            <label>Patient</label>
+            <input type="text" class="form-control" value="@Model.PatientName" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="MedicationId"></label>
+            <select asp-for="MedicationId"
+                    class="form-control"
+                    asp-items="Model.MedicationList"
+                    id="MedicationId"
+                    onchange="updateSchedule(this)">
+                <option value="">-- Select Medication --</option>
+            </select>
+            <span asp-validation-for="MedicationId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ApplicationUserID">Administered By</label>
+            <select asp-for="ApplicationUserID" class="form-control" asp-items="Model.UserList" disabled></select>
+            <input type="hidden" asp-for="ApplicationUserID" />
+            <span asp-validation-for="ApplicationUserID" class="text-danger"></span>
+        </div>
+
+        <div id="prescriptionField" style="display:none;" class="form-group">
+            <label asp-for="PrescriptionId">Select Prescription</label>
+            <select asp-for="PrescriptionId" class="form-control" asp-items="Model.PrescriptionList">
+                <option value="">-- Select Prescription --</option>
+            </select>
+            <span asp-validation-for="PrescriptionId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Dosage"></label>
+            <input asp-for="Dosage" class="form-control" />
+            <span asp-validation-for="Dosage" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="AdministeredDate"></label>
+            <input asp-for="AdministeredDate" type="date" class="form-control" />
+            <span asp-validation-for="AdministeredDate" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success mt-4 mb-5">Save</button>
+        <a asp-action="ListAdministered" class="btn btn-secondary mt-4 mb-5">Cancel</a>
+    </form>
 </div>
 
-@section Scripts {
+
+@* @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+}
+ *@
+@section Scripts {
+    <script>
+        function updateSchedule(select) {
+            const selected = select.options[select.selectedIndex];
+            const schedule = parseInt(selected.text.match(/Schedule (\d+)/)?.[1] || 0);
+            document.getElementById('MedicationSchedule').value = schedule;
+            document.getElementById('prescriptionField').style.display = schedule > 4 ? 'block' : 'none';
+        }
+
+        window.onload = function () {
+            const select = document.getElementById("MedicationId");
+            if (select) updateSchedule(select);
+        };
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }
 
 @* <!-- Success Modal -->
