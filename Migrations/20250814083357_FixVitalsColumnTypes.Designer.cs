@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ONT_3rdyear_Project.Data;
 
@@ -11,9 +12,11 @@ using ONT_3rdyear_Project.Data;
 namespace ONT_3rdyear_Project.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250814083357_FixVitalsColumnTypes")]
+    partial class FixVitalsColumnTypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -310,7 +313,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "3845b0d7-e089-42e6-81e6-579592a940ff",
+                            ConcurrencyStamp = "df6e8e6f-c18b-4ce9-b35a-cd1011163c57",
                             Email = "doctor@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Dr. John Doe",
@@ -318,7 +321,7 @@ namespace ONT_3rdyear_Project.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "DOCTOR@HOSPITAL.COM",
                             NormalizedUserName = "DOCTOR@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOqIBA/twpwCLmRzFH1CkbEbaT86ku7AnHXV5sO1MW9b4oXq0Q9Oi7D20nRvIh50Jg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKg06sboeX1lYLioVwz+b2/ph9HWD7f8DPpob0xx3FqhHEuUnZrEEtJAekzOkLhFBw==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Doctor",
                             TwoFactorEnabled = false,
@@ -328,7 +331,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "35a54372-faca-4bbe-b562-671ed3d3aea3",
+                            ConcurrencyStamp = "8ed86d59-2e1d-4bc9-aeca-2eac38844a52",
                             Email = "nurse@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Nurse Thabo",
@@ -336,7 +339,7 @@ namespace ONT_3rdyear_Project.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "NURSE@HOSPITAL.COM",
                             NormalizedUserName = "NURSE@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFg5hRvSGUcjbBL3JAXDWnlNcw4WChkH4KB97zTINMEBNqlEvA//CJrZOlMgOrhdsg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAowxTDkhJVYmnOe3llbONgSGjiAWP9GYxvzQSrxWj9fRVU63PfWQCepfkMWVJBRXw==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Nurse",
                             TwoFactorEnabled = false,
@@ -623,7 +626,7 @@ namespace ONT_3rdyear_Project.Migrations
                             Description = "Sunrise Medical Centre is a state-of-the-art healthcare facility offering comprehensive care, modern technology, and highly qualified staff.",
                             DirectorName = "Dr. Lindiwe Mokoena",
                             EmailAddress = "info@sunrisemedical.co.za",
-                            LastUpdated = new DateTime(2025, 8, 14, 10, 39, 47, 610, DateTimeKind.Local).AddTicks(8136),
+                            LastUpdated = new DateTime(2025, 8, 14, 10, 33, 55, 592, DateTimeKind.Local).AddTicks(308),
                             Name = "Sunrise Medical centre",
                             Phone = "+27 21 555 1234",
                             Website = "https://www.sunrisemedical.co.za"
@@ -755,9 +758,6 @@ namespace ONT_3rdyear_Project.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
                     b.Property<int>("Schedule")
                         .HasColumnType("int");
 
@@ -772,7 +772,6 @@ namespace ONT_3rdyear_Project.Migrations
                             ExpiryDate = new DateOnly(2026, 1, 1),
                             IsDeleted = false,
                             Name = "Paracetamol",
-                            Quantity = 0,
                             Schedule = 1
                         },
                         new
@@ -781,7 +780,6 @@ namespace ONT_3rdyear_Project.Migrations
                             ExpiryDate = new DateOnly(2025, 12, 1),
                             IsDeleted = false,
                             Name = "Insulin",
-                            Quantity = 0,
                             Schedule = 4
                         });
                 });
