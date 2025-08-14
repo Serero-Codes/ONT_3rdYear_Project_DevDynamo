@@ -18,6 +18,8 @@ namespace ONT_3rdyear_Project.Models
 		[Required]
 		public bool IsOccupied { get; set; }
 
+		public bool IsDeleted { get; set; } = false;
+
 		public virtual Ward Ward { get; set; }
 		public virtual Admission Admissions { get; set; }
 	}

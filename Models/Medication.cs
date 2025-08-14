@@ -15,6 +15,7 @@ namespace ONT_3rdyear_Project.Models
         public int Schedule { get; set; }
         public DateOnly ExpiryDate { get; set; }
 
+		public bool IsDeleted { get; set; } = false;
 		public virtual ICollection<PharmacyMedication> PharmacyMedications { get; set; }
 		public virtual ICollection<PrescribeMedication> PrescribeMadications { get; set; }
 		public virtual ICollection<PatientMedicationScript> PatientMedicationScripts { get; set; }

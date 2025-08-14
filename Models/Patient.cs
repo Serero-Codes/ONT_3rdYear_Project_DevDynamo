@@ -21,6 +21,8 @@ namespace ONT_3rdyear_Project.Models
 		[Required]
 		public bool Admitted { get; set; } = false;
 
+		public bool IsDeleted { get; set; } = false;
+
 		public virtual ICollection<PatientMedicationScript> PatientMedicationScripts { get; set; }
 		public virtual ICollection<Instruction> Instructions { get; set; }
 		public virtual ICollection<Treatment> Treatments { get; set; }
@@ -32,5 +34,6 @@ namespace ONT_3rdyear_Project.Models
 		public virtual ICollection<Prescription> Prescriptions { get; set; }
 		public virtual ICollection<Movement> Movements { get; set; }
 		public virtual ICollection<VisitSchedule> VisitSchedules { get; set; }
-	}
+        public ICollection<DoctorAssignment> DoctorAssignments { get; set; }
+    }
 }

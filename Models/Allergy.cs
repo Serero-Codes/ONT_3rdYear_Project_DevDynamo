@@ -11,6 +11,8 @@ namespace ONT_3rdyear_Project.Models
 		[Required(ErrorMessage = "Allergy description is required")]
 		public string Description { get; set; }
 
+		public bool IsDeleted { get; set; } = false;
+
 		public virtual ICollection<PatientAllergy> PatientAllergies { get; set; }
 
 	}

@@ -21,6 +21,7 @@ namespace ONT_3rdyear_Project.Models
         public int WardID { get; set; }
         public virtual Ward Ward { get; set; }
 
+		public bool IsDeleted { get; set; } = false;
         public virtual ICollection<ConsumableOrder> ConsumableOrders { get; set; }
         public virtual ICollection<WardConsumable> WardConsumables { get; set; }
 		public virtual ICollection<DeliveryItem> DeliveryItems { get; set; }
