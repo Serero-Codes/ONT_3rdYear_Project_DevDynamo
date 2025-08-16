@@ -7,10 +7,10 @@ namespace ONT_3rdyear_Project.Models
 		[Key]
 		public int PatientID { get; set; }
 		[Required]
-		[StringLength(50, ErrorMessage = "Name must not be greater than be 50 charecters")]
+		[StringLength(50, ErrorMessage = "Name of the patient is required")]
 		public string FirstName { get; set; }
 		[Required]
-		[StringLength(50, ErrorMessage = "Last Name must not be greater than be 50 charecters")]
+		[StringLength(50, ErrorMessage = "Last Name of the patient is required")]
 		public string LastName { get; set; }
 		[Required]
 		public DateOnly DateOfBirth {  get; set; }
