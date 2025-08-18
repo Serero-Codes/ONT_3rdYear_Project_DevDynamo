@@ -370,7 +370,7 @@
         <div class="page-loader" id="pageLoader"></div>
 
         <header class="hospital-header">
-            <div class="topbar d-flex align-items-center">
+            @* <div class="topbar d-flex align-items-center">
                 <div class="container d-flex justify-content-center justify-content-md-between">
                     <div class="d-none d-md-flex align-items-center">
                         <i class="bi bi-clock me-1"></i> Monday - Saturday, 8AM to 10PM
@@ -379,7 +379,7 @@
                         <i class="bi bi-phone me-1"></i> Call us now +1 5589 55488 55
                     </div>
                 </div>
-            </div><!-- End Top Bar -->
+            </div> *@<!-- End Top Bar -->
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm hospital-navbar">
                 <div class="container-fluid">
                     <a class="hospital-brand" @* asp-area="" asp-controller="Home" asp-action="Index" *@>
@@ -425,10 +425,11 @@
                                 </li>
                             }
                             @* Consumable *@
-                            @if (User.Identity.IsAuthenticated && User.IsInRole("Consumable"))
+                            @if (User.Identity.IsAuthenticated && User.IsInRole("ConsumableManager"))
                             {
                                 <li class="nav-item">
-                                    <a class="hospital-nav-link dashboard" asp-area="" asp-controller="Consumable" asp-action="Dashboard">Consumable Dashboard</a>
+                                   
+                                    <a class="hospital-nav-link dashboard" asp-area="" asp-controller="Consumable" asp-action="Index">Consumable Dashboard</a>
                                 </li>
                             }
 							@* Script *@
@@ -459,7 +460,7 @@
     </header>
     </div>
 
-    <main @* class="main-content" *@>
+    <main  class="main-content" >
         @RenderBody()
     </main>
 @*     <section id="hero" class="hero section">
@@ -467,7 +468,7 @@
        @*  <div id="hero-carousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
 
         </div> *@
-        @* <div class="hospital-container">
+      @*   <div class="hospital-container">
             <main role="main" class="main-content">
                 @RenderBody()
             </main>

@@ -5,8 +5,7 @@ namespace ONT_3rdyear_Project.Models
 {
     public class SupplierItem
     {
-        [Key]
-        public int SupplierItemID { get; set; }
+       
         [ForeignKey("Supplier")]
         public int SupplierID { get; set; }
         public virtual Supplier Supplier { get; set; }

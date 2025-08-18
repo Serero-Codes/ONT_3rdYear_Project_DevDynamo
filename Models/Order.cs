@@ -20,6 +20,7 @@ namespace ONT_3rdyear_Project.Models
 		public DateTime OrderDate { get; set; }
 		[Required]
 		public int OrderQuantity { get; set; }
+        public string Status { get; set; }
         public string Remark { get; set; }
         public virtual Supplier Supplier { get; set; }
         public virtual ICollection<ConsumableOrder> ConsumableOrders { get; set; }

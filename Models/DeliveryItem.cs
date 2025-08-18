@@ -5,8 +5,7 @@ namespace ONT_3rdyear_Project.Models
 {
     public class DeliveryItem
     {
-        [Key]
-        public int DeliveryItemID { get; set; }
+        
         [ForeignKey(nameof(DeliveryID))]
         public int DeliveryID { get; set; }
         public virtual Delivery Delivery { get; set; }

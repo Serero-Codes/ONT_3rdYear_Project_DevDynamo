@@ -12,8 +12,8 @@ using ONT_3rdyear_Project.Data;
 namespace ONT_3rdyear_Project.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250814083949_AddQuantityToMedication")]
-    partial class AddQuantityToMedication
+    [Migration("20250817231554_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -313,7 +313,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "3845b0d7-e089-42e6-81e6-579592a940ff",
+                            ConcurrencyStamp = "d7be20d6-1774-491b-a2f6-f739b5703dcd",
                             Email = "doctor@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Dr. John Doe",
@@ -321,7 +321,7 @@ namespace ONT_3rdyear_Project.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "DOCTOR@HOSPITAL.COM",
                             NormalizedUserName = "DOCTOR@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOqIBA/twpwCLmRzFH1CkbEbaT86ku7AnHXV5sO1MW9b4oXq0Q9Oi7D20nRvIh50Jg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKja79inF50Jb+k7SWFy5/tN/pan8YQYeIs1lqF5i4ypZL01RP1/pt3dVlZXb6CjPw==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Doctor",
                             TwoFactorEnabled = false,
@@ -331,7 +331,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "35a54372-faca-4bbe-b562-671ed3d3aea3",
+                            ConcurrencyStamp = "9788826f-d363-45fe-9646-e6260cdcdefd",
                             Email = "nurse@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Nurse Thabo",
@@ -339,7 +339,7 @@ namespace ONT_3rdyear_Project.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "NURSE@HOSPITAL.COM",
                             NormalizedUserName = "NURSE@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFg5hRvSGUcjbBL3JAXDWnlNcw4WChkH4KB97zTINMEBNqlEvA//CJrZOlMgOrhdsg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFlznK3GN0mWOrXF9Ordni0gxVYuJxdLYfnBdt/eET4fZiohztOGlAFl+bMWjg4FUA==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Nurse",
                             TwoFactorEnabled = false,
@@ -415,12 +415,7 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<int>("StockQuantity")
                         .HasColumnType("int");
 
-                    b.Property<int>("WardID")
-                        .HasColumnType("int");
-
                     b.HasKey("ConsumableId");
-
-                    b.HasIndex("WardID");
 
                     b.ToTable("Consumables");
                 });
@@ -626,7 +621,7 @@ namespace ONT_3rdyear_Project.Migrations
                             Description = "Sunrise Medical Centre is a state-of-the-art healthcare facility offering comprehensive care, modern technology, and highly qualified staff.",
                             DirectorName = "Dr. Lindiwe Mokoena",
                             EmailAddress = "info@sunrisemedical.co.za",
-                            LastUpdated = new DateTime(2025, 8, 14, 10, 39, 47, 610, DateTimeKind.Local).AddTicks(8136),
+                            LastUpdated = new DateTime(2025, 8, 18, 1, 15, 53, 612, DateTimeKind.Local).AddTicks(5568),
                             Name = "Sunrise Medical centre",
                             Phone = "+27 21 555 1234",
                             Website = "https://www.sunrisemedical.co.za"
@@ -1722,17 +1717,6 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Navigation("Ward");
                 });
 
-            modelBuilder.Entity("ONT_3rdyear_Project.Models.Consumable", b =>
-                {
-                    b.HasOne("ONT_3rdyear_Project.Models.Ward", "Ward")
-                        .WithMany("Consumables")
-                        .HasForeignKey("WardID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ward");
-                });
-
             modelBuilder.Entity("ONT_3rdyear_Project.Models.ConsumableOrder", b =>
                 {
                     b.HasOne("ONT_3rdyear_Project.Models.Consumable", "Consumable")
@@ -2402,8 +2386,6 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Navigation("Admissions");
 
                     b.Navigation("Beds");
-
-                    b.Navigation("Consumables");
 
                     b.Navigation("WardConsumables");
                 });

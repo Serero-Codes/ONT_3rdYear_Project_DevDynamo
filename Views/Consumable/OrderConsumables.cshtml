@@ -1,0 +1,149 @@
+﻿@using System.Collections
+@model ONT_3rdyear_Project.Models.Order
+@{
+    ViewData["Title"] = "Request Consumables";
+    int index = 0;
+   //var ConsumableOrder = Model.ConsumableOrders.ToList();
+    //  ViewData["ActivePage"] = "Consumables"; // Set the active page for the navigation bar
+}
+<form asp-action="OrderConsumables" id="RequestItemsTable" method="post">
+    <div>
+
+        <select id="wardSelect" asp-for="WardID" asp-items="ViewBag.Wards" class="form-select">
+            <option value="">-- Select Ward --</option>
+        </select>
+
+    </div>
+    <table  >
+        <thead>
+            <tr>
+                <th>Consumable</th>
+                <th>Quantity</th>
+                <th>Reason</th>
+            </tr>
+        </thead>
+        <tbody id="RequestItemsTableBody">
+
+            
+
+            @foreach (var order in Model.ConsumableOrders)
+            {
+                <tr class="mb-5">
+                    <td>
+                        <select name="ConsumableOrders[@index].ConsumableId" id="consumableSelect" asp-items="ViewBag.Consumables" class="form-control">
+                            <option value="">-- Select Consumable --</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input name="ConsumableOrders[@index].QuantityRequested" class="form-control" value="@order.QuantityRequested" />
+                    </td>
+                    <td>
+                        <input name="ConsumableOrders[@index].Reason" class="form-control" value="@order.Reason" />
+                    </td>
+                </tr>
+                index++;
+            }
+        </tbody>
+    </table>
+
+    <div>
+        <label>Remarks</label>
+        <textarea asp-for="Remark" class="form-control"></textarea>
+        <span asp-validation-for="Remark" class="text-danger"></span>
+    </div>
+
+    <button type="button" class="btn btn-primary" id="AddBtnRow">Add Row</button>
+   @*  <select id="consumableSelect" style="display:none;">
+        <option value="">-- Select Consumable --</option>
+        <!-- Will be populated dynamically -->
+    </select> *@
+    <button type="submit" class="btn btn-primary">Submit Request</button>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+               document.addEventListener('DOMContentLoaded', () => {
+            const AddBtnRow = document.getElementById("AddBtnRow");
+            const TBody = document.getElementById("RequestItemsTableBody");
+
+            // Populate consumables when ward changes (example)
+            $('#wardSelect').change(function () {
+                const wardId = $(this).val();
+                  console.log("Ward changed to: " + wardId);
+                $('#consumableSelect').empty().append('<option>Loading...</option>');
+                $.getJSON('/Consumable/RequestConsumablesByWard', { wardId: wardId }, function (data) {
+                    $('#consumableSelect').empty().append('<option value="">-- Select Consumable --</option>');
+                    data.forEach(item => {
+                        $('#consumableSelect').append(`<option value="${item.consumableId}">${item.name}</option>`);
+                    });
+                });
+            });
+
+            // Add new row
+            AddBtnRow.addEventListener("click", () => {
+                const RowCount = TBody.rows.length;
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>
+                        <select id="consumableSelect" name="ConsumableOrders[${RowCount}].ConsumableId" class="form-control">
+                            ${document.getElementById("consumableSelect").innerHTML}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="ConsumableOrders[${RowCount}].QuantityRequested" class="form-control" value="0" min="0"/>
+                    </td>
+                    <td>
+                        <input type="text" name="ConsumableOrders[${RowCount}].Reason" class="form-control"/>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger removeRowBtn">Remove</button>
+                    </td>
+                `;
+
+                TBody.appendChild(row);
+
+                // Remove button event
+                row.querySelector(".removeRowBtn").addEventListener("click", () => {
+                    row.remove();
+                    updateRowIndices();
+                });
+
+                updateConsumableOptions();
+            });
+
+            // Update indices after a row is removed
+            function updateRowIndices() {
+                const rows = TBody.querySelectorAll('tr');
+                rows.forEach((row, index) => {
+                    row.querySelectorAll('input, select').forEach(input => {
+                        const name = input.getAttribute('name');
+                        if (name) {
+                            const newName = name.replace(/\[\d+\]/, `[${index}]`);
+                            input.setAttribute('name', newName);
+                        }
+                    });
+                });
+            }
+
+            // Prevent selecting the same consumable in multiple rows
+            function updateConsumableOptions() {
+                const selectedValues = Array.from(TBody.querySelectorAll('select[name*="ConsumableId"]'))
+                    .map(sel => sel.value)
+                    .filter(val => val);
+
+                TBody.querySelectorAll('select[name*="ConsumableId"]').forEach(select => {
+                    const currentValue = select.value;
+                    Array.from(select.options).forEach(opt => {
+                        if (opt.value === "" || opt.value === currentValue) {
+                            opt.disabled = false;
+                        } else {
+                            opt.disabled = selectedValues.includes(opt.value);
+                        }
+                    });
+                });
+            }
+        }); 
+
+    </script>
+}
