@@ -1,5 +1,7 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
+    height: 100%; /* make flex container take full viewport */
+    margin: 0;
 }
 
 @media (min-width: 768px) {
@@ -21,9 +23,11 @@ html {
 
 
 
-/*body {
-  margin-bottom: 60px;
-}*/
+body {
+    margin-bottom: 60px;
+    display: flex;
+    flex-direction: column;
+}
 
 /*nurse dashboar*/
 :root {
@@ -37,7 +41,7 @@ html {
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-body {
+/*body {
     margin: 0;
     padding: 0;
     margin-bottom: 60px;
@@ -45,14 +49,14 @@ body {
     background-size: cover;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
-}
-
-/*.dashboard-container {
-    padding: 2rem;
-    background: transparent;
 }*/
 
-.dashboard-header {
+.dashboard-container {
+    padding: 2rem;
+    background: transparent;
+}
+
+/*/*.dashboard-header {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border-radius: 15px;
@@ -396,3 +400,13 @@ body {
     }
 }
 
+/*html, body {
+    overflow: hidden !important;
+}*/
+.container {
+    margin-bottom: 0; /* Bootstrap container sometimes adds margin */
+}
+
+main.pb-3 {
+    padding-bottom: 0;
+}

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
+﻿@model ONT_3rdyear_Project.ViewModels.DashboardViewModel
 @{
     ViewData["Title"] = "Nurse Dashboard";
 }
@@ -6,6 +6,8 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="~/css/site.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 <div class="dashboard-container"> 
     <!-- Dashboard Header -->
@@ -69,23 +71,24 @@
         <h3 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Today's Overview</h3>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number">@Model.Count()</div>
+                <div class="stat-number">@Model.Stats.TotalPatients</div>
                 <div class="stat-label">Total Patients</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">24</div>
+                <div class="stat-number">@Model.Stats.HoursOnDuty</div>
                 <div class="stat-label">Hours on Duty</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">@Model.Count()</div>
+                <div class="stat-number">@Model.Stats.TreatmentsToday</div>
                 <div class="stat-label">Treatments Today</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">@Model.Count()</div>
+                <div class="stat-number">@Model.Stats.MedicationsGivenToday</div>
                 <div class="stat-label">Medications Given</div>
             </div>
         </div>
     </div>
+
 </div> 
 
     

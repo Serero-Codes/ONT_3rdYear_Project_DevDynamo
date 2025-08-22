@@ -4,6 +4,8 @@
 }
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 <style>
     :root {
@@ -38,7 +40,7 @@
     }
 
     .patients-container {
-        padding: 2rem 0;
+        padding: 1rem 0;
     }
 
     .page-header {
@@ -455,6 +457,17 @@
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
+
+        .table-scroll-container {
+    max-height: 400px;  
+    overflow-y: auto;   
+    /* Optional: fix table width or add horizontal scroll */
+    overflow-x: hidden; /* or auto if you want horizontal scroll */
+}
+#btn-back{
+    margin-left: 60%;
+    border-radius:40px;
+}
 </style>
 
 
@@ -470,10 +483,13 @@
 
     <div class="search-section">
         <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
-
+        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
     </div>
 
-    
+    <div class="table-scroll-container">
         <table class="custom-table mb-3">
             <thead>
                 <tr>
@@ -517,7 +533,22 @@
                 }
             </tbody>
         </table>
-    </div>
+   </div> 
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: '@TempData["SuccessMessage"]',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    </script>
+}
+
 <script>
     const searchInput = document.getElementById('liveSearchInput');
 

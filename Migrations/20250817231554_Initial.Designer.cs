@@ -12,8 +12,8 @@ using ONT_3rdyear_Project.Data;
 namespace ONT_3rdyear_Project.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250807140538_changePulseandSugarType")]
-    partial class changePulseandSugarType
+    [Migration("20250817231554_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -175,6 +175,9 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<int>("BedID")
                         .HasColumnType("int");
 
+                    b.Property<DateOnly?>("DischargeDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
@@ -215,6 +218,9 @@ namespace ONT_3rdyear_Project.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -250,6 +256,9 @@ namespace ONT_3rdyear_Project.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -304,14 +313,15 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "e5bd254d-c3f0-4a80-8984-6269c8f97df7",
+                            ConcurrencyStamp = "d7be20d6-1774-491b-a2f6-f739b5703dcd",
                             Email = "doctor@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Dr. John Doe",
+                            IsDeleted = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "DOCTOR@HOSPITAL.COM",
                             NormalizedUserName = "DOCTOR@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJJn/ewR2YLCwugGhaZ2NarWxaDpj5XvibfIGY5GJNvzQ4qGAsJ8314dIE22bRP7Yw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKja79inF50Jb+k7SWFy5/tN/pan8YQYeIs1lqF5i4ypZL01RP1/pt3dVlZXb6CjPw==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Doctor",
                             TwoFactorEnabled = false,
@@ -321,14 +331,15 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "20811d85-dae9-437f-972e-f2bb64c50fc2",
+                            ConcurrencyStamp = "9788826f-d363-45fe-9646-e6260cdcdefd",
                             Email = "nurse@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Nurse Thabo",
+                            IsDeleted = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "NURSE@HOSPITAL.COM",
                             NormalizedUserName = "NURSE@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPzag/ol9o7n+fjiwNddmoC8/5c7j7GB+Gew5F59r+0cmuhjwx6hpcuUlgqywC9ehg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFlznK3GN0mWOrXF9Ordni0gxVYuJxdLYfnBdt/eET4fZiohztOGlAFl+bMWjg4FUA==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Nurse",
                             TwoFactorEnabled = false,
@@ -348,6 +359,9 @@ namespace ONT_3rdyear_Project.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsOccupied")
                         .HasColumnType("bit");
 
@@ -365,6 +379,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             BedId = 1,
                             BedNo = "G1",
+                            IsDeleted = false,
                             IsOccupied = false,
                             WardID = 1
                         },
@@ -372,6 +387,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             BedId = 2,
                             BedNo = "G2",
+                            IsDeleted = false,
                             IsOccupied = true,
                             WardID = 1
                         });
@@ -389,6 +405,9 @@ namespace ONT_3rdyear_Project.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -396,12 +415,7 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<int>("StockQuantity")
                         .HasColumnType("int");
 
-                    b.Property<int>("WardID")
-                        .HasColumnType("int");
-
                     b.HasKey("ConsumableId");
-
-                    b.HasIndex("WardID");
 
                     b.ToTable("Consumables");
                 });
@@ -523,6 +537,97 @@ namespace ONT_3rdyear_Project.Migrations
                     b.ToTable("Discharges");
                 });
 
+            modelBuilder.Entity("ONT_3rdyear_Project.Models.DoctorAssignment", b =>
+                {
+                    b.Property<int>("AssignmentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AssignmentID"));
+
+                    b.Property<int?>("ApplicationUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("AssignmentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DoctorID")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PatientID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UnassignedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("AssignmentID");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("PatientID");
+
+                    b.ToTable("DoctorAssignment");
+                });
+
+            modelBuilder.Entity("ONT_3rdyear_Project.Models.HospitalInfo", b =>
+                {
+                    b.Property<int>("HospitalInfoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HospitalInfoId"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DirectorName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmailAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Logo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Website")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("HospitalInfoId");
+
+                    b.ToTable("HospitalInfo");
+
+                    b.HasData(
+                        new
+                        {
+                            HospitalInfoId = 1,
+                            Address = "123 Health Avenue, Cape Town, Western Cape, 8000",
+                            Description = "Sunrise Medical Centre is a state-of-the-art healthcare facility offering comprehensive care, modern technology, and highly qualified staff.",
+                            DirectorName = "Dr. Lindiwe Mokoena",
+                            EmailAddress = "info@sunrisemedical.co.za",
+                            LastUpdated = new DateTime(2025, 8, 18, 1, 15, 53, 612, DateTimeKind.Local).AddTicks(5568),
+                            Name = "Sunrise Medical centre",
+                            Phone = "+27 21 555 1234",
+                            Website = "https://www.sunrisemedical.co.za"
+                        });
+                });
+
             modelBuilder.Entity("ONT_3rdyear_Project.Models.Instruction", b =>
                 {
                     b.Property<int>("InstructionID")
@@ -641,9 +746,15 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<DateOnly>("ExpiryDate")
                         .HasColumnType("date");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<int>("Schedule")
                         .HasColumnType("int");
@@ -657,14 +768,18 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             MedicationId = 1,
                             ExpiryDate = new DateOnly(2026, 1, 1),
+                            IsDeleted = false,
                             Name = "Paracetamol",
+                            Quantity = 0,
                             Schedule = 1
                         },
                         new
                         {
                             MedicationId = 2,
                             ExpiryDate = new DateOnly(2025, 12, 1),
+                            IsDeleted = false,
                             Name = "Insulin",
+                            Quantity = 0,
                             Schedule = 4
                         });
                 });
@@ -767,6 +882,9 @@ namespace ONT_3rdyear_Project.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -785,6 +903,7 @@ namespace ONT_3rdyear_Project.Migrations
                             DateOfBirth = new DateOnly(2000, 1, 15),
                             FirstName = "Naledi",
                             Gender = "Female",
+                            IsDeleted = false,
                             LastName = "Kgomo"
                         },
                         new
@@ -795,6 +914,7 @@ namespace ONT_3rdyear_Project.Migrations
                             DateOfBirth = new DateOnly(1995, 6, 21),
                             FirstName = "Tshepo",
                             Gender = "Male",
+                            IsDeleted = false,
                             LastName = "Mabasa"
                         },
                         new
@@ -805,6 +925,7 @@ namespace ONT_3rdyear_Project.Migrations
                             DateOfBirth = new DateOnly(2003, 2, 28),
                             FirstName = "Thando",
                             Gender = "Female",
+                            IsDeleted = false,
                             LastName = "Smith"
                         });
                 });
@@ -1450,6 +1571,9 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1466,6 +1590,7 @@ namespace ONT_3rdyear_Project.Migrations
                             WardID = 1,
                             Capacity = 10,
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "General Ward"
                         },
                         new
@@ -1473,6 +1598,7 @@ namespace ONT_3rdyear_Project.Migrations
                             WardID = 2,
                             Capacity = 10,
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "ICU"
                         });
                 });
@@ -1591,17 +1717,6 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Navigation("Ward");
                 });
 
-            modelBuilder.Entity("ONT_3rdyear_Project.Models.Consumable", b =>
-                {
-                    b.HasOne("ONT_3rdyear_Project.Models.Ward", "Ward")
-                        .WithMany("Consumables")
-                        .HasForeignKey("WardID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ward");
-                });
-
             modelBuilder.Entity("ONT_3rdyear_Project.Models.ConsumableOrder", b =>
                 {
                     b.HasOne("ONT_3rdyear_Project.Models.Consumable", "Consumable")
@@ -1680,6 +1795,23 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Navigation("Patient");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ONT_3rdyear_Project.Models.DoctorAssignment", b =>
+                {
+                    b.HasOne("ONT_3rdyear_Project.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("ONT_3rdyear_Project.Models.Patient", "Patient")
+                        .WithMany("DoctorAssignments")
+                        .HasForeignKey("PatientID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("Patient");
                 });
 
             modelBuilder.Entity("ONT_3rdyear_Project.Models.Instruction", b =>
@@ -2182,6 +2314,8 @@ namespace ONT_3rdyear_Project.Migrations
 
                     b.Navigation("Discharges");
 
+                    b.Navigation("DoctorAssignments");
+
                     b.Navigation("Instructions");
 
                     b.Navigation("MedicalHistories");
@@ -2252,8 +2386,6 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Navigation("Admissions");
 
                     b.Navigation("Beds");
-
-                    b.Navigation("Consumables");
 
                     b.Navigation("WardConsumables");
                 });
