@@ -15,7 +15,7 @@ namespace ONT_3rdyear_Project.Models
 
         public bool IsActive { get; set; } = true;
 
-		public bool IsDeleted { get; set; } = false;
+		
         public virtual ICollection<Bed> Beds { get; set; }		
 		public virtual ICollection<Admission> Admissions { get; set; }
 		public virtual ICollection<WardConsumable> WardConsumables { get; set; }
