@@ -610,15 +610,18 @@
                                         <i class="fas fa-heartbeat"></i>
                                         Vitals
                                     </a>
-                                    <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment">
+                                    <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                         <i class="fas fa-user-md"></i>
                                         Treatment
                                     </a>
-                                    <a asp-controller="@medicationController" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication">
+                                    <a asp-controller="@medicationController" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                         <i class="fas fa-pills"></i>
                                         Medication
                                     </a>
-                                    <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions">
+                                    <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                         <i class="fas fa-clipboard-list"></i>
                                         Instructions
                                     </a>
@@ -628,6 +631,25 @@
                     }
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Admission Warning Modal -->
+<div class="modal fade" id="admissionModal" tabindex="-1" aria-labelledby="admissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="admissionModalLabel">Action Not Allowed</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <i class="fas fa-warning"></i>
+                <p id="admissionModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok</button>
+            </div>
         </div>
     </div>
 </div>
@@ -667,6 +689,20 @@
     searchInput.addEventListener('input', performSearch);
     wardFilter.addEventListener('change', performSearch);
     bedFilter.addEventListener('change', performSearch);
+
+    function checkAdmission(isAdmitted) {
+        isAdmitted = (isAdmitted === true || isAdmitted === 'true'); // convert string to boolean
+        if (!isAdmitted) {
+            document.getElementById("admissionModalMessage").innerText =
+                "Cannot perform this action. Patient is not admitted.";
+
+            var modal = new bootstrap.Modal(document.getElementById('admissionModal'));
+            modal.show();
+            return false;
+        }
+        return true;
+    }
+
 </script>
 
 

@@ -49,9 +49,10 @@
 					<td>@treatment.TreatmentDate</td>
 					<td>
                         <div class="action-buttons">
-                            <a asp-action="Details" asp-route-id="@treatment.TreatmentID" class="action-btn btn-medication">Details</a>
+                            
                             <a asp-action="EditTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-instructions">Edit</a>
-                            <a asp-action="DeleteTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-vitals">Delete</a>
+                            @* <a asp-action="DeleteTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-vitals">Delete</a> *@
+                            <a href="javascript:void(0);" class="action-btn btn-medication" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@treatment.TreatmentID" data-name="@treatment.Patient?.FirstName @treatment.Patient?.LastName">Delete</a>
                         </div>
 						
 					</td>
@@ -60,6 +61,28 @@
 		</tbody>
 	</table>
 
+</div>
+
+@*Modal for deleting *@
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete treatment for <strong id="deletePatientName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post">
+                    <input type="hidden" name="id" id="deleteTreatmentId" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -515,4 +538,18 @@
     }
 
     searchInput.addEventListener('input', performSearch);
+
+    var deleteModal = document.getElementById('deleteModal');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget; // Button that triggered the modal
+        var treatmentId = button.getAttribute('data-id');
+        var patientName = button.getAttribute('data-name');
+
+        // Set values in modal
+        document.getElementById('deletePatientName').textContent = patientName;
+        document.getElementById('deleteTreatmentId').value = treatmentId;
+
+        // Update form action dynamically
+        document.getElementById('deleteForm').action = '/Nurse/DeleteTreatment/' + treatmentId;
+    });
 </script>

@@ -1,4 +1,6 @@
 ﻿@model ONT_3rdyear_Project.ViewModels.DashboardViewModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 @{
     ViewData["Title"] = "Nurse Dashboard";
 }
@@ -18,7 +20,7 @@
                 <img src="~/images/nursee.jpeg" alt="Nurse" class="nurse-photo" />
                 <div class="photo-overlay"></div>
             </div>
-            Nurse Dashboard
+            @("Welcome, Nurse " + (await UserManager.GetUserAsync(User))?.FullName)
         </h1>
         <p class="mb-0 text-muted">Manage patient care and medical records</p>
     </div>

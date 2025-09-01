@@ -227,23 +227,7 @@ namespace ONT_3rdyear_Project.Controllers
             ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
             ViewBag.PatientId = PatientID;
 
-            // Check if there's a record for today
-            /* var today = DateTime.Today;
-             var existingVitals = await _context.Vitals
-                 .Where(v => v.PatientID == PatientID && v.Date.Date == today && v.IsActive)
-                 .FirstOrDefaultAsync();
-
-             if (existingVitals != null)
-             {
-                 // Redirect to details of existing record for today
-                 return RedirectToAction("VitalsExists", new { PatientID });
-             }*/
-
-            /* var nurses = await _context.Users
-                 .Where(u => u.RoleType == "Nurse," || u.RoleType == "Sister")
-                 .ToListAsync();
-
-             ViewBag.UserList = new SelectList(nurses, "Id", "FullName");*/
+            
             var user = await _userManager.GetUserAsync(User);
             ViewBag.CurrentUserName = user.FullName;
 
@@ -444,23 +428,7 @@ namespace ONT_3rdyear_Project.Controllers
 
             ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
             ViewBag.PatientId = patientId;
-            // ✅ Correct way to check if there's a treatment today
-            /*var today = DateTime.Today;
-            var tomorrow = today.AddDays(1);
-
-            var existingTreatment = await _context.Treatments
-                .Where(v => v.PatientID == patientId
-                         && v.TreatmentDate >= today
-                         && v.TreatmentDate < tomorrow
-                         && v.IsActive)
-                .FirstOrDefaultAsync();
-
-            if (existingTreatment != null)
-            {
-                return RedirectToAction("TreatmentExists", new { patientId });
-            }*/
-
-            // Continue as normal
+            
             
 
             var visits = await _context.VisitSchedules.Where(v => v.PatientID == patientId).ToListAsync();
@@ -721,7 +689,7 @@ namespace ONT_3rdyear_Project.Controllers
         //administer medication
         public async Task<IActionResult> Administered()
         {
-            var medication = await _context.PatientMedicationScripts.Include(p=>p.Patient).Include(v=>v.VisitSchedule).Include(a=>a.AdministeredBy).Include(m=>m.Medication).Where(ad=>ad.isActive).ToListAsync();
+            var medication = await _context.PatientMedicationScripts.Include(p=>p.Patient).Include(v=>v.VisitSchedule).Include(a=>a.AdministeredBy).Include(m=>m.Medication).Where(m => m.Medication.Schedule <= 4).Where(ad=>ad.isActive).ToListAsync();
             return View(medication);
         }
 

@@ -248,28 +248,7 @@
         flex-shrink: 0;
     }
 
-    .ward-info, .bed-info {
-        font-weight: 500;
-        color: var(--gray-600);
-    }
-
-    .ward-badge {
-        background: rgba(37, 99, 235, 0.1);
-        color: var(--primary-color);
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-
-    .bed-badge {
-        background: rgba(16, 185, 129, 0.1);
-        color: var(--success-color);
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
+   
 
     .action-buttons {
         display: flex;
@@ -515,17 +494,18 @@
                                 <div class="patient-name">@vital.Patient?.FirstName @vital.Patient?.LastName</div>
                             </div>
                          </td>
-                        <td>@vital.BP</td>
-                        <td>@vital.SugarLevel</td>
-                        <td>@vital.Temperature</td>
-                        <td>@vital.PulseRate</td>
+                        <td>@vital.BP mmHg</td>
+                        <td>@vital.SugarLevel mg/dL</td>
+                        <td>@vital.Temperature &deg;C</td>
+                        <td>@vital.PulseRate bpm</td>
                         <td>@vital.Date</td>
                         <td>@vital.User?.FullName</td>
                         <td>
                             <div class="action-buttons">
-                            <a asp-action="VitalsDetails" asp-route-id="@vital.VitalID" class="action-btn btn-vitals">Details</a>
+                           
                             <a asp-action="EditVital" asp-route-id="@vital.VitalID" class=" action-btn btn-treatment">Edit</a>
-                            <a asp-action="DeleteVital" asp-route-id="@vital.VitalID" class="action-btn btn-medication">Delete</a>
+                            @* <a asp-action="DeleteVital" asp-route-id="@vital.VitalID" class="action-btn btn-medication">Delete</a> *@
+                                <a href="javascript:void(0);" class="action-btn btn-medication" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@vital.VitalID" data-name="@vital.Patient?.FirstName @vital.Patient?.LastName">Delete</a>
                             </div>
                             
                         </td>
@@ -534,6 +514,28 @@
             </tbody>
         </table>
    </div> 
+</div>
+
+@*Modal for deleting vitals*@
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete vitals for <strong id="deletePatientName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post">
+                    <input type="hidden" name="id" id="deleteVitalId" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
@@ -570,4 +572,19 @@
     }
 
     searchInput.addEventListener('input', performSearch);
+
+
+    var deleteModal = document.getElementById('deleteModal');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget; // Button that triggered the modal
+        var vitalId = button.getAttribute('data-id');
+        var patientName = button.getAttribute('data-name');
+
+        // Set values in modal
+        document.getElementById('deletePatientName').textContent = patientName;
+        document.getElementById('deleteVitalId').value = vitalId;
+
+        // Update form action dynamically
+        document.getElementById('deleteForm').action = '/Nurse/DeleteVital/' + vitalId;
+    });
 </script>

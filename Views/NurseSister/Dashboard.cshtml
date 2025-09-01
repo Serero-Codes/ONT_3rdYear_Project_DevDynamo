@@ -1,4 +1,6 @@
 ﻿@model ONT_3rdyear_Project.ViewModels.DashboardViewModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 @{
     ViewData["Title"] = "Nurse Dashboard";
 }
@@ -11,15 +13,19 @@
     <!-- Dashboard Header -->
     <div class="dashboard-header">
         <h1 class="dashboard-title">
-            <i class="fas fa-user-nurse"></i>
-            Nursing Sister Dashboard
+           @*  <i class="fas fa-user-nurse"></i> *@
+            <div class="nurse-photo-frame">
+                <img src="~/images/nursee.jpeg" alt="Nurse" class="nurse-photo" />
+                <div class="photo-overlay"></div>
+            </div>
+           @("Welcome, Sister " + (await UserManager.GetUserAsync(User))?.FullName)
         </h1>
         <p class="mb-0 text-muted">Manage patient care and medical records</p>
     </div>
 
     <!-- Main Navigation Cards -->
     <div class="navigation-grid" id="mainNavigation">
-        <a asp-controller="Nurse" asp-action="PatientsList" class="nav-card">
+        <a asp-controller="NurseSister" asp-action="PatientsList" class="nav-card">
             <div class="nav-card-icon patients-icon">
                 <i class="fas fa-users"></i>
             </div>
@@ -82,7 +88,7 @@
             </div>
         </div>
     </div>
-
+    </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 <script>

@@ -1,0 +1,67 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
+@{
+    var medicationController = User.IsInRole("Sister") ? "NurseSister" : "Nurse";
+}
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="4" class="text-center">No results found.</td>
+    </tr>
+}
+else
+{
+    @foreach (var patient in Model)
+    {
+        <tr>
+            <td>
+                <div class="patient-info">
+                    <div class="patient-avatar">
+                        @(patient.FirstName?.Substring(0, 1))@(patient.LastName?.Substring(0, 1))
+                    </div>
+                    <div>
+                        <div class="patient-name">@patient.FirstName @patient.LastName</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span class="ward-badge">@patient.WardName</span>
+            </td>
+            <td>
+                <span class="bed-badge">Bed @patient.BedNo</span>
+            </td>
+            <td>
+                @if (patient.Status == "Admitted")
+                {
+                    <span class="badge bg-success">Admitted</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Not Admitted</span>
+                }
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="action-btn btn-vitals">
+                        <i class="fas fa-heartbeat"></i>
+                        Vitals
+                    </a>
+                    <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment"
+                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
+                        <i class="fas fa-user-md"></i>
+                        Treatment
+                    </a>
+                    <a asp-controller="NurseSister" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication"
+                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
+                        <i class="fas fa-pills"></i>
+                        Medication
+                    </a>
+                    <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions"
+                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
+                        <i class="fas fa-clipboard-list"></i>
+                        Instructions
+                    </a>
+                </div>
+            </td>
+        </tr>
+    }
+}

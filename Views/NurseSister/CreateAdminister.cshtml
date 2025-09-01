@@ -10,10 +10,7 @@
         <div class="alert alert-danger">MedicationList is NULL!</div>
     }
 
-    if (Model?.UserList == null)
-    {
-        <div class="alert alert-danger">UserList is NULL!</div>
-    }
+
 }
 
 
@@ -22,7 +19,7 @@
 
     <form asp-action="CreateAdminister" method="post">
         <input type="hidden" asp-for="PatientId" />
-        <input type="hidden" asp-for="MedicationId" id="MedicationSchedule" />
+
 
         <div class="form-group">
             <label>Patient</label>
@@ -44,24 +41,25 @@
 
         <div class="form-group">
             <label asp-for="ApplicationUserID">Administered By</label>
-            <select asp-for="ApplicationUserID" class="form-control" asp-items="ViewBag.UserList" disabled></select>
+            <select asp-for="ApplicationUserID" class="form-control" asp-items="Model.UserList" disabled></select>
             <input type="hidden" asp-for="ApplicationUserID" />
             <span asp-validation-for="ApplicationUserID" class="text-danger"></span>
         </div>
 
 
-       @*  <div id="prescriptionField" style="display:none;" class="form-group">
+        @*  <div id="prescriptionField" style="display:none;" class="form-group">
             <label asp-for="PrescriptionNote">Prescription Note</label>
             <textarea asp-for="PrescriptionNote" class="form-control"></textarea>
             <span asp-validation-for="PrescriptionNote" class="text-danger"></span>
         </div> *@
-        <div id="prescriptionField" style="display:none;" class="form-group">
+        <div class="form-group" id="prescriptionField" style="display:none;">
             <label asp-for="PrescriptionId">Select Prescription</label>
-            <select asp-for="PrescriptionId" class="form-control" asp-items="Model.PrescriptionList">
+            <select asp-for="PrescriptionId" class="form-control" id="PrescriptionSelect">
                 <option value="">-- Select Prescription --</option>
             </select>
             <span asp-validation-for="PrescriptionId" class="text-danger"></span>
         </div>
+
 
         <div class="form-group">
             <label asp-for="Dosage"></label>
@@ -80,20 +78,48 @@
     </form>
 </div>
 
-@section Scripts {
-    <script>
+<script>
         function updateSchedule(select) {
-            const selected = select.options[select.selectedIndex];
-            const schedule = parseInt(selected.text.match(/Schedule (\d+)/)?.[1] || 0);
-            document.getElementById('MedicationSchedule').value = schedule;
-            document.getElementById('prescriptionField').style.display = schedule > 4 ? 'block' : 'none';
+        const selected = select.options[select.selectedIndex];
+        const schedule = parseInt(selected.text.match(/Schedule (\d+)/)?.[1] || 0);
+
+        const prescriptionField = document.getElementById('prescriptionField');
+        const prescriptionSelect = document.getElementById('PrescriptionSelect');
+
+        if (schedule > 4) {
+            prescriptionField.style.display = 'block';
+            prescriptionSelect.setAttribute('required', 'required');
+
+            const patientId = @Model.PatientId;
+
+            fetch(`/NurseSister/GetPrescriptions?patientId=${patientId}&medicationId=${select.value}`)
+                .then(response => response.json())
+                .then(data => {
+                    prescriptionSelect.innerHTML = '<option value="">-- Select Prescription --</option>';
+                    data.forEach(p => {
+                        const opt = document.createElement('option');
+                             opt.value = p.prescriptionId;
+                             opt.text = "Prescription #" + p.prescriptionId;
+
+                         //opt.text = `#${p.PrescriptionId} - ${p.PrescriptionInstruction}`;
+                         prescriptionSelect.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error("Error loading prescriptions:", err));
+
+        } else {
+            prescriptionField.style.display = 'none';
+            prescriptionSelect.removeAttribute('required');
+            prescriptionSelect.value = "";
         }
+    }
 
-        window.onload = function () {
-            const select = document.getElementById("MedicationId");
-            if (select) updateSchedule(select);
-        };
-    </script>
 
+    window.onload = function () {
+        const select = document.getElementById("MedicationId");
+        if (select) updateSchedule(select);
+    };
+</script>
+@section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }

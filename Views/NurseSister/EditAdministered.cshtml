@@ -4,101 +4,66 @@
 @{
     ViewData["Title"] = "Edit Administered Medication";
 }
-@* <div class="container mt-4">
-    <h2>Edit Administered Medication</h2>
 
+<div class="vitals-container" mb-3>
+    <div class="header-section">
+        <h2 class="header-title">Edit Administered Medication</h2>
+    </div>
+   
+    <div class="form-content">
+        <form asp-action="EditAdministered" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="PatientId" />
+            <input type="hidden" id="MedicationSchedule" />
 
-    <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <label>Patient</label>
+                <input type="text" class="form-control" value="@Model.PatientName" readonly />
+            </div>
 
+            <div class="form-group">
+                <label asp-for="MedicationId"></label>
+                <select asp-for="MedicationId"
+                        class="form-control"
+                        asp-items="Model.MedicationList"
+                        id="MedicationId"
+                        onchange="updateSchedule(this)">
+                    <option value="">-- Select Medication --</option>
+                </select>
+                <span asp-validation-for="MedicationId" class="text-danger"></span>
+            </div>
 
-    <form asp-action="EditAdministered" method="post">
-        <input type="hidden" asp-for="Id" />
-        <div class="mb-3">
-            <label class="form-label">Patient Name</label>
-            <input type="text" class="form-control" value="@Model.Patient?.FirstName @Model.Patient?.LastName" readonly />
-        </div>
+           @*  <div class="form-group">
+                <label asp-for="ApplicationUserID">Administered By</label>
+                <select asp-for="ApplicationUserID" class="form-control" asp-items="Model.UserList" disabled></select>
+                <input type="hidden" asp-for="ApplicationUserID" />
+                <span asp-validation-for="ApplicationUserID" class="text-danger"></span>
+            </div> *@
 
-        <div class="form-group">
-            <label asp-for="MedicationId">Medication</label>
-            <select asp-for="MedicationId" class="form-control" asp-items="ViewBag.MedicationList"></select>
-            <span asp-validation-for="MedicationId" class="text-danger"></span>
-        </div>
+            <div id="prescriptionField" style="display:none;" class="form-group">
+                <label asp-for="PrescriptionId">Select Prescription</label>
+                <select asp-for="PrescriptionId" class="form-control" asp-items="Model.PrescriptionList">
+                    <option value="">-- Select Prescription --</option>
+                </select>
+                <span asp-validation-for="PrescriptionId" class="text-danger"></span>
+            </div>
 
-        <div class="form-group">
-            <label asp-for="Dosage"></label>
-            <input asp-for="Dosage" class="form-control" />
-        </div>
-       
+            <div class="form-group">
+                <label asp-for="Dosage"></label>
+                <input asp-for="Dosage" class="form-control" />
+                <span asp-validation-for="Dosage" class="text-danger"></span>
+            </div>
 
+            <div class="form-group">
+                <label asp-for="AdministeredDate"></label>
+                <input asp-for="AdministeredDate" type="date" class="form-control" />
+                <span asp-validation-for="AdministeredDate" class="text-danger"></span>
+            </div>
 
-        <div class="form-group">
-            <label asp-for="AdministeredDate"></label>
-            <input asp-for="AdministeredDate" type="date" class="form-control" />
-        </div>
-
-
-        <div class="mt-3 mb-3">
-            <button type="submit" class="btn btn-success">Save</button>
-            <a asp-action="ListAdministered" class="btn btn-secondary">Back</a>
-        </div>
-        
-    </form>
-</div> *@
-<div class="container mt-4">
-    <h2>Edit Administered Medication</h2>
-
-    <form asp-action="EditAdministered" method="post">
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="PatientId" />
-        <input type="hidden" id="MedicationSchedule" />
-
-        <div class="form-group">
-            <label>Patient</label>
-            <input type="text" class="form-control" value="@Model.PatientName" readonly />
-        </div>
-
-        <div class="form-group">
-            <label asp-for="MedicationId"></label>
-            <select asp-for="MedicationId"
-                    class="form-control"
-                    asp-items="Model.MedicationList"
-                    id="MedicationId"
-                    onchange="updateSchedule(this)">
-                <option value="">-- Select Medication --</option>
-            </select>
-            <span asp-validation-for="MedicationId" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="ApplicationUserID">Administered By</label>
-            <select asp-for="ApplicationUserID" class="form-control" asp-items="Model.UserList" disabled></select>
-            <input type="hidden" asp-for="ApplicationUserID" />
-            <span asp-validation-for="ApplicationUserID" class="text-danger"></span>
-        </div>
-
-        <div id="prescriptionField" style="display:none;" class="form-group">
-            <label asp-for="PrescriptionId">Select Prescription</label>
-            <select asp-for="PrescriptionId" class="form-control" asp-items="Model.PrescriptionList">
-                <option value="">-- Select Prescription --</option>
-            </select>
-            <span asp-validation-for="PrescriptionId" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="Dosage"></label>
-            <input asp-for="Dosage" class="form-control" />
-            <span asp-validation-for="Dosage" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="AdministeredDate"></label>
-            <input asp-for="AdministeredDate" type="date" class="form-control" />
-            <span asp-validation-for="AdministeredDate" class="text-danger"></span>
-        </div>
-
-        <button type="submit" class="btn btn-success mt-4 mb-5">Save</button>
-        <a asp-action="ListAdministered" class="btn btn-secondary mt-4 mb-5">Cancel</a>
-    </form>
+            <button type="submit" class="btn btn-success mt-4 mb-5">Save</button>
+            <a asp-action="ListAdministered" class="btn btn-secondary mt-4 mb-5">Cancel</a>
+        </form>
+    </div>
 </div>
 
 
@@ -126,33 +91,110 @@
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }
 
-@* <!-- Success Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content border-success">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="successModalLabel">Success</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                @TempData["SuccessMessage"]
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">OK</button>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+	:root {
+		--primary-blue: #2c5aa0;
+		--secondary-blue: #4a90c2;
+		--light-blue: #e8f4fd;
+		--accent-blue: #1e3a5f;
+		--success-green: #28a745;
+		--secondary-gray: #6c757d;
+		--border-color: #d1e7ff;
+		--text-dark: #2c3e50;
+		--white: #ffffff;
+		--light-gray: #f8f9fa;
+	}
 
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            var hasMessage = '@TempData["SuccessMessage"]';
-            if (hasMessage) {
-                var successModal = new bootstrap.Modal(document.getElementById('successModal'));
-                successModal.show();
-            }
-        });
-    </script>
-} *@
+	body {
+		background: url('/images/background3.jpg');
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		min-height: 100vh;
+		font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		margin: 0;
+		/* padding: 20px 0; */
+	}
+
+	.form-content {
+		max-width: 700px;
+		margin: 0 auto;
+		padding: 20px;
+		background: #fff;
+		border-radius: 12px;
+		box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+	}
+
+	.form-group {
+		margin-bottom: 15px;
+	}
+
+		.form-group label {
+			font-weight: 600;
+			margin-bottom: 5px;
+			display: block;
+			color: #1e3a5f;
+		}
+
+	.form-control {
+		width: 100%;
+		padding: 10px 12px;
+		border: 1px solid #d1e7ff;
+		border-radius: 8px;
+		font-size: 1em;
+	}
+
+	.action-buttons {
+		display: flex;
+		gap: 10px;
+		justify-content: flex-start;
+		margin-top: 20px;
+	}
+
+	.vitals-container {
+		max-width: 800px;
+		margin: 0 auto;
+		background: var(--white);
+		border-radius: 15px;
+		box-shadow: 0 10px 30px rgba(44, 90, 160, 0.15);
+		overflow: hidden;
+		margin-top: 40px;
+		max-height: 800px;
+	}
+
+	.header-section {
+		background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+		color: var(--white);
+		padding: 10px;
+		text-align: center;
+		position: relative;
+	}
+
+		.header-section::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="20" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+			opacity: 0.3;
+		}
+
+	.header-title {
+		font-size: 2.2em;
+		font-weight: 600;
+		margin: 0;
+		position: relative;
+		z-index: 1;
+	}
+
+	.header-subtitle {
+		font-size: 1.1em;
+		opacity: 0.9;
+		margin: 10px 0 0 0;
+		position: relative;
+		z-index: 1;
+	}
+</style>
 

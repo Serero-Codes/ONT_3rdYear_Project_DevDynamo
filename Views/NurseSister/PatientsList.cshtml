@@ -500,6 +500,11 @@
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
+
+    #btn-back {
+        margin-left: 30%;
+        border-radius: 50px;
+    }
 </style>
 
 <div class="container patients-container">
@@ -524,24 +529,48 @@
     </div> *@
 
     <div class="search-section">
-        <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
+        <input type="text"  id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
 
-        <select id="wardFilter" class="filter-select">
+       @*  <select id="wardFilter" class="filter-select">
             <option value="">All Wards</option>
             <!-- Populate dynamically from your server or hardcoded options -->
             <option value="Ward1">Ward 1</option>
             <option value="Ward2">Ward 2</option>
             <option value="Ward3">Ward 3</option>
+        </select> *@
+        <select id="wardFilter" class="filter-select">
+            <option value="">All Wards</option>
+            @foreach (var ward in ViewBag.Wards as SelectList)
+            {
+                <option value="@ward.Text">@ward.Text</option>
+            }
         </select>
 
-        <select id="bedFilter" class="filter-select">
+        @* <select id="bedFilter" class="filter-select">
             <option value="">All Beds</option>
             <!-- Populate dynamically as well -->
             <option value="Bed1">Bed 1</option>
             <option value="Bed2">Bed 2</option>
             <option value="Bed3">Bed 3</option>
+        </select> *@
+       @*  <select id="bedFilter" name="bed" class="filter-select">
+            <option value="">All Beds</option>
+            @foreach (var prefix in ViewBag.BedPrefixes as List<string>)
+            {
+                <option value="@prefix">@prefix</option>
+            }
+        </select> *@
+        <select id="bedFilter"  class="filter-select">
+            <option value="">All Beds</option>
+            @foreach (var bed in ViewBag.Beds as SelectList)
+            {
+                <option value="@bed.Text">@bed.Text</option>
+            }
         </select>
 
+        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
 
 
@@ -591,15 +620,18 @@
                                 <i class="fas fa-heartbeat"></i>
                                 Vitals
                             </a>
-                            <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment">
+                            <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment"
+                               onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                 <i class="fas fa-user-md"></i>
                                 Treatment
                             </a>
-                            <a asp-controller="NurseSister" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication">
+                            <a asp-controller="NurseSister" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication"
+                               onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                 <i class="fas fa-pills"></i>
                                 Medication
                             </a>
-                            <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions">
+                            <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions"
+                               onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                 <i class="fas fa-clipboard-list"></i>
                                 Instructions
                             </a>
@@ -609,6 +641,25 @@
             }
         </tbody>
     </table>
+</div>
+
+<!-- Admission Warning Modal -->
+<div class="modal fade" id="admissionModal" tabindex="-1" aria-labelledby="admissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="admissionModalLabel">Action Not Allowed</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <i class="fas fa-warning"></i>
+                <p id="admissionModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -654,8 +705,8 @@
         if (bed) params.append('bed', bed);
 
         const url = params.toString()
-            ? `/Nurse/LiveSearch?${params.toString()}`
-            : `/Nurse/LiveSearchAll`;
+            ? `/NurseSister/LiveSearch?${params.toString()}`
+            : `/NurseSister/LiveSearchAll`;
 
         fetch(url)
             .then(response => response.text())
@@ -671,6 +722,20 @@
     searchInput.addEventListener('input', performSearch);
     wardFilter.addEventListener('change', performSearch);
     bedFilter.addEventListener('change', performSearch);
+
+
+      function checkAdmission(isAdmitted) {
+        isAdmitted = (isAdmitted === true || isAdmitted === 'true'); // convert string to boolean
+        if (!isAdmitted) {
+            document.getElementById("admissionModalMessage").innerText =
+                "Cannot perform this action. Patient is not admitted.";
+
+            var modal = new bootstrap.Modal(document.getElementById('admissionModal'));
+            modal.show();
+            return false;
+        }
+        return true;
+    }
 </script>
 
 
