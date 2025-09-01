@@ -4,9 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace ONT_3rdyear_Project.Models
 {
     public class WardConsumable
-    {
-        [Key]
-        public int StockID { get; set; }
+    {       
         [ForeignKey("Ward")]
         public int WardID { get; set; }
         public virtual Ward Ward { get; set; }

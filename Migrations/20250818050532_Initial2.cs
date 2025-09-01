@@ -6,56 +6,67 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ONT_3rdyear_Project.Migrations
 {
     /// <inheritdoc />
-    public partial class FixVitalsColumnTypes : Migration
+    public partial class Initial2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "StockID",
+                table: "WardConsumables");
+
             migrationBuilder.UpdateData(
                 table: "AspNetUsers",
                 keyColumn: "Id",
                 keyValue: 1,
                 columns: new[] { "ConcurrencyStamp", "PasswordHash" },
-                values: new object[] { "df6e8e6f-c18b-4ce9-b35a-cd1011163c57", "AQAAAAIAAYagAAAAEKg06sboeX1lYLioVwz+b2/ph9HWD7f8DPpob0xx3FqhHEuUnZrEEtJAekzOkLhFBw==" });
+                values: new object[] { "c4cf7247-460a-4b8f-914f-a0aec3f74d94", "AQAAAAIAAYagAAAAEBS2vFvz0L3uZs31TlwEbt5THi2EAIADo74nCVWk8FTSU9P6vPreoh+ZLjYvOyBi3w==" });
 
             migrationBuilder.UpdateData(
                 table: "AspNetUsers",
                 keyColumn: "Id",
                 keyValue: 2,
                 columns: new[] { "ConcurrencyStamp", "PasswordHash" },
-                values: new object[] { "8ed86d59-2e1d-4bc9-aeca-2eac38844a52", "AQAAAAIAAYagAAAAEAowxTDkhJVYmnOe3llbONgSGjiAWP9GYxvzQSrxWj9fRVU63PfWQCepfkMWVJBRXw==" });
+                values: new object[] { "786b151d-0f52-4ab8-a843-71c4bff36bdd", "AQAAAAIAAYagAAAAEIdpgB3HcEmtfF0YitZg2M+3aen+j5A6rGGKNMu57sq7wSrB1+g2PYGuKnys85ttAQ==" });
 
             migrationBuilder.UpdateData(
                 table: "HospitalInfo",
                 keyColumn: "HospitalInfoId",
                 keyValue: 1,
                 column: "LastUpdated",
-                value: new DateTime(2025, 8, 14, 10, 33, 55, 592, DateTimeKind.Local).AddTicks(308));
+                value: new DateTime(2025, 8, 18, 7, 5, 31, 268, DateTimeKind.Local).AddTicks(2466));
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<int>(
+                name: "StockID",
+                table: "WardConsumables",
+                type: "int",
+                nullable: false,
+                defaultValue: 0);
+
             migrationBuilder.UpdateData(
                 table: "AspNetUsers",
                 keyColumn: "Id",
                 keyValue: 1,
                 columns: new[] { "ConcurrencyStamp", "PasswordHash" },
-                values: new object[] { "bbdf19e1-22a2-4a92-8870-8b929d5ce64c", "AQAAAAIAAYagAAAAEBF45mMwQRlaJeshwcAELh/gKTAVD0jigECQrCC5hKMLm/EnMnrFgoU0wYXwP+Karw==" });
+                values: new object[] { "d7be20d6-1774-491b-a2f6-f739b5703dcd", "AQAAAAIAAYagAAAAEKja79inF50Jb+k7SWFy5/tN/pan8YQYeIs1lqF5i4ypZL01RP1/pt3dVlZXb6CjPw==" });
 
             migrationBuilder.UpdateData(
                 table: "AspNetUsers",
                 keyColumn: "Id",
                 keyValue: 2,
                 columns: new[] { "ConcurrencyStamp", "PasswordHash" },
-                values: new object[] { "9859e6f9-ccce-4e1a-93ef-254f940d73c0", "AQAAAAIAAYagAAAAEEYyIFt4sf8G7vVZA9DoCiZDZvec+odTvOfZ1FlAs+YPg1lD13wJ7luku5WQm3YuJA==" });
+                values: new object[] { "9788826f-d363-45fe-9646-e6260cdcdefd", "AQAAAAIAAYagAAAAEFlznK3GN0mWOrXF9Ordni0gxVYuJxdLYfnBdt/eET4fZiohztOGlAFl+bMWjg4FUA==" });
 
             migrationBuilder.UpdateData(
                 table: "HospitalInfo",
                 keyColumn: "HospitalInfoId",
                 keyValue: 1,
                 column: "LastUpdated",
-                value: new DateTime(2025, 8, 14, 9, 59, 34, 396, DateTimeKind.Local).AddTicks(7016));
+                value: new DateTime(2025, 8, 18, 1, 15, 53, 612, DateTimeKind.Local).AddTicks(5568));
         }
     }
 }

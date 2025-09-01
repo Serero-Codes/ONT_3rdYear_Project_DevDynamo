@@ -216,7 +216,7 @@
         }
 
         /* Footer Styles */
-        .hospital-footer {
+       /*  .hospital-footer {
         background: linear-gradient(135deg, var(--dark-text) 0%, #334155 100%);
         color: rgba(255, 255, 255, 0.8);
         padding: 2rem 0 1.5rem;
@@ -257,13 +257,13 @@
         margin-left: 1rem;
         }
 
-        .footer-links a:hover {
+       /*  .footer-links a:hover {
         color: white;
         }
 
         /* Responsive Design */
         @@media (max-width: 768px) {
-        .hospital-container
+       /*.hospital-container
 
         {
         padding: 1rem 0.5rem;
@@ -281,9 +281,9 @@
         .hospital-brand::before {
         font-size: 1.5rem;
         margin-right: 0.5rem;
-        }
+        } */
 
-        .footer-content {
+/*         .footer-content {
         flex-direction: column;
         text-align: center;
         }
@@ -296,7 +296,23 @@
         margin: 0 0.5rem;
         }
 
-        }
+        } */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         /* Loading Animation */
         .page-loader {
@@ -370,20 +386,20 @@
         <div class="page-loader" id="pageLoader"></div>
 
         <header class="hospital-header">
-            <div class="topbar d-flex align-items-center">
+            @* <div class="topbar d-flex align-items-center">
                 <div class="container d-flex justify-content-center justify-content-md-between">
                     <div class="d-none d-md-flex align-items-center">
                         <i class="bi bi-clock me-1"></i> Monday - Saturday, 8AM to 10PM
                     </div>
-                    <div class="d-flex align-items-center">
+                     <div class="d-flex align-items-center">
                         <i class="bi bi-phone me-1"></i> Call us now +1 5589 55488 55
-                    </div>
+                    </div> 
                 </div>
-            </div><!-- End Top Bar -->
+            </div> *@<!-- End Top Bar -->
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm hospital-navbar">
                 <div class="container-fluid">
                     <a class="hospital-brand" @* asp-area="" asp-controller="Home" asp-action="Index" *@>
-                        DevDynamo
+                        CyberMed-Care
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
@@ -425,10 +441,11 @@
                                 </li>
                             }
                             @* Consumable *@
-                            @if (User.Identity.IsAuthenticated && User.IsInRole("Consumable"))
+                            @if (User.Identity.IsAuthenticated && User.IsInRole("ConsumableManager"))
                             {
                                 <li class="nav-item">
-                                    <a class="hospital-nav-link dashboard" asp-area="" asp-controller="Consumable" asp-action="Dashboard">Consumable Dashboard</a>
+                                   
+                                    <a class="hospital-nav-link dashboard" asp-area="" asp-controller="Consumable" asp-action="Index">Consumable Dashboard</a>
                                 </li>
                             }
 							@* Script *@
@@ -459,7 +476,7 @@
     </header>
     </div>
 
-    <main @* class="main-content" *@>
+    <main  class="main-content" >
         @RenderBody()
     </main>
 @*     <section id="hero" class="hero section">
@@ -467,32 +484,148 @@
        @*  <div id="hero-carousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
 
         </div> *@
-        @* <div class="hospital-container">
+      @*   <div class="hospital-container">
             <main role="main" class="main-content">
                 @RenderBody()
             </main>
         </div> *@
 
    @*  </section> *@<!-- /Features Section -->
-    <div class="mb-2">
-    <footer class="hospital-footer ">
+   @*   <div class="mb-2">
+     <footer class="hospital-footer ">
+         <div class="container">
+             <div class="footer-content">
+                 <div class="footer-left">
+                     <div class="footer-logo">
+                         <i class="fas fa-heartbeat"></i>
+                     </div>
+                     <span>&copy; 2025 - ONT 3rd Year Project - Healthcare Management System</span>
+                 </div>
+                 <div class="footer-links">
+                     <a asp-area="" asp-controller="Home" asp-action="Privacy">
+                         <i class="fas fa-shield-alt"></i> Privacy Policy
+                     </a>
+                 </div>
+             </div>
+         </div>
+     </footer>
+     </div> *@
+    <footer style="background-color: #333; color: #fff; padding: 3rem 0 0 0; width: 100%; margin-top: 12rem;margin-bottom: 0">
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-left">
-                    <div class="footer-logo">
-                        <i class="fas fa-heartbeat"></i>
+            <div class="row" style="margin-bottom: 1rem;">
+                <div class="col-md-3 col-sm-6" style="margin-bottom: 5px;">
+                    <h4 style="font-size: 18px; color: #fff; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 10px;">About Us</h4>
+                    <div style="position: relative;">
+                        <div style="content: ''; position: absolute; left: 0; bottom: 0; height: 2px; width: 50px; background-color: #e63757;"></div>
                     </div>
-                    <span>&copy; 2025 - ONT 3rd Year Project - Healthcare Management System</span>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;">
+                            <a href="#" style="color: #bbb; text-decoration: none; transition: all 0.3s ease; display: block;">Our Mission</a>
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <a href="#" style="color: #bbb; text-decoration: none; transition: all 0.3s ease; display: block;">Our Team</a>
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <a href="#" style="color: #bbb; text-decoration: none; transition: all 0.3s ease; display: block;">Contact Us</a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="footer-links">
-                    <a asp-area="" asp-controller="Home" asp-action="Privacy">
-                        <i class="fas fa-shield-alt"></i> Privacy Policy
-                    </a>
+                <div class="col-md-3 col-sm-6" style="margin-bottom: 5px;">
+                    <h4 style="font-size: 18px; color: #fff; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 10px;">Services</h4>
+                    <div style="position: relative;">
+                        <div style="content: ''; position: absolute; left: 0; bottom: 0; height: 2px; width: 50px; background-color: #e63757;"></div>
+                    </div>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;">
+                            <a href="#" style="color: #bbb; text-decoration: none; transition: all 0.3s ease; display: block;">Emergency Care</a>
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <a href="#" style="color: #bbb; text-decoration: none; transition: all 0.3s ease; display: block;">Primary Care</a>
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <a href="#" style="color: #bbb; text-decoration: none; transition: all 0.3s ease; display: block;">Specialized Treatment</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-3 col-sm-6" style="margin-bottom: 5px;">
+                    <h4 style="font-size: 18px; color: #fff; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 10px;">Resources</h4>
+                    <div style="position: relative;">
+                        <div style="content: ''; position: absolute; left: 0; bottom: 0; height: 2px; width: 50px; background-color: #e63757;"></div>
+                    </div>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;">
+                            <a href="#" style="color: #bbb; text-decoration: none; transition: all 0.3s ease; display: block;">Patient Portal</a>
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <a href="#" style="color: #bbb; text-decoration: none; transition: all 0.3s ease; display: block;">Insurance Information</a>
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <a href="#" style="color: #bbb; text-decoration: none; transition: all 0.3s ease; display: block;">FAQs</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-3 col-sm-6" style="margin-bottom: 5px;">
+                    <h4 style="font-size: 18px; color: #fff; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 10px;">Connect With Us</h4>
+                    <div style="position: relative;">
+                        <div style="content: ''; position: absolute; left: 0; bottom: 0; height: 2px; width: 50px; background-color: #e63757;"></div>
+                    </div>
+                    <div class="social-links">
+                        <a href="#" style="display: inline-block; height: 40px; width: 40px; background-color: rgba(255, 255, 255, 0.1); margin-right: 10px; text-align: center; line-height: 40px; border-radius: 50%; color: #fff; transition: all 0.3s ease;">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" style="display: inline-block; height: 40px; width: 40px; background-color: rgba(255, 255, 255, 0.1); margin-right: 10px; text-align: center; line-height: 40px; border-radius: 50%; color: #fff; transition: all 0.3s ease;">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" style="display: inline-block; height: 40px; width: 40px; background-color: rgba(255, 255, 255, 0.1); margin-right: 10px; text-align: center; line-height: 40px; border-radius: 50%; color: #fff; transition: all 0.3s ease;">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" style="display: inline-block; height: 40px; width: 40px; background-color: rgba(255, 255, 255, 0.1); margin-right: 10px; text-align: center; line-height: 40px; border-radius: 50%; color: #fff; transition: all 0.3s ease;">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+        <div style="background-color: #222; padding: 15px 0; text-align: center; width: 100%; margin-top: 1rem;">
+            <div class="container">
+                <p style="margin: 0; color: #bbb;">&copy; 2025 - ONT 3rd Year Project - Healthcare Management System | <a asp-area="" asp-controller="Home" asp-action="Privacy" style="color: #bbb; text-decoration: none;">Privacy Policy</a></p>
+            </div>
+        </div>
     </footer>
-    </div>
+
+    <script>
+        // Add hover effects for footer links
+        document.addEventListener('DOMContentLoaded', function () {
+            const footerLinks = document.querySelectorAll('footer a:not([asp-controller])');
+            footerLinks.forEach(link => {
+                link.addEventListener('mouseover', function () {
+                    this.style.color = '#fff';
+                    this.style.paddingLeft = '5px';
+                });
+                link.addEventListener('mouseout', function () {
+                    this.style.color = '#bbb';
+                    this.style.paddingLeft = '0';
+                });
+            });
+
+            // Add hover effects for social links
+            const socialLinks = document.querySelectorAll('footer .social-links a');
+            socialLinks.forEach(link => {
+                link.addEventListener('mouseover', function () {
+                    this.style.backgroundColor = '#e63757';
+                    this.style.transform = 'translateY(-3px)';
+                });
+                link.addEventListener('mouseout', function () {
+                    this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+
+
+
+
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

@@ -15,8 +15,9 @@ namespace ONT_3rdyear_Project.Models
 		[ForeignKey("Patient")]
 		public int? PatientID { get; set; }
 		public DateTime VisitDate { get; set; }
-		public string Notes { get; set; }
-		public bool IsCompleted { get; set; }
+		public String ReasonForVisit { get; set; }
+		public string? Notes { get; set; }
+		//public bool IsCompleted { get; set; }
 
 
         public virtual ApplicationUser User { get; set; }

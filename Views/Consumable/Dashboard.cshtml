@@ -1,0 +1,113 @@
+﻿@model ONT_3rdyear_Project.Controllers.ConsumableController
+
+@{
+    ViewData["Title"] = "Dashboard";
+   
+}
+
+
+<!-- Alert Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <h5 class="card-title text-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Critical Stock
+                </h5>
+                <h2 class="text-danger">@Model.</h2>
+                <p class="card-text">Items below minimum level</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <h5 class="card-title text-warning">
+                    <i class="fas fa-exclamation"></i> Low Stock
+                </h5>
+                <h2 class="text-warning">@Model.</h2>
+                <p class="card-text">Items approaching minimum</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <h5 class="card-title text-info">
+                    <i class="fas fa-truck"></i> Pending Orders
+                </h5>
+                <h2 class="text-info">@Model.</h2>
+                <p class="card-text">Orders awaiting delivery</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h5 class="card-title text-success">
+                    <i class="fas fa-check-circle"></i> Total Items
+                </h5>
+                <h2 class="text-success">@Model.</h2>
+                <p class="card-text">Consumables managed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                     
+                        <a href="/StockManager/Receive" class="btn btn-outline-success btn-block mb-2">
+                            <i class="fas fa-arrow-down"></i> Receive Delivery
+                        </a>
+                        <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="WardConsumables">WardConsumables</a>
+
+                        <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="Index">Consumables</a>
+                        <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="Wards">Wards</a>
+
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/StockManager/Orders" class="btn btn-outline-info btn-block mb-2">
+                            <i class="fas fa-list"></i> View Orders History
+                        </a>
+                        <a href="/StockManager/Reports" class="btn btn-outline-secondary btn-block mb-2">
+                            <i class="fas fa-chart-bar"></i> Generate Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Stock Movements</h5>
+            </div>
+            <div class="card-body">
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Upcoming Deliveries</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">No upcoming deliveries scheduled</p>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,75 @@
+﻿@model ONT_3rdyear_Project.ViewModels.StockTakeViewModel
+
+@{
+    ViewData["Title"] = "New Stock Take";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-nowrap w-100 overflow-auto">
+                <h1 class="h3 mb-0 text-nowrap">New Stock Take</h1>
+                <a asp-controller="Consumable" asp-action="Dashboard" class=" btn btn-secondary">Back</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form asp-action="StockTake" method="post">
+    <input type="hidden" asp-for="TakenByID" />
+    <div class="mb-3">
+        <label asp-for="WardID" class="form-label">Wards</label>
+        <select asp-for="WardID" asp-items="ViewBag.Wards" class="form-select" id="wardSelect">
+            <option value="">--Select a ward--</option>
+        </select>
+        <span asp-validation-for="WardID" class="text-danger"></span>
+    </div>
+
+    <hr />
+    <h4>Consumables</h4>
+    <table class="table" id="consumablesTable">
+        <thead>
+            <tr>
+                <th>Consumable</th>
+                <th>System Qty</th>
+                <th>Counted Qty</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- JS will populate rows here -->
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-success">Save Stock Take</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $('#wardSelect').change(function () {
+            const wardId = $(this).val();
+            $.getJSON(`/Consumable/GetConsumablesByWard?wardId=${wardId}`, function (data) {
+                const table = $('#consumablesTable tbody');
+                table.empty();
+                let index = 0;
+                console.log(data); // Debugging line to check the data structure
+                data.forEach(item => {
+                    table.append(`
+                        <tr>
+                            <td>
+                                ${item.consumableName}
+                                <input type="hidden" name="Items[${index}].ConsumableID" value="${item.consumableID}" />
+                                <input type="hidden" name="Items[${index}].ConsumableName" value="${item.consumableName}" />
+                                <input type="hidden" name="Items[${index}].SystemQuantity" value="${item.systemQuantity}" />
+                            </td>
+                            <td>${item.systemQuantity}</td>
+                            <td>
+                                <input name="Items[${index}].CountedQuantity" type="number" class="form-control" value="0" min="0" required />
+                            </td>
+                        </tr>
+                    `);index++;
+                });
+            });
+        });
+    </script>
+}

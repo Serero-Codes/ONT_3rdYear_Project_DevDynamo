@@ -15,11 +15,7 @@ namespace ONT_3rdyear_Project.Models
 		public string Category { get; set; }
 
 		[Required(ErrorMessage = "Stock Quantity is required")]
-		public int StockQuantity { get; set; }
-
-        [ForeignKey("Ward")]
-        public int WardID { get; set; }
-        public virtual Ward Ward { get; set; }
+		public int StockQuantity { get; set; }      
 
 		public bool IsDeleted { get; set; } = false;
         public virtual ICollection<ConsumableOrder> ConsumableOrders { get; set; }
