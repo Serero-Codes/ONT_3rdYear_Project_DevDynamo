@@ -13,6 +13,7 @@ using System.Threading.Tasks.Sources;
 using System.Security.Claims;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using ONT_3rdyear_Project.SereroViewModels;
 
 namespace ONT_3rdyear_Project.Controllers
 {
@@ -48,8 +49,8 @@ namespace ONT_3rdyear_Project.Controllers
 									PatientID = patient.PatientID,
                                     FirstName = patient.FirstName,
                                     LastName = patient.LastName,
-                                    WardName = ward != null ? ward.Name : "Not Currently Admitted",
-                                    BedNumber = bed != null ? bed.BedNo : "No Bed Allocated"
+                                    Name = ward != null ? ward.Name : "Not Currently Admitted",
+                                    BedNo = bed != null ? bed.BedNo : "No Bed Allocated"
                                 };
 
 
@@ -99,8 +100,8 @@ namespace ONT_3rdyear_Project.Controllers
                               // Vitals
                               BP = vit != null ? vit.BP : "120/80",
                               Temperature = vit != null ? vit.Temperature : 36.5,
-                              SugarLevel = vit != null ? vit.SugarLevel : "Normal",
-                              PulseRate = vit != null ? vit.PulseRate : "72 bpm",
+                              SugarLevel = vit != null ? vit.SugarLevel.ToString() : "Normal",
+                              PulseRate = vit != null ? vit.PulseRate.ToString() + " bmp" : "72 bpm",
                               Date = vit != null ? vit.Date : DateTime.MinValue,
 
                               // Treatment
