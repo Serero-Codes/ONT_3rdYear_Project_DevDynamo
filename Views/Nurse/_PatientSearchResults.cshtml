@@ -1,5 +1,7 @@
 ﻿@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
-
+@{
+    var medicationController = User.IsInRole("Sister") ? "NurseSister" : "Nurse";
+}
 @if (!Model.Any())
 {
     <tr>
@@ -47,7 +49,7 @@ else
                         <i class="fas fa-user-md"></i>
                         Treatment
                     </a>
-                    <a asp-controller="Nurse" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication">
+                    <a asp-controller="@medicationController" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication">
                         <i class="fas fa-pills"></i>
                         Medication
                     </a>

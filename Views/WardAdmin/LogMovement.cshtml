@@ -1,4 +1,52 @@
 ﻿@model ONT_3rdyear_Project.Models.Movement
 @{
-	ViewData["Title"] = "Track Patient Movement";
+    ViewData["Title"] = "Log Patient Movement";
 }
+
+<div class="container pm-container">
+    <div class="card pm-card">
+        <div class="card-header pm-card-header">
+            <i class="bi bi-arrow-right pm-header-icon"></i> Log Movement for @ViewBag.PatientName
+        </div>
+        <div class="card-body pm-card-body">
+            <form asp-action="LogMovement" method="post">
+
+                <!-- From Location (readonly, auto-filled) -->
+                <div class="pm-form-group">
+                    <label asp-for="FromLocation" class="form-label pm-form-label">From Location</label>
+                    <input asp-for="FromLocation" class="form-control pm-input-readonly" readonly value="@ViewBag.CurrentLocation" />
+                </div>
+
+                <!-- To Location -->
+                <div class="pm-form-group">
+                    <label asp-for="ToLocation" class="form-label pm-form-label">To Location</label>
+                    <select asp-for="ToLocation" class="form-select" required>
+                        <option value="">-- Select Destination --</option>
+                        <option value="X-Ray">X-Ray</option>
+                        <option value="@ViewBag.CurrentLocation">@ViewBag.CurrentLocation</option>
+                    </select>
+                    <span asp-validation-for="ToLocation" class="text-danger"></span>
+                </div>
+
+                <!-- Timestamp (default now, user can override if needed) -->
+                <div class="pm-form-group">
+                    <label asp-for="TimeStamp" class="form-label pm-form-label">Movement Time</label>
+                    <input asp-for="TimeStamp" type="datetime-local" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                    <span asp-validation-for="TimeStamp" class="text-danger"></span>
+                </div>
+
+                <!-- Hidden required fields -->
+                <input type="hidden" asp-for="PatientID" value="@ViewBag.PatientID" />
+                <input type="hidden" asp-for="WardID" value="@ViewBag.WardID" />
+                <input type="hidden" asp-for="BedID" value="@ViewBag.BedID" />
+
+                <!-- Submit button -->
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Log Movement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

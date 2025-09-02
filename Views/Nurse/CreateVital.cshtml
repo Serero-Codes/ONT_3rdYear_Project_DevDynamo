@@ -251,9 +251,7 @@
                 <!-- Patient Name (Disabled) -->
                 <div class="form-group-custom">
                     <label class="form-label-custom">
-                        <svg class="vital-icon" fill="#6c757d" viewBox="0 0 24 24">
-                            <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
-                        </svg>
+                        
                         Patient
                     </label>
                     <input type="text" class="form-control form-control-custom" value="@ViewBag.PatientName" disabled />
@@ -264,9 +262,7 @@
                     <!-- Blood Pressure -->
                     <div class="form-group-custom">
                         <label asp-for="BP" class="form-label-custom">
-                            <svg class="vital-icon" fill="#e74c3c" viewBox="0 0 24 24">
-                                <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
-                            </svg>
+                            
                             Blood Pressure
                         </label>
                         <div class="input-group-custom">
@@ -279,9 +275,7 @@
                     <!-- Temperature -->
                     <div class="form-group-custom">
                         <label asp-for="Temperature" class="form-label-custom">
-                            <svg class="vital-icon" fill="#f39c12" viewBox="0 0 24 24">
-                                <path d="M15 13V5A3 3 0 0 0 9 5V13A5 5 0 1 0 15 13M12 4A1 1 0 0 1 13 5V8H11V5A1 1 0 0 1 12 4Z" />
-                            </svg>
+                            
                             Temperature
                         </label>
                         <div class="input-group-custom">
@@ -296,9 +290,7 @@
                     <!-- Sugar Level -->
                     <div class="form-group-custom">
                         <label asp-for="SugarLevel" class="form-label-custom">
-                            <svg class="vital-icon" fill="#3498db" viewBox="0 0 24 24">
-                                <path d="M12,3A3,3 0 0,1 15,6V8.17C16.78,9.47 18,11.61 18,14C18,17.31 15.31,20 12,20C8.69,20 6,17.31 6,14C6,11.61 7.22,9.47 9,8.17V6A3,3 0 0,1 12,3M12,5A1,1 0 0,0 11,6V8.5L10.5,8.77C9.08,9.54 8,11 8,14C8,16.21 9.79,18 12,18C14.21,18 16,16.21 16,14C16,11 14.92,9.54 13.5,8.77L13,8.5V6A1,1 0 0,0 12,5Z" />
-                            </svg>
+                            
                             Sugar Level
                         </label>
                         <div class="input-group-custom">
@@ -311,9 +303,7 @@
                     <!-- Pulse Rate -->
                     <div class="form-group-custom">
                         <label asp-for="PulseRate" class="form-label-custom">
-                            <svg class="vital-icon" fill="#e74c3c" viewBox="0 0 24 24">
-                                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M17,13H11V7H12.5V11.5H17V13Z" />
-                            </svg>
+                           
                             Pulse Rate
                         </label>
                         <div class="input-group-custom">
@@ -326,16 +316,7 @@
 
                 <!-- Recorded By -->
                 <div class="form-group-custom">
-                    <label asp-for="ApplicationUserID" class="form-label-custom">
-                        <svg class="vital-icon" fill="#9b59b6" viewBox="0 0 24 24">
-                            <path d="M16,4C18.11,4 19.81,5.69 19.81,7.8C19.81,9.91 18.11,11.6 16,11.6C13.89,11.6 12.2,9.91 12.2,7.8C12.2,5.69 13.89,4 16,4M16,13.4C18.66,13.4 21.8,14.73 21.8,17.4V19.2H10.2V17.4C10.2,14.73 13.34,13.4 16,13.4M8,6A2,2 0 0,1 10,8A2,2 0 0,1 8,10A2,2 0 0,1 6,8A2,2 0 0,1 8,6M8,11.4C10.07,11.4 12,12.36 12,13.4V15H2V13.4C2,12.36 3.93,11.4 8,11.4Z" />
-                        </svg>
-                        Recorded By
-                    </label>
-                    <select asp-for="ApplicationUserID" class="form-control form-control-custom" asp-items="ViewBag.UserList">
-                        <option value="">Select a healthcare provider...</option>
-                    </select>
-                    <span asp-validation-for="ApplicationUserID" class="text-danger"></span>
+                    <p><strong>Recorded By:</strong> @ViewBag.CurrentUserName</p>
                 </div>
 
                 <!-- Action Buttons -->

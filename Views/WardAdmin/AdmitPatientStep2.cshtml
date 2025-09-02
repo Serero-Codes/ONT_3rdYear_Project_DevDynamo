@@ -1,0 +1,48 @@
+﻿@model ONT_3rdyear_Project.ViewModels.AllergiesStepViewModel
+@{
+    ViewData["Title"] = "Admit Patient - Step 2: Allergies";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Step 2: Record Allergies</h2>
+
+    <form asp-action="AdmitPatientStep2" method="post">
+        <input type="hidden" asp-for="PatientID" />
+        <input type="hidden" asp-for="AdmissionID" />
+
+        <div id="allergies-container">
+            <div class="mb-3 allergy-item">
+                <label asp-for="Name"class="form-label">Allergy Name</label>
+                <input asp-for="Name"type="text" name="PatientAllergies" class="form-control" placeholder="Enter allergy name" />
+				<span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div id="allergies-container">
+            <div class="mb-3 allergy-item">
+                <label asp-for ="Severity"class="form-label">Severity</label>
+                <input asp-for="Severity"type="text" name="PatientAllergies" class="form-control" placeholder="Enter Allergy Severity" />
+				<span asp-validation-for="Severity" class="text-danger"></span>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary mb-3" onclick="addAllergy()">Add Another Allergy</button>
+        <br />
+        <button type="submit" class="btn btn-primary">Next: Medical History</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function addAllergy() {
+            const container = document.getElementById('allergies-container');
+            const div = document.createElement('div');
+            div.classList.add('mb-3', 'allergy-item');
+            div.innerHTML = `<label class="form-label">Allergy</label>
+                             <input type="text" name="Allergies" class="form-control" placeholder="Enter allergy name"/>
+                             <label class="form-label">Severity</label>
+                             <input type="text" name="Allergies" class="form-control" placeholder="Enter Allergy Severity"/>`;
+            container.appendChild(div);
+        }
+    </script>
+}

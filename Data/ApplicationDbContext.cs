@@ -48,6 +48,7 @@ namespace ONT_3rdyear_Project.Data
         public DbSet<ConsumableOrder> ConsumableOrders { get; set; }
         public DbSet<PatientMedicationScript> PatientMedicationScripts { get; set; }
         public DbSet<HospitalInfo> HospitalInfo { get; set; }
+        public DbSet<DoctorAssignment> DoctorAssignments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -214,10 +215,10 @@ namespace ONT_3rdyear_Project.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Admission>()
-                .HasOne(a => a.Patient)
-                .WithOne(p => p.Admissions)
-                .HasForeignKey<Admission>(a => a.PatientID)
-                .OnDelete(DeleteBehavior.Restrict);
+                 .HasOne(a => a.Patient)
+                 .WithOne(p => p.Admissions) 
+                 .HasForeignKey<Admission>(a => a.PatientID)
+                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Instruction>()
                 .HasOne(i => i.User)
@@ -292,17 +293,29 @@ namespace ONT_3rdyear_Project.Data
                 .HasForeignKey(pms => pms.VisitID)
                 .OnDelete(DeleteBehavior.Restrict); // avoid cascade cycle
 
+            modelBuilder.Entity<Movement>()
+               .HasOne(m => m.Patient)
+               .WithMany(p => p.Movements)
+               .HasForeignKey(m => m.PatientID)
+               .OnDelete(DeleteBehavior.Restrict); 
 
-           /* modelBuilder.Entity<IdentityRole<int>>().HasData(
-                new IdentityRole<int> { Id = 1, Name = "Admin", NormalizedName = "ADMIN" },
-                new IdentityRole<int> { Id = 2, Name = "Doctor", NormalizedName = "DOCTOR" },
-                new IdentityRole<int> { Id = 3, Name = "Nurse", NormalizedName = "NURSE" },
-                new IdentityRole<int> { Id = 4, Name = "Sister", NormalizedName = "SISTER" },
-                new IdentityRole<int> { Id = 5, Name = "ConsumableManager", NormalizedName = "ConsumableManager"},
-                new IdentityRole<int> { Id = 6, Name = "ScriptManager", NormalizedName = "ScriptManager"},
-                new IdentityRole<int> { Id = 7, Name = "WardManager", NormalizedName = "WardAdmin"}
+            // Movement -> Ward
+            modelBuilder.Entity<Movement>()
+                .HasOne(m => m.Ward)
+                .WithMany(w => w.Movements)
+                .HasForeignKey(m => m.WardID)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            );*/
+            /* modelBuilder.Entity<IdentityRole<int>>().HasData(
+                 new IdentityRole<int> { Id = 1, Name = "Admin", NormalizedName = "ADMIN" },
+                 new IdentityRole<int> { Id = 2, Name = "Doctor", NormalizedName = "DOCTOR" },
+                 new IdentityRole<int> { Id = 3, Name = "Nurse", NormalizedName = "NURSE" },
+                 new IdentityRole<int> { Id = 4, Name = "Sister", NormalizedName = "SISTER" },
+                 new IdentityRole<int> { Id = 5, Name = "ConsumableManager", NormalizedName = "ConsumableManager"},
+                 new IdentityRole<int> { Id = 6, Name = "ScriptManager", NormalizedName = "ScriptManager"},
+                 new IdentityRole<int> { Id = 7, Name = "WardManager", NormalizedName = "WardAdmin"}
+
+             );*/
 
             var hasher = new PasswordHasher<ApplicationUser>();
             modelBuilder.Entity<ApplicationUser>().HasData(
@@ -326,7 +339,9 @@ namespace ONT_3rdyear_Project.Data
             // Seed Beds
             modelBuilder.Entity<Bed>().HasData(
                 new Bed { BedId = 1, WardID = 1, BedNo = "G1", IsOccupied = false },
-                new Bed { BedId = 2, WardID = 1, BedNo = "G2", IsOccupied = true }
+                new Bed { BedId = 2, WardID = 1, BedNo = "G2", IsOccupied = false },
+                new Bed { BedId = 3, WardID = 1, BedNo = "G3", IsOccupied = false },
+                new Bed { BedId = 4, WardID = 2, BedNo = "C1", IsOccupied = false }
             );
 
             // Seed Medications

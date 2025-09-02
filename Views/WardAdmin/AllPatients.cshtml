@@ -1,4 +1,150 @@
-﻿@model ONT_3rdyear_Project.Models.Patient
+﻿@model IEnumerable<Patient>
 @{
 	ViewData["Title"] = "View all patients";
 }
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary">
+            <i class="bi bi-people-fill me-2"></i> Patients
+        </h2>
+        <a class="btn btn-success shadow-sm" asp-action="Create">
+            <i class="bi bi-person-plus-fill me-1"></i> Add New Patient
+        </a>
+    </div>
+
+    <!-- ✅ Search Bar -->
+    <div class="container mt-4">
+        <form asp-action="Search" method="post" class="input-group shadow-sm">
+            <input type="text" name="query" class="form-control" placeholder="Search patient name..." required />
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> Search
+            </button>
+        </form>
+    </div>
+    <br/>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-primary">
+                <tr>
+                    <th>Name</th>
+                    <th>Gender</th>
+					<th>Date Of Birth</th>
+                    <th>Admission Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var patient in Model)
+                {
+                    <tr>
+                        <td>
+                            <i class="bi bi-person-circle text-info me-2"></i>
+                            @patient.FirstName @patient.LastName
+                        </td>
+                        <td>@patient.Gender</td>
+						<td>@patient.DateOfBirth.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (patient.Admitted)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="bi bi-hospital-fill me-1"></i> Admitted
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-door-open-fill me-1"></i> Not Admitted
+                                </span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a class="btn btn-sm btn-outline-primary me-1" asp-action="Details" asp-route-id="@patient.PatientID">
+                                <i class="bi bi-eye-fill"></i> View
+                            </a>
+                            <a class="btn btn-sm btn-outline-warning me-1" asp-action="Edit" asp-route-id="@patient.PatientID">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                            <a class="btn btn-sm btn-outline-danger me-1" asp-action="SoftDelete" asp-route-id="@patient.PatientID">
+                                <i class="bi bi-archive-fill"></i> Archive
+                            </a>
+
+                            <!-- ✅ Show Admission only if admitted -->
+                            @if (patient.Admitted)
+                            {
+                                <a class="btn btn-sm btn-info text-white me-1" asp-action="Active" asp-route-id="@patient.PatientID">
+                                    <i class="bi bi-clipboard2-pulse"></i> Show Admission
+                                </a>
+                            }
+
+                            <!-- ✅ Medical History Modal -->
+                            <button class="btn btn-sm btn-outline-success me-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#patientModal"
+                                    onclick="loadPatientData('@Url.Action("GetMedicalHistory", new { patientId = patient.PatientID })')">
+                                <i class="bi bi-journal-medical"></i> Medical History
+                            </button>
+
+                            <!-- ✅ Allergies Modal -->
+                            <button class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#patientModal"
+                                    onclick="loadPatientData('@Url.Action("GetPatientAllergies", new { patientId = patient.PatientID })')">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Allergies
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ✅ Shared Modal -->
+<div class="modal fade" id="patientModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-info-circle-fill me-2"></i> Patient Info</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="patientModalBody">
+                <p class="text-center text-muted">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function loadPatientData(url) {
+            $("#patientModalBody").html("<p class='text-center text-muted'>Loading...</p>");
+            $.get(url, function (data) {
+                $("#patientModalBody").html(data);
+            });
+        }
+
+         
+
+    </script>
+}
+
+<style>
+    body {
+        background-color: #f8fdfd;
+    }
+
+    table tbody tr:hover {
+        background-color: #f1f9ff;
+        transition: background 0.3s ease;
+    }
+</style>

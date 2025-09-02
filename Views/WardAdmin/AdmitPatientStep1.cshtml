@@ -1,0 +1,115 @@
+﻿@model ONT_3rdyear_Project.ViewModels.AdmissionStep1ViewModel
+@{
+    ViewData["Title"] = "Admit Patient - Step 1";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-hospital-fill me-2"></i> Step 1: Basic Admission Info</h4>
+        </div>
+        <div class="card-body">
+
+            <form asp-action="AdmitPatientStep1" method="post">
+
+                <!-- Patient Selection -->
+                <div class="mb-3">
+                    <label asp-for="PatientID" class="form-label">Please select patient</label>
+                    <select asp-for="PatientID" class="form-select" asp-items="Model.Patients">
+                        <option value="">-- Select Patient --</option>
+                    </select>
+                    <span asp-validation-for="PatientID" class="text-danger"></span>
+                </div>
+
+                <!-- Bed Selection -->
+                <div class="mb-3">
+                    <label asp-for="BedID" class="form-label">Assign Bed</label>
+                    <select asp-for="BedID" class="form-select" asp-items="Model.Beds">
+                        <option value="">-- Select Bed --</option>
+                    </select>
+                    <span asp-validation-for="BedID" class="text-danger"></span>
+                </div>
+
+                <!-- Ward Selection -->
+                <div class="mb-3">
+                    <label asp-for="WardID" class="form-label">Assign ward</label>
+                    <select asp-for="WardID" class="form-select" asp-items="Model.Wards">
+                        <option value="">-- Select Ward --</option>
+                    </select>
+                    <span asp-validation-for="WardID" class="text-danger"></span>
+                </div>
+
+                <!-- Doctor Selection -->
+                <div class="mb-3">
+                    <label asp-for="DoctorID" class="form-label">Assign Doctor</label>
+                    <select asp-for="DoctorID" class="form-select" asp-items="Model.Doctors">
+                        <option value="">-- Select Doctor --</option>
+                    </select>
+                    <span asp-validation-for="DoctorID" class="text-danger"></span>
+                </div>
+
+                <!-- Reason for Admission -->
+                <div class="mb-3">
+                    <label asp-for="ReasonForAdmission" class="form-label">Reason for admission</label>
+                    <textarea asp-for="ReasonForAdmission" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="ReasonForAdmission" class="text-danger"></span>
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-3">
+                    <label asp-for="Notes" class="form-label">Notes</label>
+                    <textarea asp-for="Notes" class="form-control" rows="2"></textarea>
+                    <span asp-validation-for="Notes" class="text-danger"></span>
+                </div>
+
+                <!-- Admission Date -->
+                <div class="mb-3">
+                    <label asp-for="AdmissionDate" class="form-label">Admission date</label>
+                    <input asp-for="AdmissionDate" class="form-control" type="date" />
+                    <span asp-validation-for="AdmissionDate" class="text-danger"></span>
+                </div>
+
+                <!-- Discharge Date (Read-Only) -->
+                <div class="mb-3">
+                    <label class="form-label">Discharge Date</label>
+                    <input class="form-control" type="text" value="Discharge Date will be set upon discharge" readonly />
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle-fill"></i> Discharge date cannot be added at admission time.
+                    </small>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        Next: Add Allergy <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+    body {
+        background-color: #f8fdfd;
+    }
+
+    .card {
+        border-radius: 1rem;
+    }
+
+    select.form-select:focus,
+    input.form-control:focus,
+    textarea.form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+</style>

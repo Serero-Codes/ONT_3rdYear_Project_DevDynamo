@@ -21,6 +21,7 @@ namespace ONT_3rdyear_Project.Models
 		public bool IsDeleted { get; set; } = false;
 
 		public virtual Ward Ward { get; set; }
-		public virtual Admission Admissions { get; set; }
+		public virtual ICollection<Movement> Movements { get; set; }
+        public virtual Admission Admissions { get; set; }
 	}
 }

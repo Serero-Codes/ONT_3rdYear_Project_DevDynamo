@@ -5,20 +5,24 @@ namespace ONT_3rdyear_Project.Models
 {
 	public class PatientAllergy
 	{
-		
+		[Key]
+		public int PatientAllergyId { get; set; }
 
-		[ForeignKey("Patient")]
+        [ForeignKey("Patient")]
         public int PatientId { get; set; }
         public virtual Patient Patient { get; set; }
 
 		[ForeignKey("Allergy")]
         public int AllergyId { get; set; }
         public virtual Allergy Allergy { get; set; }
-
-		[Required]
+		[ForeignKey("Admission")]
+		public int? AdmissionId { get; set; }
+		public virtual Admission Admission { get; set; }
+        [Required]
 		public string Notes { get; set; }
+		public string Name { get; set; }
 
-		[Required]
+        [Required]
 		public string Severity { get; set; }
 	}
 }

@@ -1,0 +1,83 @@
+﻿/* General container spacing */
+.pm-container {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Card styling for forms */
+.pm-card {
+    max-width: 700px;
+    margin: auto;
+    border-radius: 10px;
+    box-shadow: 0 0.15rem 1.75rem rgba(58,59,69,.15);
+}
+
+.pm-card-header {
+    background-color: #0d6efd;
+    color: #fff;
+    font-weight: 500;
+    font-size: 1.25rem;
+}
+
+.pm-card-body {
+    padding: 1.5rem;
+}
+
+/* Form spacing */
+.pm-form-group {
+    margin-bottom: 1rem;
+}
+
+.pm-form-label {
+    font-weight: 500;
+}
+
+/* Buttons */
+.pm-btn {
+    min-width: 130px;
+}
+
+    .pm-btn + .pm-btn {
+        margin-left: 0.5rem;
+    }
+
+/* Tables */
+.pm-table {
+    width: 100%;
+    border-radius: 0.35rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+    .pm-table th {
+        font-weight: 500;
+    }
+
+    .pm-table tbody tr:hover {
+        background-color: #f1f9ff;
+        transition: background 0.3s ease;
+    }
+
+/* Alerts */
+.pm-alert {
+    border-radius: 0.35rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+/* Readonly input styling */
+.pm-input-readonly {
+    background-color: #e9ecef;
+    opacity: 1;
+}
+
+/* Headers */
+.pm-header-icon {
+    margin-right: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .pm-btn {
+        min-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}

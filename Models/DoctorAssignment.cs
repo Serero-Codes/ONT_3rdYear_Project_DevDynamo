@@ -9,7 +9,7 @@ namespace ONT_3rdyear_Project.Models
         public int AssignmentID { get; set; }
 
         [Required]
-        [ForeignKey("ApplicatiikonUser")]
+        [ForeignKey("ApplicationUser")]
         public int DoctorID { get; set; } // Foreign key to ApplicationUser (Doctor)
 
         [Required]

@@ -13,6 +13,10 @@ namespace ONT_3rdyear_Project.Models
         [Required]
         [Range(1, 6, ErrorMessage = "Schedule must be between 1 and 6")]
         public int Schedule { get; set; }
+
+        [Required]
+        [Range(0, int.MaxValue, ErrorMessage = "Quantity must be zero or greater.")]
+        public int Quantity { get; set; }
         public DateOnly ExpiryDate { get; set; }
 
 		public bool IsDeleted { get; set; } = false;
