@@ -5,8 +5,7 @@ namespace ONT_3rdyear_Project.Models
 {
     public class StockTakeItem
     {
-        [Key]
-        public int TakenItemID { get; set; }
+       
         [ForeignKey("StockTake")]
         public int StockTakeID { get; set; }
         public virtual StockTake StockTake { get; set; }

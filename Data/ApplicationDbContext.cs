@@ -325,7 +325,7 @@ namespace ONT_3rdyear_Project.Data
 
             // Seed Patients
             modelBuilder.Entity<Patient>().HasData(
-                new Patient{PatientID = 1,FirstName = "Naledi",LastName = "Kgomo", DateOfBirth = new DateOnly(2000, 01, 15),Gender = "Female",ChronicIllness = "Hypertension", Admitted = false},
+                new Patient{PatientID = 1, FirstName = "Naledi",LastName = "Kgomo", DateOfBirth = new DateOnly(2000, 01, 15),Gender = "Female",ChronicIllness = "Hypertension", Admitted = false},
                 new Patient{PatientID = 2, FirstName = "Tshepo",LastName = "Mabasa",DateOfBirth = new DateOnly(1995, 06, 21),Gender = "Male",ChronicIllness = "Diabetes", Admitted = true},
                 new Patient { PatientID = 3, FirstName = "Thando", LastName = "Smith", DateOfBirth = new DateOnly(2003, 02, 28), Gender = "Female", ChronicIllness = "Herpertension", Admitted = true}
             );
@@ -367,8 +367,8 @@ namespace ONT_3rdyear_Project.Data
              );
 
             modelBuilder.Entity<TreatVisit>().HasData(
-                new TreatVisit { TreatVisitID = 1, ApplicationUserID = 1, PatientID = 1, VisitDate = new DateTime(2025, 09, 10, 09, 00, 00), Notes = "Initial wound dressing and IV fluid administered.", IsCompleted = false },
-                new TreatVisit { TreatVisitID = 2, ApplicationUserID = 2, PatientID = 2, VisitDate = new DateTime(2025, 08,11,10,00,00), Notes = "Follow-up visit to monitor fever.", IsCompleted = true });
+                new TreatVisit { TreatVisitID = 1, ApplicationUserID = 1, PatientID = 1, VisitDate = new DateTime(2025, 09, 10, 09, 00, 00), Notes = "Initial wound dressing and IV fluid administered.", ReasonForVisit = "monitor patient recovery process"},
+                new TreatVisit { TreatVisitID = 2, ApplicationUserID = 2, PatientID = 2, VisitDate = new DateTime(2025, 08,11,10,00,00), Notes = "Follow-up visit to monitor fever.", ReasonForVisit = "monitor patient temperature" });
 
             modelBuilder.Entity<Instruction>().HasData(
                 new Instruction { InstructionID = 1, PatientID = 1, ApplicationUserID = 1, TreatVisitID = null, VisitID = 1, NurseRequest = "Please advise on wound management.", Instructions = "Monitor vitls every 4 hours", DateRecorded = new DateTime(2025, 10, 11, 12, 00, 00)},

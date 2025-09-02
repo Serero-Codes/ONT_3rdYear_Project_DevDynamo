@@ -5,8 +5,7 @@ namespace ONT_3rdyear_Project.Models
 {
 	public class ConsumableOrder
 	{
-		[Key]
-		public int ConsumableOrderId { get; set; }
+		
 
 		[ForeignKey("Consumable")]
 		public int ConsumableId { get; set; }

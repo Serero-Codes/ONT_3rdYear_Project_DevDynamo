@@ -263,54 +263,54 @@ namespace ONT_3rdyear_Project.Controllers
         }
 
         // CONSUMABLES MANAGEMENT
-        public async Task<IActionResult> Consumables()
-        {
-            var consumables = await _context.Consumables.Where(c => !c.IsDeleted).ToListAsync();
-            return View(consumables);
-        }
+        //public async Task<IActionResult> Consumables()
+        //{
+        //    var consumables = await _context.Consumables.Where(c => !c.IsDeleted).ToListAsync();
+        //    return View(consumables);
+        //}
 
-        public IActionResult AddConsumable() => View();
+        //public IActionResult AddConsumable() => View();
 
-        [HttpPost]
-        public async Task<IActionResult> AddConsumable(Consumable item)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Consumables.Add(item);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Consumables");
-            }
-            return View(item);
-        }
+        //[HttpPost]
+        //public async Task<IActionResult> AddConsumable(Consumable item)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        _context.Consumables.Add(item);
+        //        await _context.SaveChangesAsync();
+        //        return RedirectToAction("Consumables");
+        //    }
+        //    return View(item);
+        //}
 
-        public async Task<IActionResult> EditConsumable(int id)
-        {
-            var item = await _context.Consumables.FindAsync(id);
-            return View(item);
-        }
+        //public async Task<IActionResult> EditConsumable(int id)
+        //{
+        //    var item = await _context.Consumables.FindAsync(id);
+        //    return View(item);
+        //}
 
-        [HttpPost]
-        public async Task<IActionResult> EditConsumable(Consumable item)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Consumables.Update(item);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Consumables");
-            }
-            return View(item);
-        }
+        //[HttpPost]
+        //public async Task<IActionResult> EditConsumable(Consumable item)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        _context.Consumables.Update(item);
+        //        await _context.SaveChangesAsync();
+        //        return RedirectToAction("Consumables");
+        //    }
+        //    return View(item);
+        //}
 
-        public async Task<IActionResult> DeleteConsumable(int id)
-        {
-            var item = await _context.Consumables.FindAsync(id);
-            if (item != null)
-            {
-                item.IsDeleted = true;
-                await _context.SaveChangesAsync();
-            }
-            return RedirectToAction("Consumables");
-        }
+        //public async Task<IActionResult> DeleteConsumable(int id)
+        //{
+        //    var item = await _context.Consumables.FindAsync(id);
+        //    if (item != null)
+        //    {
+        //        item.IsDeleted = true;
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    return RedirectToAction("Consumables");
+        //}
 
         //ALLERGY MANAGEMENT
         public async Task<IActionResult> Allergies()
