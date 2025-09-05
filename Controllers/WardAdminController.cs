@@ -256,9 +256,11 @@ namespace ONT_3rdyear_Project.Controllers
         public async Task<IActionResult> ActiveAdmission()
         {
             var admissions = await _context.Admissions
+                .Include(a => a.ApplicationUser)
                 .Include(a => a.Patient)
-                .Include(a => a.Bed)
+                .Include(a => a.Bed)                
                 .ThenInclude(b => b.Ward)
+                .Where(a => a.DischargeDate == null)
                 .OrderByDescending(a => a.AdmissionDate)
                 .ToListAsync();
 
@@ -677,12 +679,27 @@ namespace ONT_3rdyear_Project.Controllers
         //get bed by ward
         public async Task<IActionResult> bedIndex(int? wardId)
         {
-            var beds = _context.Beds.Include(b => b.Ward).AsQueryable();
+            var beds = _context.Beds.Include(b => b.Ward).Where(b=>!b.IsOccupied).AsQueryable();
 
             if (wardId.HasValue)
             {
                 beds = beds.Where(b => b.WardID == wardId);
             }
+            // Get all active wards for dropdown
+            ViewBag.Wards = await _context.Wards
+                .Where(w => w.IsActive)
+                .OrderBy(w => w.Name)
+                .ToListAsync();
+
+            ViewBag.WardsSelectList = new SelectList(
+                await _context.Wards.Where(w => w.IsActive).OrderBy(w => w.Name).ToListAsync(),
+                "WardID",
+                "Name",
+                wardId 
+            );
+
+            // Summary count
+            ViewBag.AvailableCount = await beds.CountAsync();
 
             return View(await beds.ToListAsync());
         }

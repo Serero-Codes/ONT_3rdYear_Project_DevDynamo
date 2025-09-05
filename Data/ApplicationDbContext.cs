@@ -330,6 +330,12 @@ namespace ONT_3rdyear_Project.Data
                 new Patient { PatientID = 3, FirstName = "Thando", LastName = "Smith", DateOfBirth = new DateOnly(2003, 02, 28), Gender = "Female", ChronicIllness = "Herpertension", Admitted = true}
             );
 
+            // Seed admission
+            modelBuilder.Entity<Admission>().HasData(
+                new Admission { AdmisionID = 1, PatientID = 2, WardID = 2, DoctorId = 1, BedID = 4, AdmissionDate = new DateOnly(2025, 09, 04), DischargeDate = null, Notes = null, ReasonForAdmission = "Surgery"},
+                new Admission { AdmisionID = 2, PatientID = 3, WardID = 1, DoctorId = 1, BedID = 2, AdmissionDate = new DateOnly(2025, 09, 04), DischargeDate = null, Notes = null, ReasonForAdmission = "Patient was admitted for having severe migraine" }
+            );
+
             // Seed Wards
             modelBuilder.Entity<Ward>().HasData(
                 new Ward {WardID = 1,Name = "General Ward",Capacity = 10},
@@ -339,9 +345,9 @@ namespace ONT_3rdyear_Project.Data
             // Seed Beds
             modelBuilder.Entity<Bed>().HasData(
                 new Bed { BedId = 1, WardID = 1, BedNo = "G1", IsOccupied = false },
-                new Bed { BedId = 2, WardID = 1, BedNo = "G2", IsOccupied = false },
+                new Bed { BedId = 2, WardID = 1, BedNo = "G2", IsOccupied = true },
                 new Bed { BedId = 3, WardID = 1, BedNo = "G3", IsOccupied = false },
-                new Bed { BedId = 4, WardID = 2, BedNo = "C1", IsOccupied = false }
+                new Bed { BedId = 4, WardID = 2, BedNo = "C1", IsOccupied = true }
             );
 
             // Seed Medications

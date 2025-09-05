@@ -3,6 +3,11 @@
     ViewData["Title"] = "Patient Movement History";
 }
 
+<div class="d-flex justify-content-start mt-3">
+    <a asp-action="ViewPatients" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
 <div class="container pm-container">
     <h2 class="text-primary mb-3">
         <i class="bi bi-list-check pm-header-icon"></i> Movement History for @ViewBag.PatientName

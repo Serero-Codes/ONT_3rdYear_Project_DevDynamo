@@ -25,8 +25,8 @@ namespace ONT_3rdyear_Project.Models
 		[Required]
 		public bool Admitted { get; set; } = false;
 
-        [NotMapped]
-        public bool IsAdmitted => Admissions != null && Admissions.DischargeDate == null;
+        //[NotMapped]
+        //public bool IsAdmitted => Admissions != null && Admissions.DischargeDate == null;
 
         public bool IsDeleted { get; set; } = false;
 
