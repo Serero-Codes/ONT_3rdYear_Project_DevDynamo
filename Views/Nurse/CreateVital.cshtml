@@ -1,9 +1,19 @@
 ﻿@model ONT_3rdyear_Project.Models.Vital
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     ViewData["Title"] = "Add Vitals";
 }
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+}
 
 <style>
+    body{
+        margin:0;
+    }
     .vitals-form-container {
         background: url('/images/background3.jpg');
         background-size: cover;
@@ -22,6 +32,9 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         text-align: center;
+        width: 62%; 
+         margin:auto;
+        margin-bottom: 10px;
     }
 
     .vitals-form-card {
@@ -230,19 +243,19 @@
                 <i class="fas fa-plus-circle" style="color: #28a745; margin-right: 15px;"></i>
                 Record Patient Vitals
             </h1>
-            <p style="color: #6c757d; font-weight: 500; margin: 0;">Enter comprehensive vital signs data</p>
+            @* <p style="color: #6c757d; font-weight: 500; margin: 0;">Enter comprehensive vital signs data</p> *@
         </div>
 
         <!-- Main Form Card -->
         <div class="vitals-form-card">
             <!-- Patient Info Section -->
-            <div class="patient-info-card">
+            @* <div class="patient-info-card">
                 <h3 style="margin: 0; font-size: 1.4rem;">
                     <i class="fas fa-user-md" style="margin-right: 10px;"></i>
                     @ViewBag.PatientName
                 </h3>
                 <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Patient Information</p>
-            </div>
+            </div> *@
 
             <!-- Vitals Form -->
             <form asp-action="CreateVital" method="post">
@@ -325,9 +338,9 @@
                         <i class="fas fa-save" style="margin-right: 8px;"></i>
                         Save Vitals
                     </button>
-                    <a asp-action="Dashboard" class="btn btn-back">
+                    <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-back">
                         <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
-                        Back to Dashboard
+                        Back 
                     </a>
                 </div>
             </form>

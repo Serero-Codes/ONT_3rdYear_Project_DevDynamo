@@ -159,7 +159,7 @@ namespace ONT_3rdyear_Project.Controllers
         // WARD MANAGEMENT
         public async Task<IActionResult> Wards()
         {
-            var wards = await _context.Wards.Where(w => !w.IsDeleted).ToListAsync();
+            var wards = await _context.Wards.Where(w => w.IsActive).ToListAsync();
             return View(wards);
         }
 
@@ -203,7 +203,7 @@ namespace ONT_3rdyear_Project.Controllers
             var ward = await _context.Wards.FindAsync(id);
             if (ward != null)
             {
-                ward.IsDeleted = true;
+                ward.IsActive = true;
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Wards");

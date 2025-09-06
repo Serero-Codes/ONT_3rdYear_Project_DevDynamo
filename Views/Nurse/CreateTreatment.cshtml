@@ -1,6 +1,13 @@
 ﻿@model ONT_3rdyear_Project.Models.Treatment
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     ViewData["Title"] = "Add Treatment";
+}
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
 }
 
 <style>
@@ -22,6 +29,9 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         text-align: center;
+        width: 62%;
+        margin: auto;
+        margin-bottom: 10px;
     }
 
     .treatment-form-card {
@@ -188,24 +198,7 @@
             color: white;
         }
 
-    .text-danger {
-        color: #e74c3c !important;
-        font-weight: 500;
-        font-size: 13px;
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        background: rgba(231, 76, 60, 0.1);
-        border-radius: 8px;
-        border-left: 3px solid #e74c3c;
-    }
-
-        .text-danger:before {
-            content: "⚠";
-            margin-right: 8px;
-            font-size: 14px;
-        }
+   
 
     .page-title {
         color: #2c3e50;
@@ -272,15 +265,7 @@
 
         <!-- Main Form Card -->
         <div class="treatment-form-card">
-            <!-- Patient Info Section -->
-            <div class="patient-info-card">
-                <h3 style="margin: 0; font-size: 1.4rem;">
-                    <i class="fas fa-user-injured" style="margin-right: 10px;"></i>
-                    @ViewBag.PatientName
-                </h3>
-                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Treatment Plan for Patient</p>
-            </div>
-
+            
            
 
             <!-- Treatment Form -->
@@ -309,7 +294,7 @@
                     </div>
                     <div class="treatment-type-hint">
                         <i class="fas fa-lightbulb" style="margin-right: 5px;"></i>
-                        Choose from predefined treatments or select "Other" for custom entry
+                        Note if you select other you cant submit without specifying
                     </div>
                     <span asp-validation-for="TreatmentType" class="text-danger"></span>
                 </div>
@@ -321,22 +306,19 @@
                             Custom Treatment
                         </label>
                         <input type="text" id="TreatmentTypeOther" name="TreatmentTypeOther" class="form-control form-control-custom other-treatment-input" placeholder="Enter custom treatment details..." />
-                        <div class="treatment-type-hint" style="color: #856404;">
-                            <i class="fas fa-edit" style="margin-right: 5px;"></i>
-                            Provide detailed description of the custom treatment plan
-                        </div>
+                        
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-save">
+                    <button type="submit" class="btn btn-save" >
                         <i class="fas fa-save" style="margin-right: 8px;"></i>
                         Save Treatment
                     </button>
-                    <a asp-action="Dashboard" class="btn btn-back">
+                    <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-back">
                         <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
-                        Back to Dashboard
+                        Back
                     </a>
                 </div>
             </form>
@@ -367,14 +349,6 @@
         });
 
         // Add visual feedback for form validation
-        treatmentSelect.addEventListener("change", function() {
-            if (this.value !== "") {
-                this.style.borderColor = "#28a745";
-                this.style.backgroundColor = "#f8fff9";
-            } else {
-                this.style.borderColor = "#e9ecef";
-                this.style.backgroundColor = "#f8faff";
-            }
-        });
+       
     </script>
 }

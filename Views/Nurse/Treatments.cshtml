@@ -1,6 +1,13 @@
 ﻿@model IEnumerable<ONT_3rdyear_Project.Models.Treatment>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
 	ViewData["Title"] = "Treatments";
+}
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
 }
 
 
@@ -15,7 +22,7 @@
 
 	<div class="search-section">
 		<input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
-        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+        <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
 	</div>
@@ -49,10 +56,10 @@
 					<td>@treatment.TreatmentDate</td>
 					<td>
                         <div class="action-buttons">
-                            
-                            <a asp-action="EditTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-instructions">Edit</a>
+
+                            <a asp-action="EditTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-instructions" data-bs-placement="top" title="Edit"><i class="fas fa-edit"></i></a>
                             @* <a asp-action="DeleteTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-vitals">Delete</a> *@
-                            <a href="javascript:void(0);" class="action-btn btn-medication" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@treatment.TreatmentID" data-name="@treatment.Patient?.FirstName @treatment.Patient?.LastName">Delete</a>
+                            <a href="javascript:void(0);" class="action-btn btn-medication" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@treatment.TreatmentID" data-name="@treatment.Patient?.FirstName @treatment.Patient?.LastName" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><i class="fas fa-trash-alt"></i></a>
                         </div>
 						
 					</td>

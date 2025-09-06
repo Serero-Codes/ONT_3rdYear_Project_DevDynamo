@@ -1,7 +1,15 @@
 ﻿@model IEnumerable<ONT_3rdyear_Project.Models.Instruction>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     ViewData["Title"] = "Requested Doctor Instructions";
 }
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+}
+
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
 <div class="container patients-container">
@@ -14,7 +22,7 @@
 
     <div class="search-section">
         <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
-        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+        <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
@@ -49,14 +57,9 @@
                         @(string.IsNullOrEmpty(patient.Instructions) ? "Pending" : "Reviewed")
                     </td>
                     <td>
-                        @if (!string.IsNullOrEmpty(patient.Instructions))
-                        {
-                            <a asp-action="ViewAdvice" asp-route-id="@patient.InstructionID" class="btn btn-sm btn-info">View</a>
-                        }
-                        else
-                        {
-                            <span class="text-muted">No Response</span>
-                        }
+                        
+                        <a asp-action="EditRequest" asp-route-id="@patient.InstructionID" class="btn btn-primary btn-sm">Edit</a>
+                        <a asp-action="DeleteRequest" asp-route-id="@patient.InstructionID" class="btn btn-danger btn-sm">Delete</a>
                     </td>
                 </tr>
             }

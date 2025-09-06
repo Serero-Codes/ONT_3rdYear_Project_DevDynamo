@@ -1,51 +1,14 @@
-﻿@* @model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
+﻿@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     ViewData["Title"] = "Patients";
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">Patients Records</h2>
-
-    <form method="get" class="mb-3">
-        <div class="input-group">
-            <input type="text" name="keyword" class="form-control" placeholder="Search by name..." value="@Context.Request.Query["keyword"]" />
-            <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-    </form>
-
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>Patient Name</th>
-                    <th>Ward</th>
-                    <th>Bed</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var patient in Model)
-                {
-                    <tr>
-                        <td>@patient.FirstName @patient.LastName</td>
-                        <td>@patient.WardName</td>
-                        <td>@patient.BedNo</td>
-                        <td>
-                            <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="btn btn-danger btn-sm">Vitals</a>
-                            <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="btn btn-success btn-sm">Treatment</a>
-                            <a asp-controller="Nurse" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="btn btn-warning btn-sm">Medication</a>
-                            <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="btn btn-info btn-sm">Instructions</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
- *@
-@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
 @{
-    ViewData["Title"] = "Patients";
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
 }
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -538,25 +501,29 @@
    
 
     <div class="search-section">
+        
+
         <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
 
+        
         <select id="wardFilter" class="filter-select">
             <option value="">All Wards</option>
-            <!-- Populate dynamically from your server or hardcoded options -->
-            <option value="General Ward A">General Ward A</option>
-            <option value="Ward2">Ward 2</option>
-            <option value="Ward3">Ward 3</option>
+            @foreach (var ward in ViewBag.Wards as SelectList)
+            {
+                <option value="@ward.Text">@ward.Text</option>
+            }
         </select>
 
+       
         <select id="bedFilter" class="filter-select">
             <option value="">All Beds</option>
-            <!-- Populate dynamically as well -->
-            <option value="Bed1">Bed 1</option>
-            <option value="Bed2">Bed 2</option>
-            <option value="Bed3">Bed 3</option>
+            @foreach (var bed in ViewBag.Beds as SelectList)
+            {
+                <option value="@bed.Text">@bed.Text</option>
+            }
         </select>
 
-        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+        <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
@@ -606,6 +573,10 @@
                             </td>
                             <td>
                                 <div class="action-buttons">
+                                    <a asp-controller="Nurse" asp-action="ViewAdvice" asp-route-patientId="@patient.PatientID" class="action-btn btn-view-instructions">
+                                        <i class="fas fa-eye"></i>
+                                        View Instructions
+                                    </a>
                                     <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="action-btn btn-vitals">
                                         <i class="fas fa-heartbeat"></i>
                                         Vitals

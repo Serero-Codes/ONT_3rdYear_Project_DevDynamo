@@ -24,6 +24,7 @@
                 <th><i class="fas fa-pills"></i>Administered Medication</th>
                 <th><i class="fas fa-pill"></i>Dosage</th>
                 <th><i class="fas fa-calendar"></i>Date Administered</th>
+                <th><i class="fas fa-callendar"></i>Prescription</th>
                 <th><i class="fas fa-user"></i>Administered By</th>
                 <th><i class="fas fa-cogs"></i>Actions</th>
             </tr>
@@ -45,6 +46,16 @@
                     <td>@treatment.Medication.Name</td>
                     <td>@treatment.Dosage</td>
                     <td>@treatment.AdministeredDate.ToShortDateString()</td>
+                    <td>
+                        @if (treatment.Prescription != null)
+                        {
+                            <a asp-action="DownloadPrescription" asp-route-id="@treatment.PrescriptionId" class="btn btn-sm btn-primary">Download PDF</a>
+                        }
+                        else
+                        {
+                            <span>N/A</span>
+                        }
+                    </td>
                     <td>@treatment.AdministeredBy.FullName</td>
                     <td>
                         <div class="action-buttons">

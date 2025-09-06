@@ -1,4 +1,13 @@
 ﻿@model ONT_3rdyear_Project.Models.Treatment
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+	var user = await UserManager.GetUserAsync(User);
+	var roles = await UserManager.GetRolesAsync(user);
+}
+
 <style>
 	:root {
 		--primary-blue: #2c5aa0;
@@ -152,44 +161,12 @@
 			<!-- Action Buttons -->
 			<div class="action-buttons">
 				<button type="submit" class="btn btn-success">Save Changes</button>
-				<a asp-action="Treatments" class="btn btn-secondary">Back to List</a>
+				<a  asp-action="Treatments" class="btn btn-secondary">Back to List</a>
 			</div>
 		</form>
 	</div>
 </div>
-@* @section Scripts {
-    <script>
-        // Show/hide "Other" input based on treatment type selection
-        const treatmentSelect = document.querySelector("select[name='TreatmentType']");
-        const otherInput = document.getElementById("TreatmentTypeOther");
 
-        function toggleOtherInput() {
-            if (treatmentSelect.value === "Other") {
-                otherInput.style.display = "block";
-            } else {
-                otherInput.style.display = "none";
-                otherInput.value = "";
-            }
-        }
-
-        treatmentSelect.addEventListener("change", toggleOtherInput);
-
-        // Trigger on page load (in case "Other" was selected)
-        toggleOtherInput();
-
-        // Optionally pre-fill Other if treatment type is custom
-        // You can do this by checking if the current treatment type matches any of the predefined values
-        const predefined = ["Wound Dressing", "IV Drip", "Catheter Change", "Physiotherapy", "Other"];
-        if (!predefined.includes(treatmentSelect.value)) {
-            treatmentSelect.value = "Other";
-            otherInput.style.display = "block";
-            otherInput.value = treatmentSelect.value;
-        }
-    </script>
-
-    @await Html.PartialAsync("_ValidationScriptsPartial")
-
-} *@
 @section Scripts {
 	<script>
 		const treatmentSelect = document.querySelector("select[name='TreatmentType']");

@@ -1,7 +1,17 @@
 ﻿@model ONT_3rdyear_Project.Models.Vital
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
 @{
 	ViewData["Title"] = "Edit Vitals";
 }
+
+@{
+	var user = await UserManager.GetUserAsync(User);
+	var roles = await UserManager.GetRolesAsync(user);
+}
+
 <style>
 	:root {
 		--primary-blue: #2c5aa0;

@@ -1,6 +1,12 @@
 ﻿@model ONT_3rdyear_Project.Models.PatientMedicationScript
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 
-
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+}
 
 <div class="medication-form-container">
     <div class="container">
@@ -16,17 +22,10 @@
         <!-- Main Form Card -->
         <div class="medication-form-card">
 
-            <!-- Patient Info Section -->
-            <div class="patient-info-card">
-                <h3 style="margin: 0; font-size: 1.4rem;">
-                    <i class="fas fa-user-check" style="margin-right: 10px;"></i>
-                    @ViewBag.PatientName
-                </h3>
-                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Medication Administration Record</p>
-            </div>
+           
 
             <!-- Medication Form -->
-            <form asp-action="Create" method="post">
+            <form asp-action="CreateAdminister" method="post">
                 <input type="hidden" name="PatientId" value="@ViewBag.PatientId" />
 
                 <!-- Patient Name (Read-only) -->
@@ -39,18 +38,21 @@
                 </div>
 
                 <!-- Medication Selection -->
+               
                 <div class="form-group-custom">
                     <label asp-for="MedicationId" class="form-label-custom required-field">
                         Medication
                     </label>
                     <div class="select-wrapper">
-                        <select asp-for="MedicationId" class="form-control form-control-custom" asp-items="ViewBag.MedicationList" required>
+                        <select asp-for="MedicationId" class="form-control form-control-custom" id="medicationSelect" required>
                             <option value="">-- Select Medication --</option>
+                            @foreach (var med in ViewBag.MedicationList)
+                            {
+                                <option value="@med.MedicationId" data-schedule="@med.Schedule">
+                                    @med.Name (Schedule @med.Schedule)
+                                </option>
+                            }
                         </select>
-                    </div>
-                    <div class="form-hint">
-                        <i class="fas fa-search" style="margin-right: 5px;"></i>
-                        Search and select the prescribed medication
                     </div>
                     <span asp-validation-for="MedicationId" class="text-danger"></span>
                 </div>
@@ -64,10 +66,7 @@
                         <input asp-for="Dosage" class="form-control form-control-custom dosage-input" placeholder="e.g., 500" pattern="[0-9]+\.?[0-9]*" title="Please enter a valid dosage amount" required />
                         <span class="dosage-unit">mg</span>
                     </div>
-                    <div class="form-hint">
-                        <i class="fas fa-balance-scale" style="margin-right: 5px;"></i>
-                        Enter the exact dosage amount as prescribed (numbers only)
-                    </div>
+                   
                     <span asp-validation-for="Dosage" class="text-danger"></span>
                 </div>
 
@@ -78,15 +77,7 @@
                     </label>
                     <div class="date-input-wrapper">
                         <input asp-for="AdministeredDate" type="date" class="form-control form-control-custom date-input" required />
-                    </div>
-                    <div class="current-date-info">
-                        <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
-                        Select today's date for immediate administration
-                    </div>
-                    <div class="form-hint">
-                        <i class="fas fa-clock" style="margin-right: 5px;"></i>
-                        Select the date of administration
-                    </div>
+                    </div>                   
                     <span asp-validation-for="AdministeredDate" class="text-danger"></span>
                 </div>
 
@@ -96,7 +87,7 @@
                         <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
                         Administer & Record
                     </button>
-                    <a href="javascript:history.back()" class="btn btn-back">
+                    <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" href="javascript:history.back()" class="btn btn-back">
                         <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
                         Cancel
                     </a>
@@ -124,6 +115,9 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         text-align: center;
+        width: 62%;
+        margin: auto;
+        margin-bottom: 10px;
     }
 
     .medication-form-card {
@@ -351,7 +345,7 @@
             color: white;
         }
 
-    .text-danger {
+    /* .text-danger {
         color: #e74c3c !important;
         font-weight: 500;
         font-size: 13px;
@@ -368,7 +362,7 @@
             content: "⚠";
             margin-right: 8px;
             font-size: 14px;
-        }
+        } */
 
     .page-title {
         color: #2c3e50;
@@ -440,7 +434,7 @@
         align-items: center;
     }
 
-    .required-field::after {
+    /* .required-field::after {
         content: "*";
         color: #dc3545;
         margin-left: 3px;
@@ -461,7 +455,7 @@
 
     select:required:valid {
         border-color: #28a745;
-    }
+    } */
 
     @@media (max-width: 768px) {
         .medication-form-card {
@@ -480,6 +474,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 @section Scripts {
+    <script>
+        document.getElementById("medicationSelect").addEventListener("change", function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const schedule = selectedOption.getAttribute("data-schedule");
+
+            if (schedule && parseInt(schedule) > 4) {
+                alert("⚠ You cannot administer medication with a schedule higher than 4.");
+                this.value = ""; // reset selection
+            }
+        });
+    </script>
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }

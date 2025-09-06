@@ -1,11 +1,17 @@
 ﻿@model IEnumerable<ONT_3rdyear_Project.Models.Vital>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     ViewData["Title"] = "Vitals";
+}
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
 }
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 
 <style>
     :root {
@@ -30,7 +36,6 @@
     }
 
     body {
-    @*background: var(--light-bg);*@
         background: url('/images/background3.jpg');
         background-size: cover;
         background-position: center;
@@ -248,13 +253,12 @@
         flex-shrink: 0;
     }
 
-   
-
     .action-buttons {
         display: flex;
         gap: 0.5rem;
-        flex-wrap: wrap;
-        align-items: center;
+        /* flex-wrap: wrap;
+        align-items: center; */
+        justify-content: center;
     }
 
     .action-btn {
@@ -265,12 +269,14 @@
         font-weight: 600;
         text-decoration: none;
         transition: all 0.3s ease;
-        display: inline-flex;
+        display: flex/* inline-flex */;
         align-items: center;
         gap: 0.4rem;
         position: relative;
         overflow: hidden;
         white-space: nowrap;
+        align-items: center;
+        justify-content: center;
     }
 
         .action-btn::before {
@@ -357,64 +363,88 @@
             }
 
     @@media (max-width: 768px) {
-        .patients-container {
-            padding: 1rem 0;
+        .patients-container
+
+    {
+        padding: 1rem 0;
+    }
+
+    .page-header {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-input {
+        min-width: auto;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .action-btn {
+        text-align: center;
+        justify-content: center;
+    }
+
+    .custom-table {
+        /* font-size: 0.9rem; */
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+    }
+
+        .custom-table thead th,
+        .custom-table tbody td {
+            padding: 1rem 0.5rem;
         }
 
-        .page-header {
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
+    .patient-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
 
-        .page-title {
-            font-size: 1.5rem;
-        }
+    .content-with-chart {
+        flex-direction: column !important;
+    }
 
-        .search-form {
-            flex-direction: column;
-            align-items: stretch;
-        }
+    .table-container {
+        width: 100% !important;
+    }
 
-        .search-input {
-            min-width: auto;
-        }
+    .chart-container {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 2rem;
+    }
 
-        .action-buttons {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .action-btn {
-            text-align: center;
-            justify-content: center;
-        }
-
-        .custom-table {
-            font-size: 0.9rem;
-        }
-
-            .custom-table thead th,
-            .custom-table tbody td {
-                padding: 1rem 0.5rem;
-            }
-
-        .patient-info {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
     }
 
     @@keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
+        from
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     }
 
     .patients-table-section {
@@ -437,18 +467,53 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        .table-scroll-container {
-    max-height: 400px;  
-    overflow-y: auto;   
-    /* Optional: fix table width or add horizontal scroll */
-    overflow-x: hidden; /* or auto if you want horizontal scroll */
-}
-#btn-back{
-    margin-left: 60%;
-    border-radius:40px;
-}
-</style>
+    .table-scroll-container {
+        max-height: 400px;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
 
+    #btn-back {
+        border-radius: 40px;
+    }
+
+    /* Layout for side-by-side content */
+    .content-with-chart {
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+
+    .table-container {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .chart-container {
+        width: 400px;
+        flex-shrink: 0;
+        background: var(--white);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+    }
+
+        .chart-container h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .chart-container h2:before {
+                content: '📊';
+                font-size: 1.2rem;
+            }
+</style>
 
 <div class="container patient-container mt-3">
     <!--page header-->
@@ -458,62 +523,83 @@
             List of Vitals
         </h1>
     </div>
-   
 
     <div class="search-section">
-        <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
-        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
-            <i class="fas fa-arrow-left"></i>
-            Back to Dashboard
-        </a>
+        <form method="get" asp-action="Vitals">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input type="text" name="searchPatient" class="form-control" placeholder="Search by patient name..." />
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="fromDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="toDate" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </div>
+            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+                <i class="fas fa-home"></i>
+            </a>
+            <a asp-action="VitalsPdf" class="btn btn-danger">
+                <i class="fas fa-file-pdf"></i> Export All to PDF
+            </a>
+        </form>
     </div>
 
-    <div class="table-scroll-container">
-        <table class="custom-table mb-3">
-            <thead>
-                <tr>
-                    <th><i class="fas fa-user"></i>Patient Name</th>
-                    <th><i class="fas fa-heartbeat"></i>BP</th>
-                    <th><i class="fas fa-tint"></i>Sugar Level</th>
-                    <th><i class="fas fa-thermometer-half"></i>Temperature</th>
-                    <th><i class="fas fa-heartbeat"></i>Pulse Rate</th>
-                    <th><i class="fas fa-calendar"></i>Recorded On</th>
-                    <th><i class="fas fa-user"></i>Recorded by</th>
-                    <th><i class="fas fa-cog"></i>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="searchResults">
-                @foreach (var vital in Model)
-                {
-                    <tr>
-                        <td>
-                            <div class="patient-info">
-                                <div class="patient-avatar">
-                                    @(vital.Patient?.FirstName?.Substring(0, 1))@(vital.Patient?.LastName?.Substring(0, 1))
-                                </div>
-                                <div class="patient-name">@vital.Patient?.FirstName @vital.Patient?.LastName</div>
-                            </div>
-                         </td>
-                        <td>@vital.BP mmHg</td>
-                        <td>@vital.SugarLevel mg/dL</td>
-                        <td>@vital.Temperature &deg;C</td>
-                        <td>@vital.PulseRate bpm</td>
-                        <td>@vital.Date</td>
-                        <td>@vital.User?.FullName</td>
-                        <td>
-                            <div class="action-buttons">
-                           
-                            <a asp-action="EditVital" asp-route-id="@vital.VitalID" class=" action-btn btn-treatment">Edit</a>
-                            @* <a asp-action="DeleteVital" asp-route-id="@vital.VitalID" class="action-btn btn-medication">Delete</a> *@
-                                <a href="javascript:void(0);" class="action-btn btn-medication" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@vital.VitalID" data-name="@vital.Patient?.FirstName @vital.Patient?.LastName">Delete</a>
-                            </div>
-                            
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-   </div> 
+    <!-- Content with side-by-side layout -->
+    <div class="content-with-chart">
+        <!-- Table container -->
+        <div class="table-container">
+            <div class="table-scroll-container">
+                <table class="custom-table mb-3">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-user"></i>Patient Name</th>
+                            <th><i class="fas fa-heartbeat"></i>BP</th>
+                            <th><i class="fas fa-tint"></i>Sugar Level</th>
+                            <th><i class="fas fa-thermometer-half"></i>Temperature</th>
+                            <th><i class="fas fa-heartbeat"></i>Pulse Rate</th>
+                            <th><i class="fas fa-cog"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="searchResults">
+                        @foreach (var vital in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="patient-info">
+                                        <div class="patient-avatar">
+                                            @(vital.Patient?.FirstName?.Substring(0, 1))@(vital.Patient?.LastName?.Substring(0, 1))
+                                        </div>
+                                        <div class="patient-name">@vital.Patient?.FirstName @vital.Patient?.LastName</div>
+                                    </div>
+                                </td>
+                                <td>@vital.BP mmHg</td>
+                                <td>@vital.SugarLevel mg/dL</td>
+                                <td>@vital.Temperature &deg;C</td>
+                                <td>@vital.PulseRate bpm</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a asp-action="EditVital" asp-route-id="@vital.VitalID" class="action-btn btn-treatment" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i class="fas fa-edit"></i></a>
+                                        <a href="javascript:void(0);" class="action-btn btn-medication" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@vital.VitalID" data-name="@vital.Patient?.FirstName @vital.Patient?.LastName" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><i class="fas fa-trash-alt"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Chart container on the side -->
+        <div class="chart-container">
+            <h2>Vitals Trends</h2>
+            <canvas id="vitalsChart"></canvas>
+        </div>
+    </div>
 </div>
 
 @*Modal for deleting vitals*@
@@ -571,20 +657,64 @@
             });
     }
 
-    searchInput.addEventListener('input', performSearch);
-
+    if (searchInput) {
+        searchInput.addEventListener('input', performSearch);
+    }
 
     var deleteModal = document.getElementById('deleteModal');
     deleteModal.addEventListener('show.bs.modal', function (event) {
-        var button = event.relatedTarget; // Button that triggered the modal
+        var button = event.relatedTarget;
         var vitalId = button.getAttribute('data-id');
         var patientName = button.getAttribute('data-name');
 
-        // Set values in modal
         document.getElementById('deletePatientName').textContent = patientName;
         document.getElementById('deleteVitalId').value = vitalId;
-
-        // Update form action dynamically
         document.getElementById('deleteForm').action = '/Nurse/DeleteVital/' + vitalId;
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('vitalsChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.Date.ToString("g")))),
+            datasets: [
+                {
+                    label: 'BP',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.BP))),
+                    borderColor: 'red',
+                    fill: false
+                },
+                {
+                    label: 'Sugar',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.SugarLevel))),
+                    borderColor: 'blue',
+                    fill: false
+                },
+                {
+                    label: 'Temperature',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.Temperature))),
+                    borderColor: 'orange',
+                    fill: false
+                },
+                {
+                    label: 'Pulse',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.PulseRate))),
+                    borderColor: 'green',
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
     });
 </script>

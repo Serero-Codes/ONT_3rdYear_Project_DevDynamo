@@ -7,22 +7,31 @@
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<link href="~/css/site.css" rel="stylesheet" />
+@* <link href="~/css/site.css" rel="stylesheet" /> *@
+<link href="~/css/NurseStyles.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
 <div class="dashboard-container"> 
     <!-- Dashboard Header -->
     <div class="dashboard-header">
-        <h1 class="dashboard-title">
-            @*  <i class="fas fa-user-nurse"></i> *@
-            <div class="nurse-photo-frame">
-                <img src="~/images/nursee.jpeg" alt="Nurse" class="nurse-photo" />
-                <div class="photo-overlay"></div>
-            </div>
-            @("Welcome, Nurse " + (await UserManager.GetUserAsync(User))?.FullName)
-        </h1>
-        <p class="mb-0 text-muted">Manage patient care and medical records</p>
+        <div class="header-left">
+            <h1 class="dashboard-title">
+                @*  <i class="fas fa-user-nurse"></i> *@
+                <div class="nurse-photo-frame">
+                    <img src="~/images/nursee.jpeg" alt="Nurse" class="nurse-photo" />
+                    <div class="photo-overlay"></div>
+                </div>
+                @("Welcome, Nurse " + (await UserManager.GetUserAsync(User))?.FullName)
+            </h1>
+           @*  <p class="mb-0 text-muted">Manage patient care and medical records</p> *@
+        </div>
+        <div class="header-right">
+            <p class="time-display">
+                <span id="current-time"></span>
+            </p>
+        </div>
+        
     </div>
 
     <!-- Main Navigation Cards -->
@@ -77,8 +86,8 @@
                 <div class="stat-label">Total Patients</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">@Model.Stats.HoursOnDuty</div>
-                <div class="stat-label">Hours on Duty</div>
+                <div class="stat-number">@Model.Stats.TotalVitals</div>
+                <div class="stat-label">Vitals Taken</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">@Model.Stats.TreatmentsToday</div>
@@ -155,4 +164,18 @@
         }
     `;
     document.head.appendChild(style);
+
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    // Update the clock every second
+    setInterval(updateClock, 1000);
+
+    // Initialize clock on page load
+    updateClock();
 </script>

@@ -41,6 +41,9 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         text-align: center;
+        width: 62%;
+        margin: auto;
+        margin-bottom: 10px;
     }
 
     .instructions-form-card {
@@ -87,9 +90,7 @@
         <!-- Form Card -->
         <div class="instructions-form-card">
             <!-- Patient Info -->
-            <div class="patient-info-card">
-                <h3>@ViewBag.PatientName</h3>
-            </div>
+            
 
             <!-- Form -->
             <form asp-action="CreateRequest" method="post">
@@ -101,7 +102,7 @@
                 </div>
 
                 <div class="form-group-custom">
-                    <label class="form-label-custom" for="message">Message or Note to Doctor (optional)</label>
+                    <label class="form-label-custom" for="message">Message or Note to Doctor </label>
                     <textarea name="message" class="form-control" rows="4" placeholder="E.g., Patient is not responding to medication..."></textarea>
                 </div>
 

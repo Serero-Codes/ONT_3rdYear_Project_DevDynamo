@@ -1,4 +1,13 @@
 ﻿@model ONT_3rdyear_Project.Models.PatientMedicationScript
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+	var user = await UserManager.GetUserAsync(User);
+	var roles = await UserManager.GetRolesAsync(user);
+}
+
 
 <style>
 	:root {
@@ -120,13 +129,31 @@
 				<input type="text" class="form-control" value="@Model.Patient?.FirstName @Model.Patient?.LastName" readonly />
 			</div>
 
-			<div class="form-group">
+			@* <div class="form-group">
 				<label asp-for="MedicationId">Medication</label>
 				<select asp-for="MedicationId" class="form-control" asp-items="ViewBag.MedicationList">
 					<option value="">-- Select Medication --</option>
 				</select>
 				<span asp-validation-for="MedicationId" class="text-danger"></span>
+			</div> *@
+			<div class="form-group-custom">
+				<label asp-for="MedicationId" class="form-label-custom required-field">
+					Medication
+				</label>
+				<div class="select-wrapper">
+					<select asp-for="MedicationId" class="form-control form-control-custom" id="medicationSelect" required>
+						<option value="">-- Select Medication --</option>
+						@foreach (var med in ViewBag.MedicationList)
+						{
+							<option value="@med.MedicationId" data-schedule="@med.Schedule">
+								@med.Name (Schedule @med.Schedule)
+							</option>
+						}
+					</select>
+				</div>
+				<span asp-validation-for="MedicationId" class="text-danger"></span>
 			</div>
+
 
 			<div class="form-group">
 				<label asp-for="Dosage"></label>
@@ -141,12 +168,23 @@
 
 			<div class="action-buttons">
 				<button type="submit" class="btn btn-success">Save</button>
-				<a asp-action="MedicationIndex" class="btn btn-secondary">Back</a>
+				<a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Administered" class="btn btn-secondary">Back</a>
 			</div>
 		</form>
 	</div>
 </div>
 @section Scripts {
+	<script>
+		document.querySelector('select[name="MedicationId"]').addEventListener("change", function () {
+			const selectedOption = this.options[this.selectedIndex];
+			const schedule = selectedOption.getAttribute("data-schedule");
+			if (schedule && parseInt(schedule) > 4) {
+				alert("⚠ You cannot administer medication with a schedule higher than 4.");
+				this.value = ""; // reset selection
+			}
+		});
+	</script>
+
 	@{
 		await Html.RenderPartialAsync("_ValidationScriptsPartial");
 	}
