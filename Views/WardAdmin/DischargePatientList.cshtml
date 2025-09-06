@@ -1,0 +1,89 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.Models.Admission>
+@{
+    ViewData["Title"] = "Discharge Patients";
+}
+
+<div class="d-flex justify-content-start mt-3">
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0"><i class="bi bi-box-arrow-right me-2"></i> Discharge Patients</h4>
+        </div>
+        <div class="card-body">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">@TempData["Success"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date of Birth</th>
+                        <th>Ward</th>
+                        <th>Bed</th>
+                        <th>Admission Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var admission in Model)
+                    {
+                        <tr>
+                            <td>@admission.Patient.FirstName @admission.Patient.LastName</td>
+                            <td>@admission.Patient.DateOfBirth.ToShortDateString()</td>
+                            <td>@admission.Ward.Name</td>
+                            <td>@admission.Bed.BedNo</td>
+                            <td>@admission.AdmissionDate.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                <!-- Discharge Button triggers modal -->
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dischargeModal-@admission.PatientID">
+                                    <i class="bi bi-box-arrow-right"></i> Discharge
+                                </button>
+
+                                <!-- Modal -->
+                                <div class="modal fade" id="dischargeModal-@admission.PatientID" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title">Discharge @admission.Patient.FirstName @admission.Patient.LastName</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form asp-action="Discharge" method="post">
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="patientId" value="@admission.PatientID" />
+                                                    <div class="mb-3">
+                                                        <label for="instructions" class="form-label">Discharge Instructions</label>
+                                                        <textarea name="instructions" class="form-control" rows="3" required></textarea>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                    <label for="discharge Date" class="form-label">Discharge Date</label>
+                                                    <input type="datetime-local"name="DischargeDate" class="form-control" rows="3" required/>
+                                                </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-danger">Confirm Discharge</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>

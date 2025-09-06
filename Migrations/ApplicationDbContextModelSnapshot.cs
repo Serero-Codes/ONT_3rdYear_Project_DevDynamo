@@ -310,7 +310,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "47ad81f4-dc76-4d75-b3f2-771d6e1958f1",
+                            ConcurrencyStamp = "8d706dd5-8f3f-4a93-81bd-74177db899ea",
                             Email = "doctor@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Dr. John Doe",
@@ -318,7 +318,7 @@ namespace ONT_3rdyear_Project.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "DOCTOR@HOSPITAL.COM",
                             NormalizedUserName = "DOCTOR@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEB0uLzkNSjHdVMl9uq10sGE3ZQOVlKytGhyniP3dBOSu90DdMeD9vXWOIM79hhXt6w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMq9sXCxqVjYw+SGQOpBIPQtO9NYMRwxUizHOiIX7wqgrhnHQrLDku540gvvc3KlFQ==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Doctor",
                             TwoFactorEnabled = false,
@@ -328,7 +328,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "fbbc28e7-a4ee-495e-979d-eb81b9abe654",
+                            ConcurrencyStamp = "b8bd5f0c-b6eb-46a3-b588-53186268d1e2",
                             Email = "nurse@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Nurse Thabo",
@@ -336,7 +336,7 @@ namespace ONT_3rdyear_Project.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "NURSE@HOSPITAL.COM",
                             NormalizedUserName = "NURSE@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEDC8w7rJi1x6njYffv+qH9aiBu3VoTL5GEHAHUhzxF7IscK5HintPOBwuaT86CEZeQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFff+V3f7FIhrIvBb9yHp91/EqyQFysikeP0Po+CkZV6Bm4lHziy8wPmhoBfrPUYiA==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Nurse",
                             TwoFactorEnabled = false,
@@ -412,7 +412,12 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<int>("StockQuantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("WardID")
+                        .HasColumnType("int");
+
                     b.HasKey("ConsumableId");
+
+                    b.HasIndex("WardID");
 
                     b.ToTable("Consumables");
                 });
@@ -423,6 +428,9 @@ namespace ONT_3rdyear_Project.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ConsumableOrderId")
                         .HasColumnType("int");
 
                     b.Property<int>("QuantityApproved")
@@ -484,6 +492,9 @@ namespace ONT_3rdyear_Project.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("ConsumableID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DeliveryItemID")
                         .HasColumnType("int");
 
                     b.Property<int>("QuantityDelivered")
@@ -612,7 +623,7 @@ namespace ONT_3rdyear_Project.Migrations
                             Description = "Sunrise Medical Centre is a state-of-the-art healthcare facility offering comprehensive care, modern technology, and highly qualified staff.",
                             DirectorName = "Dr. Lindiwe Mokoena",
                             EmailAddress = "info@sunrisemedical.co.za",
-                            LastUpdated = new DateTime(2025, 8, 18, 19, 17, 56, 607, DateTimeKind.Local).AddTicks(3966),
+                            LastUpdated = new DateTime(2025, 8, 12, 2, 20, 7, 617, DateTimeKind.Local).AddTicks(6738),
                             Name = "Sunrise Medical centre",
                             Phone = "+27 21 555 1234",
                             Website = "https://www.sunrisemedical.co.za"
@@ -744,9 +755,6 @@ namespace ONT_3rdyear_Project.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
                     b.Property<int>("Schedule")
                         .HasColumnType("int");
 
@@ -761,7 +769,6 @@ namespace ONT_3rdyear_Project.Migrations
                             ExpiryDate = new DateOnly(2026, 1, 1),
                             IsDeleted = false,
                             Name = "Paracetamol",
-                            Quantity = 0,
                             Schedule = 1
                         },
                         new
@@ -770,7 +777,6 @@ namespace ONT_3rdyear_Project.Migrations
                             ExpiryDate = new DateOnly(2025, 12, 1),
                             IsDeleted = false,
                             Name = "Insulin",
-                            Quantity = 0,
                             Schedule = 4
                         });
                 });
@@ -827,9 +833,6 @@ namespace ONT_3rdyear_Project.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Remark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SupplierID")
@@ -1241,6 +1244,9 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<int>("SystemQuantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("TakenItemID")
+                        .HasColumnType("int");
+
                     b.HasKey("StockTakeID", "ConsumableID");
 
                     b.HasIndex("ConsumableID");
@@ -1277,6 +1283,9 @@ namespace ONT_3rdyear_Project.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("QuantityOnHand")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SupplierItemID")
                         .HasColumnType("int");
 
                     b.HasKey("SupplierID", "ConsumableID");
@@ -1602,6 +1611,9 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("StockID")
+                        .HasColumnType("int");
+
                     b.HasKey("WardID", "ConsumableID");
 
                     b.HasIndex("ConsumableID");
@@ -1695,6 +1707,17 @@ namespace ONT_3rdyear_Project.Migrations
                 {
                     b.HasOne("ONT_3rdyear_Project.Models.Ward", "Ward")
                         .WithMany("Beds")
+                        .HasForeignKey("WardID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ward");
+                });
+
+            modelBuilder.Entity("ONT_3rdyear_Project.Models.Consumable", b =>
+                {
+                    b.HasOne("ONT_3rdyear_Project.Models.Ward", "Ward")
+                        .WithMany("Consumables")
                         .HasForeignKey("WardID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2371,6 +2394,8 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Navigation("Admissions");
 
                     b.Navigation("Beds");
+
+                    b.Navigation("Consumables");
 
                     b.Navigation("WardConsumables");
                 });

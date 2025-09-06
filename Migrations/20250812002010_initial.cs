@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ONT_3rdyear_Project.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -73,22 +73,6 @@ namespace ONT_3rdyear_Project.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Consumables",
-                columns: table => new
-                {
-                    ConsumableId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StockQuantity = table.Column<int>(type: "int", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Consumables", x => x.ConsumableId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "HospitalInfo",
                 columns: table => new
                 {
@@ -117,7 +101,6 @@ namespace ONT_3rdyear_Project.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Schedule = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
                     ExpiryDate = table.Column<DateOnly>(type: "date", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -566,32 +549,6 @@ namespace ONT_3rdyear_Project.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SupplierItems",
-                columns: table => new
-                {
-                    SupplierID = table.Column<int>(type: "int", nullable: false),
-                    ConsumableID = table.Column<int>(type: "int", nullable: false),
-                    SupplierItemID = table.Column<int>(type: "int", nullable: false),
-                    QuantityOnHand = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SupplierItems", x => new { x.SupplierID, x.ConsumableID });
-                    table.ForeignKey(
-                        name: "FK_SupplierItems_Consumables_ConsumableID",
-                        column: x => x.ConsumableID,
-                        principalTable: "Consumables",
-                        principalColumn: "ConsumableId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_SupplierItems_Suppliers_SupplierID",
-                        column: x => x.SupplierID,
-                        principalTable: "Suppliers",
-                        principalColumn: "SupplierId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Beds",
                 columns: table => new
                 {
@@ -607,6 +564,29 @@ namespace ONT_3rdyear_Project.Migrations
                     table.PrimaryKey("PK_Beds", x => x.BedId);
                     table.ForeignKey(
                         name: "FK_Beds_Wards_WardID",
+                        column: x => x.WardID,
+                        principalTable: "Wards",
+                        principalColumn: "WardID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Consumables",
+                columns: table => new
+                {
+                    ConsumableId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StockQuantity = table.Column<int>(type: "int", nullable: false),
+                    WardID = table.Column<int>(type: "int", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Consumables", x => x.ConsumableId);
+                    table.ForeignKey(
+                        name: "FK_Consumables_Wards_WardID",
                         column: x => x.WardID,
                         principalTable: "Wards",
                         principalColumn: "WardID",
@@ -674,32 +654,6 @@ namespace ONT_3rdyear_Project.Migrations
                         principalTable: "Wards",
                         principalColumn: "WardID",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "WardConsumables",
-                columns: table => new
-                {
-                    WardID = table.Column<int>(type: "int", nullable: false),
-                    ConsumableID = table.Column<int>(type: "int", nullable: false),
-                    StockID = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WardConsumables", x => new { x.WardID, x.ConsumableID });
-                    table.ForeignKey(
-                        name: "FK_WardConsumables_Consumables_ConsumableID",
-                        column: x => x.ConsumableID,
-                        principalTable: "Consumables",
-                        principalColumn: "ConsumableId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_WardConsumables_Wards_WardID",
-                        column: x => x.WardID,
-                        principalTable: "Wards",
-                        principalColumn: "WardID",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -1008,6 +962,58 @@ namespace ONT_3rdyear_Project.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SupplierItems",
+                columns: table => new
+                {
+                    SupplierID = table.Column<int>(type: "int", nullable: false),
+                    ConsumableID = table.Column<int>(type: "int", nullable: false),
+                    SupplierItemID = table.Column<int>(type: "int", nullable: false),
+                    QuantityOnHand = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupplierItems", x => new { x.SupplierID, x.ConsumableID });
+                    table.ForeignKey(
+                        name: "FK_SupplierItems_Consumables_ConsumableID",
+                        column: x => x.ConsumableID,
+                        principalTable: "Consumables",
+                        principalColumn: "ConsumableId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SupplierItems_Suppliers_SupplierID",
+                        column: x => x.SupplierID,
+                        principalTable: "Suppliers",
+                        principalColumn: "SupplierId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WardConsumables",
+                columns: table => new
+                {
+                    WardID = table.Column<int>(type: "int", nullable: false),
+                    ConsumableID = table.Column<int>(type: "int", nullable: false),
+                    StockID = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WardConsumables", x => new { x.WardID, x.ConsumableID });
+                    table.ForeignKey(
+                        name: "FK_WardConsumables_Consumables_ConsumableID",
+                        column: x => x.ConsumableID,
+                        principalTable: "Consumables",
+                        principalColumn: "ConsumableId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WardConsumables_Wards_WardID",
+                        column: x => x.WardID,
+                        principalTable: "Wards",
+                        principalColumn: "WardID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ConsumableOrders",
                 columns: table => new
                 {
@@ -1128,22 +1134,22 @@ namespace ONT_3rdyear_Project.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "FullName", "IsDeleted", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "RoleType", "SecurityStamp", "TwoFactorEnabled", "UserName" },
                 values: new object[,]
                 {
-                    { 1, 0, "d7be20d6-1774-491b-a2f6-f739b5703dcd", "doctor@hospital.com", true, "Dr. John Doe", false, false, null, "DOCTOR@HOSPITAL.COM", "DOCTOR@HOSPITAL.COM", "AQAAAAIAAYagAAAAEKja79inF50Jb+k7SWFy5/tN/pan8YQYeIs1lqF5i4ypZL01RP1/pt3dVlZXb6CjPw==", null, false, "Doctor", null, false, "doctor@hospital.com" },
-                    { 2, 0, "9788826f-d363-45fe-9646-e6260cdcdefd", "nurse@hospital.com", true, "Nurse Thabo", false, false, null, "NURSE@HOSPITAL.COM", "NURSE@HOSPITAL.COM", "AQAAAAIAAYagAAAAEFlznK3GN0mWOrXF9Ordni0gxVYuJxdLYfnBdt/eET4fZiohztOGlAFl+bMWjg4FUA==", null, false, "Nurse", null, false, "nurse@hospital.com" }
+                    { 1, 0, "8d706dd5-8f3f-4a93-81bd-74177db899ea", "doctor@hospital.com", true, "Dr. John Doe", false, false, null, "DOCTOR@HOSPITAL.COM", "DOCTOR@HOSPITAL.COM", "AQAAAAIAAYagAAAAEMq9sXCxqVjYw+SGQOpBIPQtO9NYMRwxUizHOiIX7wqgrhnHQrLDku540gvvc3KlFQ==", null, false, "Doctor", null, false, "doctor@hospital.com" },
+                    { 2, 0, "b8bd5f0c-b6eb-46a3-b588-53186268d1e2", "nurse@hospital.com", true, "Nurse Thabo", false, false, null, "NURSE@HOSPITAL.COM", "NURSE@HOSPITAL.COM", "AQAAAAIAAYagAAAAEFff+V3f7FIhrIvBb9yHp91/EqyQFysikeP0Po+CkZV6Bm4lHziy8wPmhoBfrPUYiA==", null, false, "Nurse", null, false, "nurse@hospital.com" }
                 });
 
             migrationBuilder.InsertData(
                 table: "HospitalInfo",
                 columns: new[] { "HospitalInfoId", "Address", "Description", "DirectorName", "EmailAddress", "LastUpdated", "Logo", "Name", "Phone", "Website" },
-                values: new object[] { 1, "123 Health Avenue, Cape Town, Western Cape, 8000", "Sunrise Medical Centre is a state-of-the-art healthcare facility offering comprehensive care, modern technology, and highly qualified staff.", "Dr. Lindiwe Mokoena", "info@sunrisemedical.co.za", new DateTime(2025, 8, 18, 1, 15, 53, 612, DateTimeKind.Local).AddTicks(5568), null, "Sunrise Medical centre", "+27 21 555 1234", "https://www.sunrisemedical.co.za" });
+                values: new object[] { 1, "123 Health Avenue, Cape Town, Western Cape, 8000", "Sunrise Medical Centre is a state-of-the-art healthcare facility offering comprehensive care, modern technology, and highly qualified staff.", "Dr. Lindiwe Mokoena", "info@sunrisemedical.co.za", new DateTime(2025, 8, 12, 2, 20, 7, 617, DateTimeKind.Local).AddTicks(6738), null, "Sunrise Medical centre", "+27 21 555 1234", "https://www.sunrisemedical.co.za" });
 
             migrationBuilder.InsertData(
                 table: "Medications",
-                columns: new[] { "MedicationId", "ExpiryDate", "IsDeleted", "Name", "Quantity", "Schedule" },
+                columns: new[] { "MedicationId", "ExpiryDate", "IsDeleted", "Name", "Schedule" },
                 values: new object[,]
                 {
-                    { 1, new DateOnly(2026, 1, 1), false, "Paracetamol", 0, 1 },
-                    { 2, new DateOnly(2025, 12, 1), false, "Insulin", 0, 4 }
+                    { 1, new DateOnly(2026, 1, 1), false, "Paracetamol", 1 },
+                    { 2, new DateOnly(2025, 12, 1), false, "Insulin", 4 }
                 });
 
             migrationBuilder.InsertData(
@@ -1298,6 +1304,11 @@ namespace ONT_3rdyear_Project.Migrations
                 name: "IX_ConsumableOrders_OrderId",
                 table: "ConsumableOrders",
                 column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Consumables_WardID",
+                table: "Consumables",
+                column: "WardID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Deliveries_DeliveredByUserId",

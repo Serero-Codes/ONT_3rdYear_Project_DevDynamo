@@ -13,11 +13,11 @@ namespace ONT_3rdyear_Project.Models
 		[Required]
 		public int Capacity { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;		
 
-		
         public virtual ICollection<Bed> Beds { get; set; }		
 		public virtual ICollection<Admission> Admissions { get; set; }
 		public virtual ICollection<WardConsumable> WardConsumables { get; set; }
+		public virtual ICollection<Movement> Movements { get; set; }
     }
 }

@@ -1,0 +1,83 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.Models.Admission>
+@{
+	ViewData["Title"] = "All Active Admissions";
+}
+
+
+<div class="d-flex justify-content-start mt-3">
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-clipboard2-pulse me-2"></i> Active Admissions</h4>
+        </div>
+        <div class="card-body">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">@TempData["Success"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Patient</th>
+                            <th>Date Of Birth </th>
+                            <th>Ward</th>
+                            <th>Bed</th>
+                            <th>Admission Date</th>
+                            <th>Admission Reason</th>
+                            <th>Doctor</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var admission in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <i class="bi bi-person-fill text-primary me-1"></i>
+                                    @admission.Patient.FirstName @admission.Patient.LastName
+                                </td>
+                                <td>@admission.Patient.DateOfBirth.ToString("dd/MM/yyyy")</td>
+                                <td>@admission.Ward.Name</td>
+                                <td>@admission.Bed.BedNo</td>
+                                <td>@admission.AdmissionDate.ToString("yyyy-MM-dd")</td>
+                                <td>@admission.ReasonForAdmission</td>
+                                <td>
+                                    @if (admission.ApplicationUser != null)
+                                    {
+                                        <span class="badge bg-info">@admission.ApplicationUser.FullName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not Assigned</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <a asp-action="PatientAdmission" asp-route-patientId="@admission.PatientID"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                    <a asp-action="DischargePatientList"
+                                       class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-box-arrow-right"></i> Discharge
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>

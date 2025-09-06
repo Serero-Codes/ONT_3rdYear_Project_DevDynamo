@@ -203,7 +203,7 @@ namespace ONT_3rdyear_Project.Controllers
             var ward = await _context.Wards.FindAsync(id);
             if (ward != null)
             {
-                ward.IsActive = true;
+                ward.IsActive = false;
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Wards");

@@ -1,0 +1,81 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.Models.Bed>
+@{
+	ViewData["Title"] = "Available Beds";
+}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="bi bi-hospital-bed me-2"></i> Available Beds</h4>
+
+            <!-- Filter Form -->
+            <form method="get" asp-action="bedIndex" class="d-flex">
+                <select name="wardId" class="form-select me-2" onchange="this.form.submit()"
+                        asp-items="ViewBag.WardsSelectList">
+                    <option value="">-- All Wards --</option>
+                </select>
+                <noscript>
+                    <button type="submit" class="btn btn-light">Filter</button>
+                </noscript>
+            </form>
+        </div>
+
+        <div class="card-body">
+            <!-- Summary Count -->
+            <div class="alert alert-secondary shadow-sm">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>@ViewBag.AvailableCount</strong> bed(s) available
+                @if (ViewBag.SelectedWardId != null)
+                {
+                    <span> in this ward.</span>
+                }
+                else
+                {
+                    <span> across all wards.</span>
+                }
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    No available beds found for the selected ward.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Bed No</th>
+                                <th>Ward</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var bed in Model)
+                            {
+                                <tr>
+                                    <td>@bed.BedNo</td>
+                                    <td>@bed.Ward.Name</td>
+                                    <td>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle-fill"></i> Available
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            <!-- Back Button -->
+            <div class="d-flex justify-content-end mt-3">
+                <a asp-action="Index" asp-controller="WardAdmin" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

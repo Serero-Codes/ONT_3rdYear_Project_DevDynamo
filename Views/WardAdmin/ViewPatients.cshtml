@@ -1,0 +1,50 @@
+﻿@model IEnumerable<ONT_3rdyear_Project.Models.Admission>
+@{
+    ViewData["Title"] = "Track Patient Movement";
+}
+
+<div class="d-flex justify-content-start mt-3">
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+<div class="container pm-container">
+    <h2 class="text-primary mb-3">
+        <i class="bi bi-people-fill pm-header-icon"></i> Admitted Patients
+    </h2>
+
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle pm-table mb-0">
+            <thead class="table-primary">
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Date of Birth</th>
+                    <th>Ward</th>
+                    <th>Bed</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var admission in Model)
+                {
+                    <tr>
+                        <td>@admission.Patient.FirstName</td>
+                        <td>@admission.Patient.LastName</td>
+                        <td>@admission.Patient.DateOfBirth.ToString("dd/MM/yyyy")</td>
+                        <td>@admission.Ward.Name</td>
+                        <td>@admission.Bed.BedNo</td>
+                        <td class="text-center">
+                            <a class="btn btn-sm btn-primary pm-btn me-1" asp-action="LogMovement" asp-route-patientId="@admission.PatientID">
+                                <i class="bi bi-arrow-right me-1"></i> Log Movement
+                            </a>
+                            <a class="btn btn-sm btn-info text-white pm-btn" asp-action="MovementHistory" asp-route-patientId="@admission.PatientID">
+                                <i class="bi bi-list-check me-1"></i> View History
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

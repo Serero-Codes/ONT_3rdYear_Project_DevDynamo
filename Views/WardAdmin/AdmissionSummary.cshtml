@@ -1,0 +1,72 @@
+﻿@model ONT_3rdyear_Project.ViewModels.AdmissionSummaryViewModel
+@{
+    ViewData["Title"] = "Admission Summary";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Step 5: Admission Summary</h2>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            Patient Info
+        </div>
+        <div class="card-body">
+            <p><strong>Name:</strong> @Model.Admission.Patient.FirstName @Model.Admission.Patient.LastName</p>
+            <p><strong>Bed:</strong> @Model.Admission.Bed.BedNo - Ward @Model.Admission.Ward.Name</p>
+            <p><strong>Admission Date:</strong> @Model.Admission.AdmissionDate.ToString("dd/MM/yyyy")</p>
+            <p><strong>Reason:</strong> @Model.Admission.ReasonForAdmission</p>
+            <p><strong>Notes:</strong> @Model.Admission.Notes</p>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-success text-white">
+            Allergies
+        </div>
+        <div class="card-body">
+            @if (Model.PatientAllergies.Any())
+            {
+                <ul>
+                    @foreach (var allergy in Model.PatientAllergies)
+                    {
+                        <li>@allergy.Name</li>
+                    }
+                </ul>
+            }
+            else
+            {
+
+                <p>No allergies recorded</p>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-info text-white">
+            Medical History
+        </div>
+        <div class="card-body">
+            @if (Model.MedicalHistory.Any())
+            {
+                <ul>
+                    @foreach (var mh in Model.MedicalHistory)
+                    {
+                        <li> ChronicCondition: @mh.ChronicCondition <br /> Severity: @mh.ConditonSeverity</li>
+                    }
+                </ul>
+            }
+            else
+            {
+
+                <p>No medical history recorded</p>
+            }
+        </div>
+    </div>
+    <div class="d-flex justify-content-start mt-3">
+        <a asp-action="AdmissionStep3" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+    <a asp-action="ActiveAdmission" class="btn btn-primary">Finish & View Admissions</a>
+
+</div>

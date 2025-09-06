@@ -11,8 +11,10 @@ namespace ONT_3rdyear_Project.Models
 		[ForeignKey("Patient")]
 		public int PatientId { get; set; }
 		public virtual Patient Patient { get; set; }
-
-		public string ChronicCondition { get; set; }
+		[ForeignKey("Admission")]
+		public int? AdmissionId { get; set; }
+		public virtual Admission Admission { get; set; }
+        public string ChronicCondition { get; set; }
 
 		public string MedicationHistory { get; set; }
 

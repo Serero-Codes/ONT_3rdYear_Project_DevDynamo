@@ -32,6 +32,9 @@ body {
 
 /*html, body {
     overflow: hidden !important;
+<<<<<<< HEAD
+}*/
+=======
 }*/
 .container {
     margin-bottom: 0; /* Bootstrap container sometimes adds margin */
@@ -40,3 +43,4 @@ body {
 main.pb-3 {
     padding-bottom: 0;
 }
+>>>>>>> fd2377ef523ad4c8b0fb4ff7d58611fb54cd65c9

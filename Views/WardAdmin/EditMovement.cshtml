@@ -1,0 +1,61 @@
+﻿@model ONT_3rdyear_Project.Models.Movement
+@{
+    ViewData["Title"] = "Edit Patient Movement";
+}
+<div class="d-flex justify-content-start mt-3">
+    <a asp-action="MovementHistory" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="container pm-container">
+    <div class="card pm-card">
+        <div class="card-header pm-card-header">
+            <i class="bi bi-arrow-right-left pm-header-icon"></i>
+            Edit Movement for @Model.Patient.FirstName @Model.Patient.LastName
+        </div>
+        <div class="card-body pm-card-body">
+            <form asp-action="EditMovement" method="post">
+                <input type="hidden" asp-for="MovementID" />
+                <input type="hidden" asp-for="PatientID" />
+                <input type="hidden" asp-for="WardID" />
+                <input type="hidden" asp-for="BedID" />
+
+                <!-- From Location -->
+                <div class="pm-form-group">
+                    <label asp-for="FromLocation" class="form-label pm-form-label">From Location</label>
+                    <input asp-for="FromLocation" class="form-control pm-input-readonly" readonly />
+                </div>
+
+                <!-- To Location -->
+                <div class="pm-form-group">
+                    <label asp-for="ToLocation" class="form-label pm-form-label">To Location</label>
+                    <select asp-for="ToLocation" class="form-select" required>
+                        <option value="">-- Select Destination --</option>
+                        <option value="X-Ray" selected="@(Model.ToLocation == "X-Ray")">X-Ray</option>
+                        <option value="@ViewBag.WardLocation" selected="@(Model.ToLocation == ViewBag.WardLocation)">
+                            @ViewBag.WardLocation
+                        </option>
+                    </select>
+                    <span asp-validation-for="ToLocation" class="text-danger"></span>
+                </div>
+
+                <!-- Timestamp -->
+                <div class="pm-form-group">
+                    <label asp-for="TimeStamp" class="form-label pm-form-label">Movement Time</label>
+                    <input asp-for="TimeStamp" type="datetime-local" class="form-control" />
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="submit" class="btn btn-success pm-btn">
+                        <i class="bi bi-save2 me-1"></i> Save Changes
+                    </button>
+                    <a asp-action="MovementHistory" asp-route-patientId="@Model.PatientID" class="btn btn-secondary pm-btn">
+                        <i class="bi bi-arrow-left me-1"></i> Back
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

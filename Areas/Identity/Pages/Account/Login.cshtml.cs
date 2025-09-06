@@ -110,6 +110,14 @@ namespace ONT_3rdyear_Project.Areas.Identity.Pages.Account
                     {
                         return RedirectToAction("Index", "SisterDashboard", new { area = "" });
                     }
+                    else if (await _userManager.IsInRoleAsync(user, "WardAdmin"))
+                    {
+                        return LocalRedirect("~/WardAdmin/Index"); // Adjust path to your ward admin dashboard
+                    }
+                    else if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        return LocalRedirect("~/Admin/Dashboard"); // Adjust path to your admin dashboard
+                    }
 
                     // Default redirect
                     return LocalRedirect(returnUrl);

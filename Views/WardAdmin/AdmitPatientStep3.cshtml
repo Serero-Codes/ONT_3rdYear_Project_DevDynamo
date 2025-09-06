@@ -1,0 +1,60 @@
+﻿@model ONT_3rdyear_Project.ViewModels.MedicalHistoryStepViewModel
+@{
+    ViewData["Title"] = "Admit Patient - Step 3: Medical History";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Step 3: Medical History & Chronic Conditions</h2>
+
+    <form asp-action="AdmitPatientStep3" method="post">
+        <input type="hidden" asp-for="PatientID" />
+        <input type="hidden" asp-for="AdmissionID" />
+
+        <div id="history-container">
+            <div class="history-item mb-3">
+                <label class="form-label mt-2">Chronic Condition</label>
+                <input type="text" name="MedicalHistories[0].ChronicCondition" class="form-control" placeholder="Chronic Condition" />
+                <label class="form-label mt-2">Medication History</label>
+                <input type="text" name="MedicalHistories[0].MedicationHistory" class="form-control" placeholder="Medication History" />
+                <label class="form-label mt-2">Past Surgical History</label>
+                <input type="text" name="MedicalHistories[0].PastSurgicalHistory" class="form-control" placeholder="Past Surgical History" />
+                <label class="form-label mt-2">Condition Severity</label>
+                <input type="text" name="MedicalHistories[0].ConditionSeverity" class="form-control" placeholder="Condition Severity" />
+                <label class="form-label mt-2">Recorded Date</label>
+                <input type="date" name="MedicalHistories[0].Recorderdate" class="form-control" placeholder="Recorded Date" />
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary mb-3" onclick="addHistory()">Add Another Condition</button>
+        <br />
+        <button type="submit" class="btn btn-success">Finish Admission</button>
+    </form>
+    <div class="d-flex justify-content-start mt-3">
+        <a asp-action="AdmissionStep2" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let histIndex = 1;
+        function addHistory() {
+            const container = document.getElementById('history-container');
+            const div = document.createElement('div');
+            div.classList.add('history-item', 'mb-3');
+            div.innerHTML = `<label class="form-label mt-2">Chronic Condition</label>
+                             <input type="text" name="MedicalHistories[${histIndex}].ChronicCondition" class="form-control" placeholder="Chronic Condition"/>
+                             <label class="form-label">Medication History</label>
+                             <input type="text" name="MedicalHistories[${histIndex}].MedicationHistory" class="form-control" placeholder="Medication History"/>
+                             <label class="form-label">Past Surgical History</label>
+                             <input type="text" name="MedicalHistories[${histIndex}].PastSurgicalHistory" class="form-control" placeholder="Past Surgical History"/>
+                             <label class="form-label">Condition severity</label>
+                             <input type="text" name="MedicalHistories[${histIndex}].ConditionSeverity" class="form-control" placeholder="Condition severity"/>
+                             <label class="form-label">Recorded Date</label>
+                             <input type="date" name="MedicalHistories[${histIndex}].RecorderDate" class="form-control" placeholder="Recorded Date"/>`;
+            container.appendChild(div);
+            histIndex++;
+        }
+    </script>
+}
