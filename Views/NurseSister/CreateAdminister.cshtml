@@ -28,6 +28,19 @@
                 <div class="form-group-custom">
                     <label class="form-label-custom">Patient</label>
                     <input type="text" class="form-control" value="@Model.PatientName" readonly />
+                    @if (Model.PatientAllergies != null && Model.PatientAllergies.Any())
+                    {
+                        <div class="safety-warning">
+                            <h4><i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>Allergy Warning!</h4>
+                            <p>Patient has the following allergies:</p>
+                            <ul>
+                                @foreach (var allergy in Model.PatientAllergies)
+                                {
+                                    <li>@allergy</li>
+                                }
+                            </ul>
+                        </div>
+                    }
                 </div>
 
                 <div class="form-group-custom">
@@ -45,6 +58,7 @@
                         <span asp-validation-for="MedicationId" class="text-danger"></span>
                     </div>
                 </div>
+               
 
                 <div class="form-group-custom" id="prescriptionField" style="display:none;">
                     
@@ -413,28 +427,11 @@
         align-items: center;
     }
 
-    /* .required-field::after {
-            content: "*";
-            color: #dc3545;
-            margin-left: 3px;
-            font-weight: bold;
-        }
-
-        input:required:invalid {
-            border-color: #dc3545;
-        }
-
-        input:required:valid {
-            border-color: #28a745;
-        }
-
-        select:required:invalid {
-            border-color: #dc3545;
-        }
-
-        select:required:valid {
-            border-color: #28a745;
-        } */
+    .btn-disabled {
+        background: #6c757d !important;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
 
     @@media (max-width: 768px) {
         .medication-form-card {
@@ -447,6 +444,21 @@
             margin-bottom: 10px;
             margin-right: 0;
         }
+    }
+
+    .toast-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #dc3545;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        z-index: 9999;
+        font-weight: 600;
     }
 </style>
 
@@ -487,13 +499,74 @@
             prescriptionSelect.value = "";
         }
     }
-
+    // Collect all server-side validation errors
+    var errors = [];
+    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+    {
+                    <text>errors.push("@error.ErrorMessage");</text>
+    }
 
     window.onload = function () {
         const select = document.getElementById("MedicationId");
         if (select) updateSchedule(select);
+
+        errors.forEach(function(msg) {
+            showToast(msg);
+        });
     };
+
+    var patientAllergies = @Html.Raw(Json.Serialize(Model.PatientAllergies ?? new List<string>()));
+        function checkAllergy(select) {
+        const selectedMed = select.options[select.selectedIndex].text.toLowerCase();
+        const saveButton = document.querySelector('button[type="submit"]');
+
+        // Check if medication name contains any of the allergy names
+        const hasAllergyConflict = patientAllergies.some(allergy =>
+            selectedMed.includes(allergy.toLowerCase())
+        );
+
+        if (hasAllergyConflict) {
+            saveButton.disabled = true;
+            saveButton.textContent = "⚠ Allergic! Cannot Save";
+            saveButton.classList.add('btn-disabled'); // optional styling
+        } else {
+            saveButton.disabled = false;
+            saveButton.textContent = "Save";
+            saveButton.classList.remove('btn-disabled');
+        }
+    }
+
+    // Call the function whenever medication changes
+    document.getElementById("MedicationId").addEventListener("change", function() {
+        checkAllergy(this);
+    });
+
+
+    
+
+    
+
+    function showToast(message) {
+        // Create toast element
+        var toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.innerText = message;
+        document.body.appendChild(toast);
+
+        // Animate and remove after 3 seconds
+        setTimeout(function() {
+            toast.style.opacity = '1';
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                setTimeout(function() {
+                    document.body.removeChild(toast);
+                }, 500);
+            }, 2500);
+        }, 100);
+    }
 </script>
+
+
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }

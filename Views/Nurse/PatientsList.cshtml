@@ -195,6 +195,7 @@
         overflow-x: auto;
         scrollbar-width: thin;
         scrollbar-color: var(--gray-300) transparent;
+        max-height: calc(3 * 84px + 50px);
     }
 
         .table-responsive::-webkit-scrollbar {
@@ -523,7 +524,7 @@
             }
         </select>
 
-        <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>

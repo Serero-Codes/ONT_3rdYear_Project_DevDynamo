@@ -25,72 +25,102 @@
 			</div>
 
 			<div class="search-section">
-				<input type="text" id="liveSearchInput" class="search-input" placeholder="Search by Patient Name..." autocomplete="off" />
-            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
-					<i class="fas fa-arrow-left"></i>Back to Dashboard
-				</a>
+                <form method="get" asp-action="ListAdministered">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <input type="text" name="searchPatient" class="form-control" placeholder="Search by patient name..." value="@ViewContext.HttpContext.Request.Query["searchPatient"]" />
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" name="fromDate" class="form-control" value="@ViewContext.HttpContext.Request.Query["fromDate"]" />
+
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" name="toDate" class="form-control" value="@ViewContext.HttpContext.Request.Query["toDate"]" />
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+                        <i class="fas fa-home"></i>
+                    </a>
+
+                    <a asp-action="AdministeredPdf" class="btn btn-danger">
+                        <i class="fas fa-file-pdf"></i> Export All to PDF
+                    </a>
+                </form>
+				    @* <input type="text" id="liveSearchInput" class="search-input" placeholder="Search by Patient Name..." autocomplete="off" /> *@
+            
 			</div>
 
-			<div class="table-scroll-container">
-				<table class="custom-table">
-					<thead>
-						<tr>
-							<th><i class="fas fa-user"></i>Patient Name</th>
-							<th><i class="fas fa-pills"></i>Administered Medication</th>
-							<th><i class="fas fa-pill"></i>Dosage</th>
-							<th><i class="fas fa-calendar"></i>Date Administered</th>
-							<th><i class="fas fa-callendar"></i>Prescription</th>
-							<th><i class="fas fa-user"></i>Administered By</th>
-							<th><i class="fas fa-cogs"></i>Actions</th>
-						</tr>
-					</thead>
-					<tbody id="searchResults">
-						@foreach (var medication in Model)
-						{
-							<tr>
-								<td>
-									<div class="patient-info">
-										<div class="patient-avatar">
-											@(medication.PatientName.Substring(0, 1)) 
-										</div>
-										<div>
-											<div class="patient-name">@medication.PatientName @* @medication.Patient?.LastName *@</div>
-										</div>
-									</div>
-								</td>
-								<td>@medication.MedicationName</td>
-								<td>@medication.Dosage</td>
-								<td>@medication.AdministeredDate.ToShortDateString()</td>
-								<td>
-									@if (medication.HasPrescription)
-									{
-										<a asp-action="DownloadPrescription" asp-route-id="@medication.PrescriptionId" class="btn btn-sm btn-primary">Download PDF</a>
-									}
-									else
-									{
-										<span>N/A</span>
-									}
-								</td>
+            <div class="content-with-chart">
 
-								<td>@medication.ApplicationUserName</td>
-								<td>
-									<div class="action-buttons">
+                <div class="table-container">
+			        <div class="table-scroll-container">
+				        <table class="custom-table">
+					        <thead>
+						        <tr>
+							        <th><i class="fas fa-user"></i>Patient Name</th>
+							        <th><i class="fas fa-pills"></i>Administered Medication</th>
+							        <th><i class="fas fa-pill"></i>Dosage</th>
+							        <th><i class="fas fa-calendar"></i>Date Administered</th>
+							        <th><i class="fas fa-callendar"></i>Prescription</th>
+							        @* <th><i class="fas fa-user"></i>Administered By</th> *@
+							        <th><i class="fas fa-cogs"></i>Actions</th>
+						        </tr>
+					        </thead>
+					        <tbody id="searchResults">
+						        @foreach (var medication in Model)
+						        {
+							        <tr>
+								        <td>
+									        <div class="patient-info">
+										        <div class="patient-avatar">
+											        @(medication.PatientName.Substring(0, 1)) 
+										        </div>
+										        <div>
+											        <div class="patient-name">@medication.PatientName</div>
+										        </div>
+									        </div>
+								        </td>
+								        <td>@medication.MedicationName</td>
+								        <td>@medication.Dosage</td>
+								        <td>@medication.AdministeredDate.ToShortDateString()</td>
+								        <td>
+									        @if (medication.HasPrescription)
+									        {
+										        <a asp-action="DownloadPrescription" asp-route-id="@medication.PrescriptionId" class="btn btn-sm btn-primary">Download PDF</a>
+									        }
+									        else
+									        {
+										        <span>N/A</span>
+									        }
+								        </td>
+
+								        @* <td>@medication.ApplicationUserName</td> *@
+								        <td>
+									        <div class="action-buttons">
 
 
-                                    <a asp-action="EditAdministered" class="action-btn btn-treatment" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit" asp-route-id="@medication.Id"><i class="fas fa-edit"></i></a>
-										@* <a asp-action="Details" class="action-btn btn-medication" asp-route-id="@treatment.Id">Details</a> *@
-										@* <a asp-action="DeleteAdministered" class="action-btn btn-vitals" asp-route-id="@medication.Id">Delete</a> *@
-                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteMedicationModal" data-id="@medication.Id" data-name="@medication.PatientName" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
-                                        
-											<i class="fas fa-trash-alt"></i>
-										</button>
-									</div>
-								</td>
-							</tr>
-						}
-					</tbody>
-				</table>
-			</div>
+                                            <a asp-action="EditAdministered" class="action-btn btn-treatment" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit" asp-route-id="@medication.Id"><i class="fas fa-edit"></i></a>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteMedicationModal" data-id="@medication.Id" data-name="@medication.PatientName" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
+                                                <i class="fas fa-trash-alt"></i>
+									        </button>
+									        </div>
+								        </td>
+							        </tr>
+						        }
+					        </tbody>
+				        </table>
+                        </div>
+                    </div>
+                            <div class="chart-container">
+                                <canvas id="medicationsChart"></canvas>
+                    </div>
+			    </div>
 
 
 		</div>
@@ -235,38 +265,7 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-    .search-btn {
-        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
-        border: none;
-        border-radius: 12px;
-        padding: 0.75rem 2rem;
-        color: var(--white);
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: var(--shadow);
-        position: relative;
-        overflow: hidden;
-    }
-
-        .search-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.6s;
-        }
-
-        .search-btn:hover::before {
-            left: 100%;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
-        }
+   
 
     .patients-table-section {
         background: var(--white);
@@ -530,6 +529,22 @@
             align-items: flex-start;
             gap: 0.5rem;
         }
+
+        .content-with-chart {
+            flex-direction: column; 
+            gap: 1rem; 
+        }
+
+        .chart-container {
+            width: 100%; 
+            flex-shrink: 0;
+            order: 2; 
+        }
+
+        .table-container {
+            width: 100%;
+            order: 1; 
+        }
     }
 
     @@keyframes fadeInUp {
@@ -549,16 +564,75 @@
     }
 
     #btn-back {
-        margin-left: 60%;
+       
         border-radius: 50px;
     }
 
     .table-scroll-container {
         max-height: 400px;
         overflow-y: auto;
-        overflow-x: hidden;
+        overflow-x: auto;
     }
+
+        .content-with-chart {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .table-container {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chart-container {
+            width: 400px;
+            flex-shrink: 0;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+        }
+
+            .chart-container h2 {
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: var(--dark-color);
+                margin: 0 0 1rem 0;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+                .chart-container h2:before {
+                    content: '📊';
+                    font-size: 1.2rem;
+                }
+
+        .table-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+        }
+
+
+            .table-scroll::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .table-scroll::-webkit-scrollbar-thumb {
+                background: var(--gray-300);
+                border-radius: 3px;
+            }
+
+                .table-scroll::-webkit-scrollbar-thumb:hover {
+                    background: var(--gray-500);
+                }
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     var deleteMedicationModal = document.getElementById('deleteMedicationModal');
 
@@ -571,4 +645,51 @@
         document.getElementById('deleteMedicationId').value = id;
         document.getElementById('deletePatientName').textContent = name;
     });
+
+
+
+     document.addEventListener("DOMContentLoaded", function () {
+        // Prepare chart data from your model
+        var medications = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                                                Model.Select(m => m.MedicationName).ToList()
+                                ));
+        var counts = {};
+        medications.forEach(function (med) {
+            counts[med] = (counts[med] || 0) + 1;
+        });
+
+        var ctx = document.getElementById('medicationsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(counts),
+                datasets: [{
+                    label: 'Administered Count',
+                    data: Object.values(counts),
+                    backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                    borderColor: 'rgba(37, 99, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Administered Medications'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        precision: 0
+                    }
+                }
+            }
+        });
+    });
 </script>
+
+
+

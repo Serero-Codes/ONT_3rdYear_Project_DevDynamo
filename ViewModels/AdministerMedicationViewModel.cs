@@ -32,6 +32,8 @@ namespace ONT_3rdyear_Project.ViewModels
         public SelectList PrescriptionList { get; set; }
         public bool RequiresPrescription { get; set; }
         public bool HasPrescription => PrescriptionId.HasValue;
+        public List<string> PatientAllergies { get; set; } // List of allergy names
+
     }
 
 }

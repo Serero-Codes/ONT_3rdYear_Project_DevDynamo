@@ -567,10 +567,225 @@ namespace ONT_3rdyear_Project.Controllers
 
 
         //TREATMENT CRUD
-        public async Task<IActionResult> Treatments()
+       /* public async Task<IActionResult> Treatments()
         {
             var treatments = await _context.Treatments.Include(p=>p.Patient).Include(u=>u.User).Include(v=>v.VisitSchedule).Where(t=>t.IsActive).ToListAsync();
             return View(treatments);
+        }*/
+       public async Task<IActionResult>Treatments(string searchPatient, DateTime? fromDate, DateTime? toDate)
+        {
+            var treatmentQuery = _context.Treatments.Include(p => p.Patient).Include(p => p.User).Include(p => p.VisitSchedule).Where(p => p.IsActive);
+
+            if (!string.IsNullOrEmpty(searchPatient))
+            {
+                treatmentQuery = treatmentQuery.Where(p => p.Patient.FirstName.Contains(searchPatient) || p.Patient.LastName.Contains(searchPatient));
+            }
+
+            if (fromDate.HasValue)
+            {
+                treatmentQuery = treatmentQuery.Where(p => p.TreatmentDate >= fromDate.Value);
+            }
+
+            if (toDate.HasValue)
+            {
+                treatmentQuery = treatmentQuery.Where(p => p.TreatmentDate <= toDate.Value);
+            }
+            var treatments = await treatmentQuery.OrderByDescending(p => p.TreatmentDate).ToListAsync();
+            return View(treatments);
+        }
+        public async Task<IActionResult> TreatmentsPdf()
+        {
+            var treatments = await _context.Treatments
+                .Include(v => v.Patient)
+                .Include(v => v.User)
+                .Where(v => v.IsActive)
+                .OrderByDescending(v => v.TreatmentDate)
+                .ToListAsync();
+
+            using (var ms = new MemoryStream())
+            {
+                var doc = new iTextSharp.text.Document(PageSize.A4, 40, 40, 60, 40);
+                var writer = PdfWriter.GetInstance(doc, ms);
+                doc.Open();
+
+                // Define fonts and colors
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 20, BaseColor.DarkGray);
+                var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.White);
+                var subHeaderFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.DarkGray);
+                var bodyFont = FontFactory.GetFont(FontFactory.HELVETICA, 9, BaseColor.Black);
+                var footerFont = FontFactory.GetFont(FontFactory.HELVETICA, 8, BaseColor.Gray);
+
+                // Title section with logo space
+                var titleTable = new PdfPTable(2) { WidthPercentage = 100 };
+                titleTable.SetWidths(new float[] { 3, 1 });
+
+                var titleCell = new PdfPCell(new Phrase("TREATMENTS REPORT", titleFont))
+                {
+                    Border = Rectangle.NO_BORDER,
+                    VerticalAlignment = Element.ALIGN_MIDDLE,
+                    HorizontalAlignment = Element.ALIGN_LEFT,
+                    PaddingBottom = 10
+                };
+
+                var logoCell = new PdfPCell(new Phrase("", bodyFont)) // Space for logo if needed
+                {
+                    Border = Rectangle.NO_BORDER,
+                    VerticalAlignment = Element.ALIGN_MIDDLE,
+                    HorizontalAlignment = Element.ALIGN_RIGHT
+                };
+
+                titleTable.AddCell(titleCell);
+                titleTable.AddCell(logoCell);
+                doc.Add(titleTable);
+
+                // Report info section
+                var infoTable = new PdfPTable(2) { WidthPercentage = 100 };
+                infoTable.SetWidths(new float[] { 1, 1 });
+
+                var generateDateCell = new PdfPCell(new Phrase($"Generated: {DateTime.Now:MMM dd, yyyy HH:mm}", subHeaderFont))
+                {
+                    Border = Rectangle.NO_BORDER,
+                    PaddingBottom = 5
+                };
+
+                var totalRecordsCell = new PdfPCell(new Phrase($"Total Records: {treatments.Count}", subHeaderFont))
+                {
+                    Border = Rectangle.NO_BORDER,
+                    HorizontalAlignment = Element.ALIGN_RIGHT,
+                    PaddingBottom = 5
+                };
+
+                infoTable.AddCell(generateDateCell);
+                infoTable.AddCell(totalRecordsCell);
+                doc.Add(infoTable);
+
+                // Add separator line
+                var line = new LineSeparator(1f, 100f, BaseColor.LightGray, Element.ALIGN_CENTER, -2);
+                doc.Add(new Chunk(line));
+                doc.Add(new Paragraph(" "));
+
+                if (treatments.Any())
+                {
+                    // Create main data table
+                    var table = new PdfPTable(4) { WidthPercentage = 100 };
+                    table.SetWidths(new float[] { 2.5f, 2f, 2f, 2f });
+
+                    // Header row
+                    var headerBg = new BaseColor(70, 130, 180); // Steel blue
+                    string[] headers = { "Date & Time", "Patient", "Treatment Type", "Treated By"};
+
+                    foreach (string header in headers)
+                    {
+                        var headerCell = new PdfPCell(new Phrase(header, headerFont))
+                        {
+                            BackgroundColor = headerBg,
+                            HorizontalAlignment = Element.ALIGN_CENTER,
+                            VerticalAlignment = Element.ALIGN_MIDDLE,
+                            Padding = 8,
+                            Border = Rectangle.BOX,
+                            BorderColor = BaseColor.White,
+                            BorderWidth = 1
+                        };
+                        table.AddCell(headerCell);
+                    }
+
+                    // Data rows with alternating colors
+                    var lightBlue = new BaseColor(240, 248, 255); // Alice blue
+                    bool isAlternate = false;
+
+                    foreach (var treatment in treatments)
+                    {
+                        var rowColor = isAlternate ? lightBlue : BaseColor.White;
+
+                        // Date cell
+                        table.AddCell(new PdfPCell(new Phrase(
+                            treatment.TreatmentDate.ToString("MMM dd, yyyy\nHH:mm"), bodyFont))
+                        {
+                            BackgroundColor = rowColor,
+                            Padding = 6,
+                            VerticalAlignment = Element.ALIGN_MIDDLE
+                        });
+
+                        // Patient cell
+                        table.AddCell(new PdfPCell(new Phrase(
+                            $"{treatment.Patient?.FirstName} {treatment.Patient?.LastName}", bodyFont))
+                        {
+                            BackgroundColor = rowColor,
+                            Padding = 6,
+                            VerticalAlignment = Element.ALIGN_MIDDLE
+                        });
+
+                        // Treatment type
+                        table.AddCell(new PdfPCell(new Phrase(
+                            treatment.TreatmentType ?? "N/A", bodyFont))
+                        {
+                            BackgroundColor = rowColor,
+                            Padding = 6,
+                            VerticalAlignment = Element.ALIGN_MIDDLE
+                        });
+
+                        // Treated by (User)
+                        table.AddCell(new PdfPCell(new Phrase(
+                            treatment.User?.FullName ?? "Unknown", bodyFont))
+                        {
+                            BackgroundColor = rowColor,
+                            Padding = 6,
+                            VerticalAlignment = Element.ALIGN_MIDDLE
+                        });
+
+                        isAlternate = !isAlternate;
+                    }
+
+                    doc.Add(table);
+                }
+                else
+                {
+                    // No data message
+                    var noDataParagraph = new Paragraph("No active treatment records found.", subHeaderFont)
+                    {
+                        Alignment = Element.ALIGN_CENTER,
+                        SpacingBefore = 20,
+                        SpacingAfter = 20
+                    };
+                    doc.Add(noDataParagraph);
+                }
+
+                // Footer
+                doc.Add(new Paragraph(" "));
+                doc.Add(new Chunk(line));
+
+                var footerTable = new PdfPTable(3) { WidthPercentage = 100 };
+                footerTable.SetWidths(new float[] { 1, 1, 1 });
+
+                var leftFooter = new PdfPCell(new Phrase("Healthcare Management System", footerFont))
+                {
+                    Border = Rectangle.NO_BORDER,
+                    HorizontalAlignment = Element.ALIGN_LEFT,
+                    PaddingTop = 10
+                };
+
+                var centerFooter = new PdfPCell(new Phrase($"Page 1", footerFont))
+                {
+                    Border = Rectangle.NO_BORDER,
+                    HorizontalAlignment = Element.ALIGN_CENTER,
+                    PaddingTop = 10
+                };
+
+                var rightFooter = new PdfPCell(new Phrase("Confidential", footerFont))
+                {
+                    Border = Rectangle.NO_BORDER,
+                    HorizontalAlignment = Element.ALIGN_RIGHT,
+                    PaddingTop = 10
+                };
+
+                footerTable.AddCell(leftFooter);
+                footerTable.AddCell(centerFooter);
+                footerTable.AddCell(rightFooter);
+                doc.Add(footerTable);
+
+                doc.Close();
+                return File(ms.ToArray(), "application/pdf", $"TreatmentsReport_{DateTime.Now:yyyyMMdd_HHmm}.pdf");
+            }
         }
 
         public async Task<IActionResult> TreatmentExists(int patientId)
@@ -851,16 +1066,109 @@ namespace ONT_3rdyear_Project.Controllers
 
 
         //administer medication
-        public async Task<IActionResult> Administered()
+        /*public async Task<IActionResult> Administered()
         {
-            var medication = await _context.PatientMedicationScripts.Include(p=>p.Patient).Include(v=>v.VisitSchedule).Include(p => p.Prescription).Include(a=>a.AdministeredBy).Include(m=>m.Medication)/*.Where(m => m.Medication.Schedule <= 4)*/.Where(ad=>ad.isActive).ToListAsync();
+            var medication = await _context.PatientMedicationScripts.Include(p=>p.Patient).Include(v=>v.VisitSchedule).Include(p => p.Prescription).Include(a=>a.AdministeredBy).Include(m=>m.Medication).Where(ad=>ad.isActive).ToListAsync();
             return View(medication);
+        }*/
+        public async Task<IActionResult> Administered(string searchPatient, DateTime? fromDate, DateTime? toDate)
+        {
+            var medsQuery = _context.PatientMedicationScripts
+                .Include(p => p.Patient)
+                .Include(v => v.VisitSchedule)
+                .Include(p => p.Prescription)
+                .Include(a => a.AdministeredBy)
+                .Include(m => m.Medication)
+                .Where(m => m.isActive); 
+
+            if (!string.IsNullOrEmpty(searchPatient))
+            {
+                medsQuery = medsQuery.Where(m =>
+                    m.Patient.FirstName.Contains(searchPatient) ||
+                    m.Patient.LastName.Contains(searchPatient));
+            }
+
+            if (fromDate.HasValue)
+            {
+                medsQuery = medsQuery.Where(m => m.AdministeredDate >= fromDate.Value);
+            }
+
+            if (toDate.HasValue)
+            {
+                var endOfDay = toDate.Value.Date.AddDays(1).AddTicks(-1);
+                medsQuery = medsQuery.Where(m => m.AdministeredDate <= endOfDay);
+            }
+
+            var medications = await medsQuery
+                .OrderByDescending(m => m.AdministeredDate)
+                .ToListAsync();
+
+            return View(medications);
+        }
+
+        public async Task<IActionResult> AdministeredPdf()
+        {
+            var medications = await _context.PatientMedicationScripts
+                .Include(p => p.Patient)
+                .Include(m => m.Medication)
+                .Include(a => a.AdministeredBy)
+                .Include(p => p.Prescription)
+                .Where(m => m.isActive)
+                .OrderByDescending(m => m.AdministeredDate)
+                .ToListAsync();
+
+            var stream = new MemoryStream();
+                var doc = new Document(PageSize.A4, 25, 25, 30, 30);
+                PdfWriter.GetInstance(doc, stream).CloseStream = false;
+                doc.Open();
+
+                // Title
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+                doc.Add(new Paragraph("Administered Medications Report", titleFont));
+                doc.Add(new Paragraph($"Generated on: {DateTime.Now}", FontFactory.GetFont(FontFactory.HELVETICA, 10)));
+                doc.Add(new Paragraph("\n"));
+
+                // Table
+                PdfPTable table = new PdfPTable(6); // 5 columns
+                table.WidthPercentage = 100;
+                table.SetWidths(new float[] { 2, 2, 1, 2, 2, 2 });
+
+                // Header row
+                var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+                string[] headers = { "Patient", "Medication", "Dosage", "Administered By", "Prescription", "Date" };
+                foreach (var h in headers)
+                {
+                    table.AddCell(new PdfPCell(new Phrase(h, headerFont))
+                    {
+                        BackgroundColor = BaseColor.LightGray,
+                        HorizontalAlignment = Element.ALIGN_CENTER
+                    });
+                }
+
+                // Data rows
+                foreach (var med in medications)
+                {
+                    table.AddCell($"{med.Patient?.FirstName} {med.Patient?.LastName}");
+                    table.AddCell(med.Medication?.Name ?? "N/A");
+                    table.AddCell(med.Dosage ?? "N/A");
+                    table.AddCell(med.AdministeredBy?.FullName ?? "N/A");
+                    table.AddCell(med.Prescription != null ? "Yes" : "No");
+                    table.AddCell(med.AdministeredDate.ToString("yyyy-MM-dd HH:mm"));
+                }
+
+                doc.Add(table);
+                doc.Close();
+
+                stream.Position = 0;
+                return File(stream, "application/pdf", "AdministeredMedications.pdf");
+          
         }
 
         [HttpGet]
         public async Task<IActionResult> CreateAdminister(int patientId)
         {
-            var patient = await _context.Patients.FindAsync(patientId);
+            
+            var patient = await _context.Patients.Include(p => p.PatientAllergies).ThenInclude(pa => pa.Allergy).FirstOrDefaultAsync(p => p.PatientID == patientId);
             if (patient == null)
             {
                 return NotFound();
@@ -870,8 +1178,8 @@ namespace ONT_3rdyear_Project.Controllers
 
             ViewBag.PatientId = patient.PatientID;
             ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
-
-            /*ViewBag.MedicationList = new SelectList(_context.Medications*//*.Where(m => m.Schedule == 1 || m.Schedule == 2 || m.Schedule == 3 || m.Schedule == 4)*//*.ToList(), "MedicationId", "Name");*/
+            ViewBag.PatientAllergies = patient.PatientAllergies.Select(pa => pa.Allergy.Name).ToList();
+            
             ViewBag.MedicationList = _context.Medications.ToList();
             ViewBag.UserList = new SelectList(_context.Users.ToList(), "ApplicationUserID", "FullName");
             return View();
@@ -885,11 +1193,13 @@ namespace ONT_3rdyear_Project.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user != null)
             {
-                model.ApplicationUserID = user.Id; // Id is int here
+                model.ApplicationUserID = user.Id; 
             }
             // Load the selected medication to check its schedule
-            var medication = await _context.Medications
-                .FirstOrDefaultAsync(m => m.MedicationId == model.MedicationId);
+            var medication = await _context.Medications.FirstOrDefaultAsync(m => m.MedicationId == model.MedicationId);
+            var patient = await _context.Patients.Include(p => p.PatientAllergies).ThenInclude(pa => pa.Allergy).FirstOrDefaultAsync(p => p.PatientID == model.PatientId);
+            var patientAllergies = patient?.PatientAllergies.Select(pa => pa.Allergy.Name).ToList() ?? new List<string>();
+
 
             if (medication == null)
             {
@@ -899,21 +1209,40 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 ModelState.AddModelError("", "You cannot administer medication with a schedule higher than 4.");
             }
+            else if (patientAllergies.Any(a => medication.Name.Contains(a, StringComparison.OrdinalIgnoreCase)))
+                ModelState.AddModelError("", "⚠ This patient is allergic to the selected medication!");
+
 
             if (!ModelState.IsValid)
             {
                 // Re-populate dropdowns when returning view
-                var patient = await _context.Patients.FindAsync(model.PatientId);
+                
                 ViewBag.PatientId = patient?.PatientID;
                 ViewBag.PatientName = $"{patient?.FirstName} {patient?.LastName}";
                 ViewBag.MedicationList = _context.Medications.ToList();
                 ViewBag.UserList = new SelectList(_context.Users, "ApplicationUserID", "FullName", model.ApplicationUserID);
+                ViewBag.PatientAllergies = patientAllergies;
 
                 return View(model);
             }
 
             try
             {
+                if (medication.Quantity > 0)
+                {
+                    medication.Quantity -= 1; // Assuming one unit per administration
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Medication is out of stock!");
+                    ViewBag.PatientId = patient?.PatientID;
+                    ViewBag.PatientName = $"{patient?.FirstName} {patient?.LastName}";
+                    ViewBag.MedicationList = _context.Medications.ToList();
+                    ViewBag.UserList = new SelectList(_context.Users, "ApplicationUserID", "FullName", model.ApplicationUserID);
+                    ViewBag.PatientAllergies = patientAllergies;
+                    return View(model);
+                }
+
                 _context.PatientMedicationScripts.Add(model);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Medication administered successfully!";
@@ -926,11 +1255,12 @@ namespace ONT_3rdyear_Project.Controllers
 
             // In case of error, reload dropdowns
             var patientReload = await _context.Patients.FindAsync(model.PatientId);
-            ViewBag.PatientId = patientReload?.PatientID;
-            ViewBag.PatientName = $"{patientReload?.FirstName} {patientReload?.LastName}";
+            
+            ViewBag.PatientId = patient?.PatientID;
+            ViewBag.PatientName = $"{patient?.FirstName} {patient?.LastName}";
             ViewBag.MedicationList = _context.Medications.ToList();
             ViewBag.UserList = new SelectList(_context.Users, "ApplicationUserID", "FullName", model.ApplicationUserID);
-
+            ViewBag.PatientAllergies = patientAllergies;
             return View(model);
         }
 
@@ -950,7 +1280,7 @@ namespace ONT_3rdyear_Project.Controllers
             if (medication == null)
                 return NotFound();
 
-            /*ViewBag.MedicationList = new SelectList(_context.Medications*//*.Where(m => m.Schedule == 1 || m.Schedule == 2 || m.Schedule == 3 || m.Schedule == 4)*//*.ToList(), "MedicationId", "Name", medication.MedicationId);*/
+            
             ViewBag.MedicationList = _context.Medications.ToList();
             ViewBag.UserList = new SelectList(_context.Users, "ApplicationUserID", "FullName", medication.ApplicationUserID);
             return View(medication);
@@ -1047,9 +1377,9 @@ namespace ONT_3rdyear_Project.Controllers
                 PdfWriter.GetInstance(doc, ms);
                 doc.Open();
 
-                // ======================
+                
                 // HEADER (Logo + Company)
-                // ======================
+                
                 PdfPTable headerTable = new PdfPTable(2);
                 headerTable.WidthPercentage = 100;
 
@@ -1080,16 +1410,16 @@ namespace ONT_3rdyear_Project.Controllers
                 doc.Add(headerTable);
                 doc.Add(new Paragraph("\n"));
 
-                // ======================
+                
                 // Title
-                // ======================
+               
                 var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
                 doc.Add(new Paragraph("Prescription", titleFont));
                 doc.Add(new Paragraph("\n"));
 
-                // ======================
+                
                 // Patient & Doctor Info
-                // ======================
+                
                 doc.Add(new Paragraph($"Prescription ID: {prescription.PrescriptionId}"));
                 doc.Add(new Paragraph($"Patient: {prescription.Patient.FirstName} {prescription.Patient.LastName}"));
                 doc.Add(new Paragraph($"Issued By: {prescription.User.FullName}"));
@@ -1097,9 +1427,9 @@ namespace ONT_3rdyear_Project.Controllers
                 doc.Add(new Paragraph("\n"));
 
 
-                // ======================
+                
                 // Table of Medications
-                // ======================
+                
                 if (prescription.Prescribed_Medication.Any())
                 {
                     var table = new PdfPTable(3); // Columns: Medication, Dosage, Schedule
@@ -1130,7 +1460,10 @@ namespace ONT_3rdyear_Project.Controllers
                 return File(ms.ToArray(), "application/pdf",
                     $"Prescription_{prescription.Patient.FirstName}_{prescription.Patient.LastName}.pdf");
             }
+
+
         }
+
 
 
 
@@ -1156,9 +1489,7 @@ namespace ONT_3rdyear_Project.Controllers
             if (patient == null)
                 return NotFound(); // patient itself doesn't exist
 
-            var instruction = await _context.Instructions
-                .Include(i => i.Patient)
-                .FirstOrDefaultAsync(i => i.PatientID == patientId);
+            var instruction = await _context.Instructions.Include(i => i.Patient).FirstOrDefaultAsync(i => i.PatientID == patientId);
 
             if (instruction == null)
             {
@@ -1248,8 +1579,15 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 try
                 {
-                    _context.Update(request);
+                    var existingRequest = await _context.Instructions.FindAsync(id);
+                    if(existingRequest == null)
+                    {
+                        return NotFound();
+                    }
+                    existingRequest.NurseRequest = request.NurseRequest;
+                    _context.Update(existingRequest);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Request successfully updated!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -1265,6 +1603,34 @@ namespace ONT_3rdyear_Project.Controllers
                 return RedirectToAction(nameof(InstructionList)); 
             }
             return View(request);
+        }
+
+        public async Task<IActionResult> DeleteRequest(int? id)
+        {
+            if(id == null)
+            {
+                return NotFound();
+            }
+            var request = await _context.Instructions.Include(p => p.Patient).FirstOrDefaultAsync(p => p.InstructionID == id);
+            if(request == null)
+            {
+                return NotFound();
+            }
+            return View(request);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult>DeleteRequest(int id)
+        {
+            var request = await _context.Instructions.FindAsync(id);
+            if(request == null)
+            {
+                return NotFound();
+            }
+            _context.Instructions.Remove(request);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Request Successfully Deleted!";
+            return RedirectToAction(nameof(InstructionList));
         }
 
 

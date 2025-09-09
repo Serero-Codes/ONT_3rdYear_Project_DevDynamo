@@ -34,7 +34,19 @@
                         Patient
                     </label>
                     <input type="text" class="form-control form-control-custom" value="@ViewBag.PatientName" readonly />
-                    
+                    @if (ViewBag.PatientAllergies != null && ((List<string>)ViewBag.PatientAllergies).Count > 0)
+                    {
+                        <div class="safety-warning">
+                            <h4><i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>Allergy Warning!</h4>
+                            <p>Patient has the following allergies:</p>
+                            <ul>
+                                @foreach (var allergy in (List<string>)ViewBag.PatientAllergies)
+                                {
+                                    <li>@allergy</li>
+                                }
+                            </ul>
+                        </div>
+                    }
                 </div>
 
                 <!-- Medication Selection -->
@@ -76,7 +88,7 @@
                         Administration Date
                     </label>
                     <div class="date-input-wrapper">
-                        <input asp-for="AdministeredDate" type="date" class="form-control form-control-custom date-input" required />
+                        <input asp-for="AdministeredDate" type="datetime-local" class="form-control form-control-custom date-input" required />
                     </div>                   
                     <span asp-validation-for="AdministeredDate" class="text-danger"></span>
                 </div>
@@ -87,7 +99,7 @@
                         <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
                         Administer & Record
                     </button>
-                    <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" href="javascript:history.back()" class="btn btn-back">
+                    <a href="javascript:history.back()" class="btn btn-back" id="saveButton">
                         <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
                         Cancel
                     </a>
@@ -345,24 +357,7 @@
             color: white;
         }
 
-    /* .text-danger {
-        color: #e74c3c !important;
-        font-weight: 500;
-        font-size: 13px;
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        background: rgba(231, 76, 60, 0.1);
-        border-radius: 8px;
-        border-left: 3px solid #e74c3c;
-    }
-
-        .text-danger:before {
-            content: "⚠";
-            margin-right: 8px;
-            font-size: 14px;
-        } */
+    
 
     .page-title {
         color: #2c3e50;
@@ -434,28 +429,7 @@
         align-items: center;
     }
 
-    /* .required-field::after {
-        content: "*";
-        color: #dc3545;
-        margin-left: 3px;
-        font-weight: bold;
-    }
-
-    input:required:invalid {
-        border-color: #dc3545;
-    }
-
-    input:required:valid {
-        border-color: #28a745;
-    }
-
-    select:required:invalid {
-        border-color: #dc3545;
-    }
-
-    select:required:valid {
-        border-color: #28a745;
-    } */
+    
 
     @@media (max-width: 768px) {
         .medication-form-card {
@@ -468,6 +442,12 @@
             margin-bottom: 10px;
             margin-right: 0;
         }
+    }
+
+    .btn-disabled {
+        background: #6c757d !important;
+        cursor: not-allowed;
+        opacity: 0.7;
     }
 </style>
 <!-- Font Awesome for Icons -->
@@ -484,6 +464,26 @@
                 this.value = ""; // reset selection
             }
         });
+
+             var patientAllergies = @Html.Raw(Json.Serialize(ViewBag.PatientAllergies ?? new List<string>()));
+        var medicationSelect = document.getElementById("medicationSelect");
+        var saveButton = document.getElementById("saveButton");
+
+        function checkAllergy() {
+            var selectedMedication = medicationSelect.options[medicationSelect.selectedIndex].text || "";
+            var hasAllergyConflict = patientAllergies.some(a => selectedMedication.toLowerCase().includes(a.toLowerCase()));
+
+            if (hasAllergyConflict) {
+                saveButton.disabled = true;
+                saveButton.classList.add("btn-disabled");
+            } else {
+                saveButton.disabled = false;
+                saveButton.classList.remove("btn-disabled");
+            }
+        }
+
+        medicationSelect.addEventListener("change", checkAllergy);
+        checkAllergy();
     </script>
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

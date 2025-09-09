@@ -1,12 +1,259 @@
 ﻿@model ONT_3rdyear_Project.Models.Instruction
-
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
-	ViewData["Title"] = "View Doctor Advice"; 
+    ViewData["Title"] = "View Doctor Advice";
+}
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
 }
 
-<h3>Doctor's Intructionse</h3>
+<style>
+    .advice-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+    }
 
-<p><strong>Patient:</strong> @Model.Patient.FirstName @Model.Patient.LastName</p>
-<p><strong>Doctor's Advice:</strong> @(string.IsNullOrWhiteSpace(Model.Instructions) ? "No advice from doctor" : Model.Instructions)@* @Model.Instructions *@</p>
-<a asp-action="InstructionList" class="btn btn-secondary">Back to List</a>
+    .advice-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+        position: relative;
+    }
 
+        .advice-header::before {
+            content: '🩺';
+            font-size: 3rem;
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            opacity: 0.3;
+        }
+
+        .advice-header::after {
+            content: '📋';
+            font-size: 2.5rem;
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            opacity: 0.3;
+        }
+
+    .advice-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .advice-content {
+        padding: 40px;
+        background: white;
+    }
+
+    .patient-info {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-left: 5px solid #17a2b8;
+        position: relative;
+    }
+
+        .patient-info::before {
+            content: '👤';
+            font-size: 1.5rem;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0.6;
+        }
+
+    .patient-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .patient-name {
+        font-size: 1.4rem;
+        color: #2c3e50;
+        font-weight: 700;
+    }
+
+    .advice-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        border-left: 5px solid #28a745;
+        position: relative;
+        min-height: 120px;
+    }
+
+        .advice-section::before {
+            content: '💡';
+            font-size: 1.5rem;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0.6;
+        }
+
+    .advice-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 15px;
+    }
+
+    .advice-text {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        line-height: 1.7;
+        font-weight: 400;
+    }
+
+    .no-advice {
+        color: #6c757d;
+        font-style: italic;
+        text-align: center;
+        padding: 20px;
+        background: rgba(255, 193, 7, 0.1);
+        border-radius: 10px;
+        border: 2px dashed #ffc107;
+    }
+
+        .no-advice::before {
+            content: '⚠️ ';
+            margin-right: 8px;
+        }
+
+    .action-section {
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        border: none;
+    }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-secondary::before {
+            content: '←';
+            font-weight: bold;
+        }
+
+    @@media (max-width: 768px) {
+        .advice-container
+
+    {
+        margin: 0 10px;
+        border-radius: 15px;
+    }
+
+    .advice-header {
+        padding: 25px 20px;
+    }
+
+    .advice-title {
+        font-size: 1.8rem;
+    }
+
+    .advice-content {
+        padding: 25px 20px;
+    }
+
+    .patient-info, .advice-section {
+        padding: 20px;
+    }
+
+    .advice-header::before,
+    .advice-header::after {
+        display: none;
+    }
+
+    }
+
+    @@media (max-width: 480px) {
+        .advice-title
+
+    {
+        font-size: 1.5rem;
+    }
+
+    .patient-name {
+        font-size: 1.2rem;
+    }
+
+    .advice-text {
+        font-size: 1rem;
+    }
+
+    }
+</style>
+
+<div class="advice-container">
+    <div class="advice-header">
+        <h3 class="advice-title">Doctor's Instructions</h3>
+    </div>
+
+    <div class="advice-content">
+        <div class="patient-info">
+            <div class="patient-label">Patient Information</div>
+            <p class="patient-name">@Model.Patient.FirstName @Model.Patient.LastName</p>
+        </div>
+
+        <div class="advice-section">
+            <div class="advice-label">Doctor's Advice</div>
+            @if (string.IsNullOrWhiteSpace(Model.Instructions))
+            {
+                <p class="advice-text no-advice">
+                    No advice from doctor
+                </p>
+            }
+            else
+            {
+                <p class="advice-text">
+                    @Model.Instructions
+                </p>
+            }
+        </div>
+
+        <div class="action-section">
+            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>

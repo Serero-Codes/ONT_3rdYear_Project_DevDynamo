@@ -36,12 +36,13 @@
     }
 
     body {
-        background: url('/images/background3.jpg');
+        background: linear-gradient(to bottom right, #e6f7f7, #f0ffff) /*  url('/images/background3.jpg') */;
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         min-height: 100vh;
         font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow: hidden;
     }
 
     .patients-container {
@@ -189,14 +190,14 @@
     }
 
         .custom-table thead th {
-            background: linear-gradient(135deg, var(--dark-color) 0%, var(--gray-600) 100%);
+            background: var(--gray-500);
             color: var(--white);
-            padding: 1.25rem 1rem;
-            font-weight: 600;
-            font-size: 0.9rem;
+           padding: 1.25rem 1rem;
+            /* font-weight: 600;
+            font-size: 0.9rem; */
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: none;
+            /* letter-spacing: 0.5px;
+            border: none; */
             position: sticky;
             top: 0;
             z-index: 10;
@@ -243,7 +244,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        background: var(--gray-300);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -300,10 +301,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-    .btn-vitals {
-        background: linear-gradient(45deg, var(--danger-color), #ff6b6b);
-        color: var(--white);
-    }
+    
 
     .btn-treatment {
         background: linear-gradient(45deg, var(--success-color), #34d399);
@@ -311,14 +309,11 @@
     }
 
     .btn-medication {
-        background: linear-gradient(45deg, var(--warning-color), #fbbf24);
+        background: linear-gradient(45deg, var(--warning-color), red);
         color: var(--white);
     }
 
-    .btn-instructions {
-        background: linear-gradient(45deg, var(--info-color), #38bdf8);
-        color: var(--white);
-    }
+    
 
     .empty-state {
         text-align: center;
@@ -473,9 +468,7 @@
         overflow-x: auto;
     }
 
-    #btn-back {
-        border-radius: 40px;
-    }
+    
 
     /* Layout for side-by-side content */
     .content-with-chart {
