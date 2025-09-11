@@ -8,8 +8,8 @@ namespace ONT_3rdyear_Project.Models
 	{
 		[Key]
 		public int PatientID { get; set; }
-		[ForeignKey("ApplicationUser")]
-		public int DoctorID { get; set; } // Foreign key to ApplicationUser (Doctor)
+		
+		
         [Required]
 		[StringLength(50, ErrorMessage = "Name of the patient is required")]
 		public string FirstName { get; set; }
@@ -43,7 +43,7 @@ namespace ONT_3rdyear_Project.Models
 		public virtual ICollection<Movement> Movements { get; set; }
 		public virtual ICollection<VisitSchedule> VisitSchedules { get; set; }
         public ICollection<DoctorAssignment> DoctorAssignments { get; set; }
-		public ApplicationUser ApplicationUsers { get; set; } // Navigation property to ApplicationUser (Doctor)
+		
 	
     }
 }

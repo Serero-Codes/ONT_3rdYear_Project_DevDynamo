@@ -22,7 +22,7 @@ namespace ONT_3rdyear_Project.Models
 
 		public string DischargeInstructions { get; set; }
 
-		public bool IsDischarged { get; set; }
+		public bool? IsDischarged { get; set; }
 
 		public virtual ApplicationUser User { get; set; }
 		public virtual Patient Patient { get; set; }

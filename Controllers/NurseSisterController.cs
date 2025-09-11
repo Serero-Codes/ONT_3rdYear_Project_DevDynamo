@@ -101,8 +101,8 @@ namespace ONT_3rdyear_Project.Controllers
                     LastName = p.LastName,
                     WardName = w != null ? w.Name : "N/A",
                     BedNo = b != null ? b.BedNo : "N/A",
-                    Status = d != null && d.IsDischarged ? "Discharged" :
-                     a != null ? "Admitted" : "Not Admitted"
+                    /*Status = d != null && d.IsDischarged ? "Discharged" :
+                     a != null ? "Admitted" : "Not Admitted"*/
                 }
             ).ToListAsync();
 

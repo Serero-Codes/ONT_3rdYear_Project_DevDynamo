@@ -5,8 +5,7 @@ namespace ONT_3rdyear_Project.Models
 {
 	public class PatientAllergy
 	{
-		[Key]
-		public int PatientAllergyId { get; set; }
+		
 
         [ForeignKey("Patient")]
         public int PatientId { get; set; }
