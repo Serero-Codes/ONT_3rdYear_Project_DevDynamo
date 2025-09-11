@@ -23,6 +23,7 @@
 
         <div class="medication-form-card">
             <form asp-action="CreateAdminister" method="post">
+                @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="PatientId" />
 
                 <div class="form-group-custom">
@@ -60,14 +61,46 @@
                 </div>
                
 
-                <div class="form-group-custom" id="prescriptionField" style="display:none;">
+                @* <div class="form-group-custom" id="prescriptionField" style="display:none;">
                     
                     <label asp-for="PrescriptionId">Select Prescription</label>
                     <select asp-for="PrescriptionId" class="form-control" id="PrescriptionSelect">
                         <option value="">-- Select Prescription --</option>
                     </select>
                     <span asp-validation-for="PrescriptionId" class="text-danger"></span>
+                </div> *@
+                <div class="form-group-custom" id="prescriptionField" style="@(Model.RequiresPrescription ? "" : "display:none;")">
+    @if (Model.RequiresPrescription)
+    {
+        if (Model.PrescriptionList != null && Model.PrescriptionList.Any())
+        {
+            if (Model.PrescriptionList.Count() == 1 && Model.PrescriptionId.HasValue)
+            {
+                <input type="hidden" asp-for="PrescriptionId" value="@Model.PrescriptionId" />
+                <div class="alert alert-info">
+                    <i class="fas fa-check-circle"></i> 
+                    Auto-selected Prescription: @Model.PrescriptionList.First().Text
                 </div>
+            }
+            else
+            {
+                <label asp-for="PrescriptionId">Select Prescription</label>
+                <select asp-for="PrescriptionId" class="form-control" asp-items="Model.PrescriptionList">
+                    <option value="">-- Select Prescription --</option>
+                </select>
+                <span asp-validation-for="PrescriptionId" class="text-danger"></span>
+            }
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                ❌ This medication requires a prescription, but no approved prescription was found.
+            </div>
+        }
+    }
+</div>
+
                 <div class="form-group-custom">
                     <label asp-for="Dosage"></label>
                     <input asp-for="Dosage" class="form-control" />
@@ -465,104 +498,71 @@
 
 
 <script>
-        function updateSchedule(select) {
+           function updateSchedule(select) {
         const selected = select.options[select.selectedIndex];
         const schedule = parseInt(selected.text.match(/Schedule (\d+)/)?.[1] || 0);
-
         const prescriptionField = document.getElementById('prescriptionField');
-        const prescriptionSelect = document.getElementById('PrescriptionSelect');
 
         if (schedule > 4) {
             prescriptionField.style.display = 'block';
-            prescriptionSelect.setAttribute('required', 'required');
 
             const patientId = @Model.PatientId;
+            const medicationId = select.value;
 
-            fetch(`/NurseSister/GetPrescriptions?patientId=${patientId}&medicationId=${select.value}`)
-                .then(response => response.json())
-                .then(data => {
-                    prescriptionSelect.innerHTML = '<option value="">-- Select Prescription --</option>';
-                    data.forEach(p => {
-                        const opt = document.createElement('option');
-                             opt.value = p.prescriptionId;
-                             opt.text = "Prescription #" + p.prescriptionId;
+            // Only fetch if medication is selected
+            if (medicationId) {
+                fetch(`/NurseSister/GetPrescriptions?patientId=${patientId}&medicationId=${medicationId}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Prescriptions loaded:', data);
 
-                         //opt.text = `#${p.PrescriptionId} - ${p.PrescriptionInstruction}`;
-                         prescriptionSelect.appendChild(opt);
+                        // Update UI based on prescription count
+                        if (data.length === 0) {
+                            prescriptionField.innerHTML = `
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    ❌ No approved prescriptions found for this medication.
+                                </div>`;
+                        } else if (data.length === 1) {
+                            // Auto-select single prescription
+                            prescriptionField.innerHTML = `
+                                <input type="hidden" name="PrescriptionId" value="${data[0].prescriptionId}" />
+                                <div class="alert alert-info">
+                                    <i class="fas fa-check-circle"></i>
+                                    Auto-selected Prescription #${data[0].prescriptionId}
+                                </div>`;
+                        } else {
+                            // Show dropdown for multiple prescriptions
+                            let options = '<option value="">-- Select Prescription --</option>';
+                            data.forEach(p => {
+                                options += `<option value="${p.prescriptionId}">Prescription #${p.prescriptionId}</option>`;
+                            });
+
+                            prescriptionField.innerHTML = `
+                                <label for="PrescriptionId">Select Prescription</label>
+                                <select name="PrescriptionId" class="form-control" required>${options}</select>
+                                <span class="text-danger field-validation-valid" data-valmsg-for="PrescriptionId" data-valmsg-replace="true"></span>`;
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error loading prescriptions:", err);
+                        prescriptionField.innerHTML = `
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Error loading prescriptions. Please try again.
+                            </div>`;
                     });
-                })
-                .catch(err => console.error("Error loading prescriptions:", err));
-
+            }
         } else {
             prescriptionField.style.display = 'none';
-            prescriptionSelect.removeAttribute('required');
-            prescriptionSelect.value = "";
+            prescriptionField.innerHTML = ''; // Clear prescription content
         }
-    }
-    // Collect all server-side validation errors
-    var errors = [];
-    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-    {
-                    <text>errors.push("@error.ErrorMessage");</text>
-    }
 
-    window.onload = function () {
-        const select = document.getElementById("MedicationId");
-        if (select) updateSchedule(select);
-
-        errors.forEach(function(msg) {
-            showToast(msg);
-        });
-    };
-
-    var patientAllergies = @Html.Raw(Json.Serialize(Model.PatientAllergies ?? new List<string>()));
-        function checkAllergy(select) {
-        const selectedMed = select.options[select.selectedIndex].text.toLowerCase();
-        const saveButton = document.querySelector('button[type="submit"]');
-
-        // Check if medication name contains any of the allergy names
-        const hasAllergyConflict = patientAllergies.some(allergy =>
-            selectedMed.includes(allergy.toLowerCase())
-        );
-
-        if (hasAllergyConflict) {
-            saveButton.disabled = true;
-            saveButton.textContent = "⚠ Allergic! Cannot Save";
-            saveButton.classList.add('btn-disabled'); // optional styling
-        } else {
-            saveButton.disabled = false;
-            saveButton.textContent = "Save";
-            saveButton.classList.remove('btn-disabled');
-        }
-    }
-
-    // Call the function whenever medication changes
-    document.getElementById("MedicationId").addEventListener("change", function() {
-        checkAllergy(this);
-    });
-
-
-    
-
-    
-
-    function showToast(message) {
-        // Create toast element
-        var toast = document.createElement('div');
-        toast.className = 'toast-message';
-        toast.innerText = message;
-        document.body.appendChild(toast);
-
-        // Animate and remove after 3 seconds
-        setTimeout(function() {
-            toast.style.opacity = '1';
-            setTimeout(function() {
-                toast.style.opacity = '0';
-                setTimeout(function() {
-                    document.body.removeChild(toast);
-                }, 500);
-            }, 2500);
-        }, 100);
+        // Also check for allergies
+        checkAllergy(select);
     }
 </script>
 

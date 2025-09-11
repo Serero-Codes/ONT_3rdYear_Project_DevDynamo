@@ -23,7 +23,7 @@
         <form asp-action="EditAdministered" method="post">
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="PatientId" />
-            <input type="hidden" id="MedicationSchedule" />
+			<input type="hidden" asp-for="RequiresPrescription" id="RequiresPrescription" />
 
             <div class="form-group">
                 <label>Patient</label>
@@ -49,13 +49,33 @@
                 <span asp-validation-for="ApplicationUserID" class="text-danger"></span>
             </div> *@
 
-            <div id="prescriptionField" style="display:none;" class="form-group">
+            @* <div id="prescriptionField" style="display:none;" class="form-group">
                 <label asp-for="PrescriptionId">Select Prescription</label>
                 <select asp-for="PrescriptionId" class="form-control" asp-items="Model.PrescriptionList">
                     <option value="">-- Select Prescription --</option>
                 </select>
                 <span asp-validation-for="PrescriptionId" class="text-danger"></span>
-            </div>
+            </div> *@
+			<div id="prescriptionField" style="@(Model.RequiresPrescription ? "" : "display:none;")" class="form-group">
+				@if (Model.RequiresPrescription)
+				{
+					if (Model.PrescriptionList != null && Model.PrescriptionList.Any())
+					{
+						<label asp-for="PrescriptionId">Select Prescription</label>
+						<select asp-for="PrescriptionId" class="form-control" asp-items="Model.PrescriptionList">
+							<option value="">-- Select Prescription --</option>
+						</select>
+						<span asp-validation-for="PrescriptionId" class="text-danger"></span>
+					}
+					else
+					{
+						<div class="alert alert-danger">
+							<i class="fas fa-exclamation-triangle"></i>
+							❌ This medication requires a prescription, but no approved prescription was found.
+						</div>
+					}
+				}
+			</div>
 
             <div class="form-group">
                 <label asp-for="Dosage"></label>
@@ -83,19 +103,42 @@
 }
  *@
 @section Scripts {
-    <script>
-        function updateSchedule(select) {
-            const selected = select.options[select.selectedIndex];
-            const schedule = parseInt(selected.text.match(/Schedule (\d+)/)?.[1] || 0);
-            document.getElementById('MedicationSchedule').value = schedule;
-            document.getElementById('prescriptionField').style.display = schedule > 4 ? 'block' : 'none';
-        }
+	<script>
+		function updateSchedule(select) {
+			const selected = select.options[select.selectedIndex];
+			const schedule = parseInt(selected.text.match(/Schedule (\d+)/)?.[1] || 0);
+			const requiresPrescription = schedule > 4;
 
-        window.onload = function () {
-            const select = document.getElementById("MedicationId");
-            if (select) updateSchedule(select);
-        };
-    </script>
+			document.getElementById('RequiresPrescription').value = requiresPrescription;
+			document.getElementById('prescriptionField').style.display = requiresPrescription ? 'block' : 'none';
+
+			if (requiresPrescription) {
+				const patientId = @Model.PatientId;
+				const medicationId = select.value;
+
+				fetch(`/NurseSister/GetPrescriptions?patientId=${patientId}&medicationId=${medicationId}`)
+					.then(response => response.json())
+					.then(data => {
+						const prescriptionSelect = document.querySelector('#PrescriptionId');
+						if (prescriptionSelect) {
+							prescriptionSelect.innerHTML = '<option value="">-- Select Prescription --</option>';
+							data.forEach(p => {
+								const opt = document.createElement('option');
+								opt.value = p.prescriptionId;
+								opt.text = "Prescription #" + p.prescriptionId;
+								prescriptionSelect.appendChild(opt);
+							});
+						}
+					})
+					.catch(err => console.error("Error loading prescriptions:", err));
+			}
+		}
+
+		window.onload = function () {
+			const select = document.getElementById("MedicationId");
+			if (select) updateSchedule(select);
+		};
+	</script>
 
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }

@@ -38,7 +38,7 @@ namespace ONT_3rdyear_Project.Controllers
             var medicationsGivenToday = await _context.PatientMedicationScripts
                 .Where(m => m.isActive)
                 .CountAsync();
-            var totalVitals = await _context.Vitals.CountAsync();
+            var totalVitals = await _context.Vitals.Where(v=>v.IsActive).CountAsync();
 
             var model = new DashboardViewModel
             {
@@ -92,6 +92,8 @@ namespace ONT_3rdyear_Project.Controllers
                 from w in wardGroup.DefaultIfEmpty()
                 join b in _context.Beds on a.BedID equals b.BedId into bedGroup
                 from b in bedGroup.DefaultIfEmpty()
+                join d in _context.Discharges on p.PatientID equals d.PatientID into dischargeGroup
+                from d in dischargeGroup.OrderByDescending(x => x.DischargeDate).Take(1).DefaultIfEmpty()
                 select new PatientDashboardViewModel
                 {
                     PatientID = p.PatientID,
@@ -99,7 +101,8 @@ namespace ONT_3rdyear_Project.Controllers
                     LastName = p.LastName,
                     WardName = w != null ? w.Name : "N/A",
                     BedNo = b != null ? b.BedNo : "N/A",
-                    Status = a != null ? "Admitted" : "Not Admitted"
+                    Status = d != null && d.IsDischarged ? "Discharged" :
+                     a != null ? "Admitted" : "Not Admitted"
                 }
             ).ToListAsync();
 
@@ -265,7 +268,7 @@ namespace ONT_3rdyear_Project.Controllers
             bool requiresPrescription = false;
             // If medication is selected, filter prescriptions for that patient + medication
             List<Prescription> prescriptions = new List<Prescription>();
-
+            int? autoPrescriptionId = null;
             if (medicationId.HasValue)
             {
                 var med = await _context.Medications.FindAsync(medicationId.Value);
@@ -275,8 +278,17 @@ namespace ONT_3rdyear_Project.Controllers
                     prescriptions = await _context.Prescriptions
                         .Include(p => p.Prescribed_Medication)
                         .Where(p => p.PatientId == patientId &&
-                            p.Prescribed_Medication.Any(pm => pm.MedicationId == medicationId.Value))
+                            p.Prescribed_Medication.Any(pm => pm.MedicationId == medicationId.Value) &&
+                p.Status == "Approved")
                         .ToListAsync();
+                }
+                if (prescriptions.Count == 1)
+                {
+                    autoPrescriptionId = prescriptions.First().PrescriptionId;
+                }
+                else if (prescriptions.Count == 0)
+                {
+                    TempData["WarningMessage"] = "❌ Cannot administer – No approved prescription found for this medication.";
                 }
             }
 
@@ -294,7 +306,10 @@ namespace ONT_3rdyear_Project.Controllers
                 AdministeredDate = DateTime.Today,
                 MedicationList = new SelectList(meds, "MedicationId", "DisplayName", medicationId),
                 UserList = new SelectList(nurses, "Id", "FullName"),
-                PrescriptionList = new SelectList(prescriptions, "Id", "PrescriptionNote"), // or some meaningful display
+                //PrescriptionList = new SelectList(prescriptions, "Id", "PrescriptionNote"), // or some meaningful display
+                PrescriptionList = new SelectList(prescriptions, "PrescriptionId", "PrescriptionNote"),
+                PrescriptionId = autoPrescriptionId,
+
                 RequiresPrescription = requiresPrescription,
                 PatientAllergies = patient.PatientAllergies
                             .Select(pa => pa.Allergy.Name)
@@ -321,6 +336,18 @@ namespace ONT_3rdyear_Project.Controllers
             if (vm.RequiresPrescription && vm.PrescriptionId == null)
             {
                 ModelState.AddModelError("PrescriptionId", "A prescription is required for Schedule 5 and above medications.");
+            }
+
+            if (vm.RequiresPrescription && vm.PrescriptionId != null)
+            {
+                var prescription = await _context.Prescriptions
+                    .Where(p => p.PrescriptionId == vm.PrescriptionId && p.Status == "Approved") // or .IsApproved
+                    .FirstOrDefaultAsync();
+
+                if (prescription == null)
+                {
+                    ModelState.AddModelError("PrescriptionId", "The selected prescription is not approved.");
+                }
             }
             // ADD ALLERGY CHECK 
             var patientAllergies = await _context.PatientAllergies.Include(pa => pa.Allergy).Where(pa => pa.PatientId == vm.PatientId).ToListAsync();
@@ -350,14 +377,21 @@ namespace ONT_3rdyear_Project.Controllers
                 var nurses = _context.Users.Where(u => u.RoleType == "NursingSister").Select(u => new { u.Id, u.FullName }).ToList();
 
 
-                var prescriptions = vm.RequiresPrescription
-                ? await _context.Prescriptions.Where(p => p.PatientId == vm.PatientId).ToListAsync()
-                : new List<Prescription>();
+                List<Prescription> prescriptions = new List<Prescription>();
+                if (vm.RequiresPrescription && vm.MedicationId > 0)
+                {
+                    prescriptions = await _context.Prescriptions
+                        .Include(p => p.Prescribed_Medication)
+                        .Where(p => p.PatientId == vm.PatientId &&
+                                   p.Prescribed_Medication.Any(pm => pm.MedicationId == vm.MedicationId) &&
+                                   p.Status == "Approved")
+                        .ToListAsync();
+                }
 
-
-                vm.MedicationList = new SelectList(meds, "MedicationId", "DisplayName", vm.MedicationId);
+                    vm.MedicationList = new SelectList(meds, "MedicationId", "DisplayName", vm.MedicationId);
                 vm.UserList = new SelectList(nurses, "Id", "FullName", vm.ApplicationUserID);
-                vm.PrescriptionList = new SelectList(prescriptions, "Id", "PrescriptionNote", vm.PrescriptionId);
+                /*vm.PrescriptionList = new SelectList(prescriptions, "Id", "PrescriptionNote", vm.PrescriptionId);*/
+                vm.PrescriptionList = new SelectList(prescriptions, "PrescriptionId", "PrescriptionNote", vm.PrescriptionId);
 
                 return View(vm);
             }
@@ -403,7 +437,9 @@ namespace ONT_3rdyear_Project.Controllers
 
                     vm.MedicationList = new SelectList(meds, "MedicationId", "DisplayName", vm.MedicationId);
                     vm.UserList = new SelectList(nurses, "Id", "FullName", vm.ApplicationUserID);
-                    vm.PrescriptionList = new SelectList(prescriptions, "Id", "PrescriptionNote", vm.PrescriptionId);
+                    /*vm.PrescriptionList = new SelectList(prescriptions, "Id", "PrescriptionNote", vm.PrescriptionId);*/
+                    vm.PrescriptionList = new SelectList(prescriptions ?? new List<Prescription>(), "PrescriptionId", "PrescriptionNote");
+
 
                     return View(vm);
                 }
@@ -423,7 +459,7 @@ namespace ONT_3rdyear_Project.Controllers
             var prescriptions = await _context.Prescriptions
                 .Include(p => p.Prescribed_Medication)
                 .Where(p => p.PatientId == patientId &&
-                            p.Prescribed_Medication.Any(pm => pm.MedicationId == medicationId))
+                            p.Prescribed_Medication.Any(pm => pm.MedicationId == medicationId) && p.Status == "Approved")
                 .Select(p => new
                 {
                     p.PrescriptionId/*,
@@ -431,7 +467,7 @@ namespace ONT_3rdyear_Project.Controllers
                 })
                 .ToListAsync();
 
-            return Json(prescriptions);
+            return Json(prescriptions );
         }
 
 
@@ -460,14 +496,14 @@ namespace ONT_3rdyear_Project.Controllers
 
 
 
-        public async Task<IActionResult> EditAdministered(int id)
+        /*public async Task<IActionResult> EditAdministered(int id)
         {
             var script = await _context.PatientMedicationScripts.Include(p => p.Patient).Include(m => m.Medication).Include(a => a.AdministeredBy).FirstOrDefaultAsync(m => m.Id == id);
 
             if (script == null)
                 return NotFound();
 
-            var meds = _context.Medications/*.Where(m => m.Schedule >= 5)*/.Select(m => new
+            var meds = _context.Medications*//*.Where(m => m.Schedule >= 5)*//*.Select(m => new
             {
                 m.MedicationId,
                 DisplayName = m.Name + " (Schedule " + m.Schedule + ")"
@@ -499,12 +535,67 @@ namespace ONT_3rdyear_Project.Controllers
             };
 
             return View(vm);
+        }*/
+        public async Task<IActionResult> EditAdministered(int id)
+        {
+            var script = await _context.PatientMedicationScripts
+                .Include(p => p.Patient)
+                .Include(m => m.Medication)
+                .Include(a => a.AdministeredBy)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (script == null)
+                return NotFound();
+
+            var meds = _context.Medications.Select(m => new
+            {
+                m.MedicationId,
+                DisplayName = m.Name + " (Schedule " + m.Schedule + ")"
+            }).ToList();
+
+            var loggedInUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var loggedInUser = await _context.Users.FindAsync(loggedInUserId);
+
+            // NEW: Determine if prescription is required and load appropriate prescriptions
+            bool requiresPrescription = script.Medication?.Schedule > 4;
+            List<Prescription> prescriptions = new List<Prescription>();
+
+            if (requiresPrescription && script.MedicationId != 0)
+            {
+                prescriptions = await _context.Prescriptions
+                    .Include(p => p.Prescribed_Medication)
+                    .Where(p => p.PatientId == script.PatientId &&
+                               p.Prescribed_Medication.Any(pm => pm.MedicationId == script.MedicationId) &&
+                               p.Status == "Approved")
+                    .ToListAsync();
+            }
+
+            var vm = new AdministerMedicationViewModel
+            {
+                Id = script.Id, // Make sure to include the ID for editing
+                PrescriptionId = script.PrescriptionId,
+                PatientId = script.PatientId,
+                PatientName = $"{script.Patient.FirstName} {script.Patient.LastName}",
+                MedicationId = script.MedicationId,
+                Dosage = script.Dosage,
+                AdministeredDate = script.AdministeredDate,
+                ApplicationUserID = loggedInUser.Id,
+                ApplicationUserName = loggedInUser.FullName,
+                MedicationList = new SelectList(meds, "MedicationId", "DisplayName", script.MedicationId),
+                PrescriptionList = new SelectList(prescriptions.Select(p => new {
+                    p.PrescriptionId,
+                    Display = $"Prescription #{p.PrescriptionId}"
+                }), "PrescriptionId", "Display", script.PrescriptionId),
+                RequiresPrescription = requiresPrescription // Add this flag
+            };
+
+            return View(vm);
         }
 
 
 
 
-        [HttpPost]
+        /*[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAdministered(AdministerMedicationViewModel vm)
         {
@@ -570,6 +661,92 @@ namespace ONT_3rdyear_Project.Controllers
 
             var loggedInUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             existing.ApplicationUserID = loggedInUserId;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Medication updated successfully.";
+            return RedirectToAction("ListAdministered");
+        }*/
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditAdministered(AdministerMedicationViewModel vm)
+        {
+            var med = await _context.Medications.FindAsync(vm.MedicationId);
+            if (med == null)
+                ModelState.AddModelError("", "Medication not found.");
+
+            vm.RequiresPrescription = med?.Schedule > 4;
+
+            // Require prescription validation for schedule 5 and above
+            if (vm.RequiresPrescription)
+            {
+                if (vm.PrescriptionId == null)
+                {
+                    ModelState.AddModelError("PrescriptionId", "A prescription is required for Schedule 5 and above medications.");
+                }
+                else
+                {
+                    var prescription = await _context.Prescriptions
+                        .Include(p => p.Prescribed_Medication)
+                        .Where(p => p.PrescriptionId == vm.PrescriptionId &&
+                                   p.PatientId == vm.PatientId &&
+                                   p.Prescribed_Medication.Any(pm => pm.MedicationId == vm.MedicationId) &&
+                                   p.Status == "Approved")
+                        .FirstOrDefaultAsync();
+
+                    if (prescription == null)
+                    {
+                        ModelState.AddModelError("PrescriptionId", "The selected prescription is not approved or doesn't match the medication.");
+                    }
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Reload dropdowns
+                var meds = _context.Medications
+                    .Select(m => new
+                    {
+                        m.MedicationId,
+                        DisplayName = m.Name + " (Schedule " + m.Schedule + ")"
+                    })
+                    .ToList();
+
+                vm.MedicationList = new SelectList(meds, "MedicationId", "DisplayName", vm.MedicationId);
+
+                // Reload prescriptions for the specific medication if needed
+                List<Prescription> prescriptions = new List<Prescription>();
+                if (vm.RequiresPrescription && vm.MedicationId > 0)
+                {
+                    prescriptions = await _context.Prescriptions
+                        .Include(p => p.Prescribed_Medication)
+                        .Where(p => p.PatientId == vm.PatientId &&
+                                   p.Prescribed_Medication.Any(pm => pm.MedicationId == vm.MedicationId) &&
+                                   p.Status == "Approved")
+                        .ToListAsync();
+                }
+
+                vm.PrescriptionList = new SelectList(prescriptions.Select(p => new
+                {
+                    p.PrescriptionId,
+                    DisplayName = $"Prescription #{p.PrescriptionId}"
+                }), "PrescriptionId", "DisplayName", vm.PrescriptionId);
+
+                return View(vm);
+            }
+
+            // Fetch existing record
+            var existing = await _context.PatientMedicationScripts.FirstOrDefaultAsync(x => x.Id == vm.Id);
+            if (existing == null) return NotFound();
+
+            // Update entity properties from ViewModel
+            existing.MedicationId = vm.MedicationId;
+            existing.Dosage = vm.Dosage;
+            existing.AdministeredDate = vm.AdministeredDate;
+            existing.PrescriptionId = vm.RequiresPrescription ? vm.PrescriptionId : null; // Only set if required
+
+            var loggedInUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            existing.ApplicationUserID = loggedInUserId;
+
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Medication updated successfully.";

@@ -42,7 +42,7 @@ namespace ONT_3rdyear_Project.Controllers
                 .Where(m =>  m.isActive)
                 .CountAsync();
 
-            var totalVitals = await _context.Vitals.CountAsync();
+            var totalVitals = await _context.Vitals.Where(v=>v.IsActive).CountAsync();
             var model = new DashboardViewModel
             {
                 Stats = new DashboardStatsViewModel
@@ -94,6 +94,8 @@ namespace ONT_3rdyear_Project.Controllers
                 from w in wardGroup.DefaultIfEmpty()
                 join b in _context.Beds on a.BedID equals b.BedId into bedGroup
                 from b in bedGroup.DefaultIfEmpty()
+                join d in _context.Discharges on p.PatientID equals d.PatientID into dischargeGroup
+                from d in dischargeGroup.OrderByDescending(x => x.DischargeDate).Take(1).DefaultIfEmpty()
                 select new PatientDashboardViewModel
                 {
                     PatientID = p.PatientID,
@@ -101,7 +103,10 @@ namespace ONT_3rdyear_Project.Controllers
                     LastName = p.LastName,
                     WardName = w != null ? w.Name : "N/A",
                     BedNo = b != null ? b.BedNo : "N/A",
-                    Status = a != null ? "Admitted" : "Not Admitted"
+                    /*Status = a != null ? "Admitted" : "Not Admitted"*/
+                    Status = d != null && d.IsDischarged ? "Discharged" :
+                     a != null ? "Admitted" : "Not Admitted"
+
                 }
             ).ToListAsync();
 
@@ -524,15 +529,16 @@ namespace ONT_3rdyear_Project.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteVital(int id)
         {
+            
             var vital = await _context.Vitals.FindAsync(id);
-            if(vital != null)
-            {
-                vital.IsActive = false;
-                _context.Update(vital);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Vitals successfully deleted!";
-            }
-            return RedirectToAction(nameof(Vitals));
+            if (vital == null)
+                return NotFound();
+
+            vital.IsActive = false; // soft delete
+            _context.Vitals.Update(vital);
+            await _context.SaveChangesAsync();
+            
+            return Ok();
         }
 
 
@@ -996,14 +1002,14 @@ namespace ONT_3rdyear_Project.Controllers
                 return NotFound();
             }
 
-            var treatment = await _context.Treatments.Include(t => t.Patient).Include(t => t.VisitSchedule).FirstOrDefaultAsync(t => t.TreatmentID == id && t.IsActive);
+            var treatment = await _context.Treatments.Include(p => p.Patient).Include(t=>t.TreatVisit).Include(t=>t.VisitSchedule).Include(a => a.User).FirstOrDefaultAsync(t => t.TreatmentID == id );
 
             if (treatment == null)
             {
                 return NotFound();
             }
 
-            return View(treatment); 
+            return View(treatment);
         }
 
         [HttpPost]
@@ -1014,13 +1020,15 @@ namespace ONT_3rdyear_Project.Controllers
 
             if (treatment != null)
             {
-                treatment.IsActive = false; 
+                treatment.IsActive = false;
                 _context.Treatments.Update(treatment);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Treatment successfully deleted!";
             }
 
-            return RedirectToAction(nameof(Treatments)); 
+            //return RedirectToAction(nameof(Treatments));\
+            return Ok();
+
         }
 
 

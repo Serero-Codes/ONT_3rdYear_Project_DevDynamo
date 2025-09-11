@@ -77,7 +77,12 @@
                                     <div class="action-buttons">
 
                                         <a asp-action="EditTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-instructions" data-bs-placement="top" title="Edit"><i class="fas fa-edit"></i></a>
-                                        <a href="javascript:void(0);" class="action-btn btn-medication" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@treatment.TreatmentID" data-name="@treatment.Patient?.FirstName @treatment.Patient?.LastName" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><i class="fas fa-trash-alt"></i></a>
+                                        <a href="javascript:void(0);" class="action-btn btn-treatment"
+                                           data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                           data-id="@treatment.TreatmentID"
+                                           data-name="@treatment.Patient?.FirstName">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
                                     </div>
 						
 					            </td>
@@ -94,7 +99,7 @@
 
 </div>
 
-@*Modal for deleting *@
+
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -106,15 +111,13 @@
                 <p>Are you sure you want to delete treatment for <strong id="deletePatientName"></strong>?</p>
             </div>
             <div class="modal-footer">
-                <form id="deleteForm" method="post">
-                    <input type="hidden" name="id" id="deleteTreatmentId" />
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
             </div>
         </div>
     </div>
 </div>
+
 
 <style>
     :root {
@@ -370,7 +373,7 @@
 
    
 
-    .btn-medication {
+    .btn-treatment {
         background: linear-gradient(45deg, var(--warning-color), red);
         color: var(--white);
     }
@@ -549,80 +552,90 @@
                 background: var(--gray-500);
             }
 </style>
-@if (TempData["SuccessMessage"] != null)
-{
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: '@TempData["SuccessMessage"]',
-            timer: 2000,
-            showConfirmButton: false
-        });
-    </script>
-}
 
 <script>
-    const searchInput = document.getElementById('liveSearchInput');
+    document.addEventListener('DOMContentLoaded', function() {
+        let deleteTreatmentId = null;
+        let deleteRow = null;
 
-    function performSearch() {
-        const query = searchInput.value.trim();
+        const deleteModal = document.getElementById('deleteModal');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-        const url = query.length > 0
-            ? `/Nurse/LiveSearchTreatments?query=${encodeURIComponent(query)}`
-            : `/Nurse/LiveSearchAllTreatments`;
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                deleteTreatmentId = button.getAttribute('data-id');
+                const patientName = button.getAttribute('data-name');
 
-        fetch(url)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('searchResults').innerHTML = html;
-            })
-            .catch(error => {
-                console.error('Search failed:', error);
+                document.getElementById('deletePatientName').textContent = patientName;
+                deleteRow = button.closest('tr');
             });
-    }
 
-    searchInput.addEventListener('input', performSearch);
+            confirmDeleteBtn.addEventListener('click', function() {
+                if (!deleteTreatmentId) return;
 
-    var deleteModal = document.getElementById('deleteModal');
-    deleteModal.addEventListener('show.bs.modal', function (event) {
-        var button = event.relatedTarget; // Button that triggered the modal
-        var treatmentId = button.getAttribute('data-id');
-        var patientName = button.getAttribute('data-name');
+                fetch(`/Nurse/DeleteTreatment/${deleteTreatmentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        if (deleteRow){
+                            const treatmentType = deleteRow.querySelector('td:nth-child(3)').textContent.trim();
+                            deleteRow.remove();
+                            updateChart(treatmentType);
+                        }
+                        const modalInstance = bootstrap.Modal.getInstance(deleteModal);
+                        modalInstance.hide();
 
-        // Set values in modal
-        document.getElementById('deletePatientName').textContent = patientName;
-        document.getElementById('deleteTreatmentId').value = treatmentId;
-
-        // Update form action dynamically
-        document.getElementById('deleteForm').action = '/Nurse/DeleteTreatment/' + treatmentId;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: 'Treatment successfully deleted.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        throw new Error('Delete failed');
+                    }
+                })
+                .catch(error => console.error(error));
+            });
+        }
     });
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
 
 <script>
     // Prepare chart data from your model
-    const treatments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                Model.Select(t => new { t.TreatmentType })
-        ));
+    let treatments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.Select(t => new { t.TreatmentType })
+    ));
 
     // Count treatments by type
-    const treatmentCounts = {};
-    treatments.forEach(t => {
-        if (!treatmentCounts[t.TreatmentType]) {
-            treatmentCounts[t.TreatmentType] = 0;
-        }
-        treatmentCounts[t.TreatmentType]++;
-    });
+    function getTreatmentCounts(treatments) {
+        const counts = {};
+        treatments.forEach(t => {
+            counts[t.TreatmentType] = (counts[t.TreatmentType] || 0) + 1;
+        });
+        return counts;
+    }
 
-    // Convert to labels and data arrays
+    // Build chart
+    const treatmentCounts = getTreatmentCounts(treatments);
     const labels = Object.keys(treatmentCounts);
     const data = Object.values(treatmentCounts);
 
-    // Render chart
     const ctx = document.getElementById('medicationsChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar', // can change to 'pie', 'doughnut', 'line'
+
+    // Make chart global so we can update later
+    window.treatmentChart = new Chart(ctx, {
+        type: 'bar',
         data: {
             labels: labels,
             datasets: [{
@@ -637,21 +650,28 @@
         options: {
             responsive: true,
             plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: 'Treatments by Type'
-                }
+                legend: { display: false },
+                title: { display: true, text: 'Treatments by Type' }
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1 }
-                }
-            }
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
         }
     });
+
+    // Function to update chart after deleting a treatment
+    function updateChart(treatmentType) {
+        const chart = window.treatmentChart;
+        const index = chart.data.labels.indexOf(treatmentType);
+
+        if (index !== -1) {
+            chart.data.datasets[0].data[index]--;
+            // Remove label if count becomes 0
+            if (chart.data.datasets[0].data[index] === 0) {
+                chart.data.labels.splice(index, 1);
+                chart.data.datasets[0].data.splice(index, 1);
+            }
+            chart.update();
+        }
+    }
 </script>
+
 
