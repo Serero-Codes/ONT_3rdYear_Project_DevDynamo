@@ -33,7 +33,7 @@ namespace ONT_3rdyear_Project.ViewModels
         public bool RequiresPrescription { get; set; }
         public bool HasPrescription => PrescriptionId.HasValue;
         public List<string> PatientAllergies { get; set; } // List of allergy names
-
+        public string? PrescriptionDosage { get; set; }
     }
 
 }

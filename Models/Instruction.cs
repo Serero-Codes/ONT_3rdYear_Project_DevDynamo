@@ -22,7 +22,7 @@ namespace ONT_3rdyear_Project.Models
         [ForeignKey("VisitSchedule")]
         public int? VisitID { get; set; }
 
-        // Message from Nurse
+        
         [Required]
         public string NurseRequest { get; set; }
 

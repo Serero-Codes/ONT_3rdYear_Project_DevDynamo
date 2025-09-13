@@ -104,8 +104,8 @@ namespace ONT_3rdyear_Project.Controllers
                     WardName = w != null ? w.Name : "N/A",
                     BedNo = b != null ? b.BedNo : "N/A",
                     /*Status = a != null ? "Admitted" : "Not Admitted"*/
-                    /*Status = d != null && d.IsDischarged ? "Discharged" :
-                     a != null ? "Admitted" : "Not Admitted"*/
+                    Status = d != null && d.IsDischarged == true ? "Discharged" :
+                     a != null ? "Admitted" : "Not Admitted"
 
                 }
             ).ToListAsync();
@@ -1497,7 +1497,19 @@ namespace ONT_3rdyear_Project.Controllers
             if (patient == null)
                 return NotFound(); // patient itself doesn't exist
 
-            var instruction = await _context.Instructions.Include(i => i.Patient).FirstOrDefaultAsync(i => i.PatientID == patientId);
+            // DEBUG: Check what instructions exist for this patient
+            var allInstructions = await _context.Instructions
+                .Where(i => i.PatientID == patientId)
+                .ToListAsync();
+
+            Console.WriteLine($"Found {allInstructions.Count} instructions for patient {patientId}");
+            foreach (var inst in allInstructions)
+            {
+                Console.WriteLine($"ID: {inst.InstructionID}, Date: {inst.DateRecorded}, Content: {inst.Instructions}");
+            }
+
+
+            var instruction = await _context.Instructions.Include(i => i.Patient).Where(i => i.PatientID == patientId && i.isActive).OrderByDescending(i => i.InstructionID).FirstOrDefaultAsync();
 
             if (instruction == null)
             {
@@ -1508,13 +1520,17 @@ namespace ONT_3rdyear_Project.Controllers
                     Instructions = "No advice from doctor"
                 };
             }
+            else
+            {
+                Console.WriteLine($"Using instruction ID: {instruction.InstructionID} with content: {instruction.Instructions}");
+            }
 
             return View(instruction);
         }
 
         public async Task<IActionResult> DoctorResponse(int id)
         {
-            var instruction = await _context.Instructions.Include(i => i.Patient).FirstOrDefaultAsync(i => i.InstructionID == id);
+            var instruction = await _context.Instructions.Include(i => i.Patient).FirstOrDefaultAsync(/*i => i.InstructionID == id*/);
 
             if (instruction == null || string.IsNullOrEmpty(instruction.Instructions))
             {
@@ -1535,9 +1551,12 @@ namespace ONT_3rdyear_Project.Controllers
                 return NotFound();
             }
 
-            ViewBag.PatientID = patient.PatientID;
-            ViewBag.PatientName = patient.FirstName + " " + patient.LastName;
-            return View();
+            var viewModel = new RequestInstructionViewModel
+            {
+                PatientID = patient.PatientID,
+                PatientName = patient.FirstName + " " + patient.LastName
+            };
+            return View(viewModel);
         }
 
 
@@ -1545,13 +1564,19 @@ namespace ONT_3rdyear_Project.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateRequest(int patientId, string message)
+        public async Task<IActionResult> CreateRequest(RequestInstructionViewModel viewModel)
         {
+            //var userId = _userManager.GetUserId(User);
+            if (!ModelState.IsValid)
+            {
+                return View(viewModel);
+            }
             var userId = _userManager.GetUserId(User);
+
             var request = new Instruction
             {
-                PatientID = patientId,
-                NurseRequest = message, 
+                PatientID = viewModel.PatientID,
+                NurseRequest = viewModel.Message, 
                 DateRecorded = DateTime.Now,
                 ApplicationUserID = int.Parse(userId)
             };
@@ -1646,63 +1671,98 @@ namespace ONT_3rdyear_Project.Controllers
         public async Task<IActionResult> LiveSearch(string query, string ward, string bed)
         {
             var wards = await _context.Wards.ToListAsync();
+            var beds = await _context.Beds.Where(b => !b.IsDeleted).ToListAsync();
 
             // Pass to the view
             ViewBag.Wards = new SelectList(wards, "WardID", "Name");
-            var patientsQuery = _context.Patients.Include(p => p.Admissions).ThenInclude(a => a.Ward).Include(p => p.Admissions).ThenInclude(a => a.Bed).AsQueryable();
+            ViewBag.Beds = new SelectList(beds, "BedId", "BedNo");
+
+            /*var patientsQuery = _context.Patients
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Ward)
+                .Include(p => p.Admissions)
+                    .ThenInclude(a => a.Bed)
+                .AsQueryable();*/
+            var patientsQuery = (
+        from p in _context.Patients
+        join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
+        from a in admissionGroup.DefaultIfEmpty()
+        join w in _context.Wards on a.WardID equals w.WardID into wardGroup
+        from w in wardGroup.DefaultIfEmpty()
+        join b in _context.Beds on a.BedID equals b.BedId into bedGroup
+        from b in bedGroup.DefaultIfEmpty()
+        join d in _context.Discharges on p.PatientID equals d.PatientID into dischargeGroup
+        from d in dischargeGroup.OrderByDescending(x => x.DischargeDate).Take(1).DefaultIfEmpty()
+        select new
+        {
+            Patient = p,
+            Admission = a,
+            Ward = w,
+            Bed = b,
+            LatestDischarge = d
+        }
+    ).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(query))
             {
-                patientsQuery = patientsQuery.Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query));
+                patientsQuery = patientsQuery.Where(p => p.Patient.FirstName.Contains(query) || p.Patient.LastName.Contains(query));
             }
 
             if (!string.IsNullOrWhiteSpace(ward))
             {
-                patientsQuery = patientsQuery.Where(p => p.Admissions != null && p.Admissions.Ward.Name == ward);
+                patientsQuery = patientsQuery.Where(p => p.Ward != null && p.Ward.Name == ward);
             }
 
             if (!string.IsNullOrWhiteSpace(bed))
             {
-                patientsQuery = patientsQuery.Where(p =>
-                    p.Admissions != null &&
-                    p.Admissions.Bed != null &&
-                    p.Admissions.Bed.BedNo.StartsWith(bed));
+                patientsQuery = patientsQuery.Where(p => p.Bed != null && p.Bed.BedNo.StartsWith(bed));
             }
 
             var patients = await patientsQuery.ToListAsync();
 
             var viewModel = patients.Select(p => new PatientDashboardViewModel
             {
-                PatientID = p.PatientID,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
-                WardName = p.Admissions?.Ward?.Name ?? "N/A",
-                BedNo = p.Admissions?.Bed?.BedNo ?? "N/A",
-                Status = p.Admissions != null ? "Admitted" : "Not Admitted"
+                PatientID = p.Patient.PatientID,
+                FirstName = p.Patient.FirstName,
+                LastName = p.Patient.LastName,
+                WardName = p.Ward != null ? p.Ward.Name : "N/A",
+                BedNo = p.Bed != null ? p.Bed.BedNo : "N/A",
+                Status = p.LatestDischarge != null && p.LatestDischarge.IsDischarged == true ? "Discharged" :
+                p.Admission != null ? "Admitted" : "Not Admitted"
             }).ToList();
 
-            
+
             return PartialView("_PatientSearchResults", viewModel);
         }
 
         public async Task<IActionResult> LiveSearchAll()
         {
-            var patients = await _context.Patients.Include(p => p.Admissions).ThenInclude(a => a.Ward).Include(p => p.Admissions).ThenInclude(a => a.Bed).ToListAsync();
+            var data = await (
+                from p in _context.Patients
+                join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
+                from a in admissionGroup.DefaultIfEmpty()
+                join w in _context.Wards on a.WardID equals w.WardID into wardGroup
+                from w in wardGroup.DefaultIfEmpty()
+                join b in _context.Beds on a.BedID equals b.BedId into bedGroup
+                from b in bedGroup.DefaultIfEmpty()
+                join d in _context.Discharges on p.PatientID equals d.PatientID into dischargeGroup
+                from d in dischargeGroup.OrderByDescending(x => x.DischargeDate).Take(1).DefaultIfEmpty()
+                select new PatientDashboardViewModel
+                {
+                    PatientID = p.PatientID,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    WardName = w != null ? w.Name : "N/A",
+                    BedNo = b != null ? b.BedNo : "N/A",
+                    Status = d != null && d.IsDischarged == true ? "Discharged" :
+                             a != null ? "Admitted" : "Not Admitted"
+                }
+            ).ToListAsync();
 
-            var viewModel = patients.Select(p => new PatientDashboardViewModel
-            {
-                PatientID = p.PatientID,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
-                WardName = p.Admissions != null ? p.Admissions.Ward.Name : "N/A",
-                BedNo = p.Admissions != null ? p.Admissions.Bed.BedNo : "N/A",
-                Status = p.Admissions != null ? "Admitted" : "Not Admitted"
-            }).ToList();
-
-            return PartialView("_PatientSearchResults", viewModel);
+            return PartialView("_PatientSearchResults", data);
         }
 
-        
+
 
 
         public IActionResult LiveSearchVitals(string query)

@@ -101,8 +101,8 @@ namespace ONT_3rdyear_Project.Controllers
                     LastName = p.LastName,
                     WardName = w != null ? w.Name : "N/A",
                     BedNo = b != null ? b.BedNo : "N/A",
-                    /*Status = d != null && d.IsDischarged ? "Discharged" :
-                     a != null ? "Admitted" : "Not Admitted"*/
+                    Status = d != null && d.IsDischarged == true ? "Discharged" :
+                     a != null ? "Admitted" : "Not Admitted"
                 }
             ).ToListAsync();
 
@@ -269,6 +269,7 @@ namespace ONT_3rdyear_Project.Controllers
             // If medication is selected, filter prescriptions for that patient + medication
             List<Prescription> prescriptions = new List<Prescription>();
             int? autoPrescriptionId = null;
+            string? prescriptionDosage = null;
             if (medicationId.HasValue)
             {
                 var med = await _context.Medications.FindAsync(medicationId.Value);
@@ -285,6 +286,10 @@ namespace ONT_3rdyear_Project.Controllers
                 if (prescriptions.Count == 1)
                 {
                     autoPrescriptionId = prescriptions.First().PrescriptionId;
+                    // Get dosage from prescribed medication
+                    var prescribedMed = prescriptions.First().Prescribed_Medication
+                        .FirstOrDefault(pm => pm.MedicationId == medicationId.Value);
+                    prescriptionDosage = prescribedMed?.Dosage;
                 }
                 else if (prescriptions.Count == 0)
                 {
@@ -303,13 +308,13 @@ namespace ONT_3rdyear_Project.Controllers
                 PatientName = $"{patient.FirstName} {patient.LastName}",
                 ApplicationUserID = user.Id,
                 ApplicationUserName = user.FullName,
-                AdministeredDate = DateTime.Today,
+                AdministeredDate = DateTime.Now,
                 MedicationList = new SelectList(meds, "MedicationId", "DisplayName", medicationId),
                 UserList = new SelectList(nurses, "Id", "FullName"),
                 //PrescriptionList = new SelectList(prescriptions, "Id", "PrescriptionNote"), // or some meaningful display
                 PrescriptionList = new SelectList(prescriptions, "PrescriptionId", "PrescriptionNote"),
                 PrescriptionId = autoPrescriptionId,
-
+                PrescriptionDosage = prescriptionDosage,
                 RequiresPrescription = requiresPrescription,
                 PatientAllergies = patient.PatientAllergies
                             .Select(pa => pa.Allergy.Name)
@@ -402,7 +407,7 @@ namespace ONT_3rdyear_Project.Controllers
                 PatientId = vm.PatientId,
                 MedicationId = vm.MedicationId,
                 Dosage = vm.Dosage,
-                AdministeredDate = vm.AdministeredDate,
+                AdministeredDate = DateTime.Now,
                 ApplicationUserID = vm.ApplicationUserID,
                 PrescriptionId = vm.RequiresPrescription ? vm.PrescriptionId : null,
                 isActive = true
@@ -462,7 +467,11 @@ namespace ONT_3rdyear_Project.Controllers
                             p.Prescribed_Medication.Any(pm => pm.MedicationId == medicationId) && p.Status == "Approved")
                 .Select(p => new
                 {
-                    p.PrescriptionId/*,
+                    p.PrescriptionId,
+                    dosage = p.Prescribed_Medication
+                    .FirstOrDefault(pm => pm.MedicationId == medicationId)
+                    .Dosage
+                    /*,
                     p.PrescriptionInstruction*/
                 })
                 .ToListAsync();
@@ -496,46 +505,7 @@ namespace ONT_3rdyear_Project.Controllers
 
 
 
-        /*public async Task<IActionResult> EditAdministered(int id)
-        {
-            var script = await _context.PatientMedicationScripts.Include(p => p.Patient).Include(m => m.Medication).Include(a => a.AdministeredBy).FirstOrDefaultAsync(m => m.Id == id);
-
-            if (script == null)
-                return NotFound();
-
-            var meds = _context.Medications*//*.Where(m => m.Schedule >= 5)*//*.Select(m => new
-            {
-                m.MedicationId,
-                DisplayName = m.Name + " (Schedule " + m.Schedule + ")"
-            }).ToList();
-
-            var loggedInUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var loggedInUser = await _context.Users.FindAsync(loggedInUserId);
-
-            // Load prescriptions for this patient and selected medication (if any)
-            List<Prescription> prescriptions = new List<Prescription>();
-            if (script.MedicationId != 0)
-            {
-                prescriptions = await _context.Prescriptions.Where(p => p.PatientId == script.PatientId).ToListAsync();
-            }
-
-            var vm = new AdministerMedicationViewModel
-            {
-                PrescriptionId = script.PrescriptionId,
-                PatientId = script.PatientId,
-                PatientName = $"{script.Patient.FirstName} {script.Patient.LastName}",
-                MedicationId = script.MedicationId,
-                Dosage = script.Dosage,
-                AdministeredDate = script.AdministeredDate,
-                ApplicationUserID = loggedInUser.Id,       // ← logged-in nurse
-                ApplicationUserName = loggedInUser.FullName,
-                MedicationList = new SelectList(meds, "MedicationId", "DisplayName", script.MedicationId),
-                PrescriptionList = new SelectList(prescriptions.Select(p => new { p.PrescriptionId, Display = "Prescription #" + p.PrescriptionId }),"PrescriptionId","Display", script.PrescriptionId)
-
-            };
-
-            return View(vm);
-        }*/
+        
         public async Task<IActionResult> EditAdministered(int id)
         {
             var script = await _context.PatientMedicationScripts
@@ -595,77 +565,7 @@ namespace ONT_3rdyear_Project.Controllers
 
 
 
-        /*[HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAdministered(AdministerMedicationViewModel vm)
-        {
-            var med = await _context.Medications.FindAsync(vm.MedicationId);
-            if (med == null) ModelState.AddModelError("", "Medication not found.");
-
-            // Require prescription for schedule 5 and above
-            if (med?.Schedule > 4)
-            {
-                var prescription = await _context.Prescriptions.Include(p => p.Prescribed_Medication).Where(p => p.PatientId == vm.PatientId && p.Prescribed_Medication.Any(pm => pm.MedicationId == vm.MedicationId))
-                    .FirstOrDefaultAsync();
-
-                if (prescription == null)
-                {
-                    ModelState.AddModelError("", "Prescription is required for Schedule 5 and above medication.");
-                }
-                else
-                {
-                    vm.PrescriptionId = prescription.PrescriptionId; // assign found prescription
-                }
-            }
-
-            if (!ModelState.IsValid)
-            {
-                // Reload dropdowns
-                var meds = _context.Medications
-                    .Select(m => new
-                    {
-                        m.MedicationId,
-                        DisplayName = m.Name + " (Schedule " + m.Schedule + ")"
-                    })
-                    .ToList();
-
-                var nurses = _context.Users.Where(u => u.RoleType == "NursingSister").Select(u => new { u.Id, u.FullName }).ToList();
-                vm.MedicationList = new SelectList(meds, "MedicationId", "DisplayName", vm.MedicationId);
-                vm.UserList = new SelectList(nurses, "Id", "FullName", vm.ApplicationUserID);
-
-                // Reload prescriptions for the patient if needed
-                var prescriptions = await _context.Prescriptions.Where(p => p.PatientId == vm.PatientId).ToListAsync();
-
-                vm.PrescriptionList = new SelectList(prescriptions.Select((p, index) => new
-                {
-                    p.PrescriptionId,
-                    DisplayName = $"Prescription #{index + 1}"
-                }), "PrescriptionId", "DisplayName", vm.PrescriptionId);
-
-
-
-                return View(vm);
-            }
-
-            // Fetch existing record
-            var existing = await _context.PatientMedicationScripts.FirstOrDefaultAsync(x => x.Id == vm.Id);
-            if (existing == null) return NotFound();
-
-            // Update entity properties from ViewModel
-            existing.MedicationId = vm.MedicationId;
-            existing.Dosage = vm.Dosage;
-            existing.AdministeredDate = vm.AdministeredDate;
-            existing.PrescriptionId = vm.PrescriptionId;
-            // existing.ApplicationUserID = vm.ApplicationUserID;
-            // existing.ApplicationUserID = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-            var loggedInUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            existing.ApplicationUserID = loggedInUserId;
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Medication updated successfully.";
-            return RedirectToAction("ListAdministered");
-        }*/
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAdministered(AdministerMedicationViewModel vm)
@@ -795,44 +695,64 @@ namespace ONT_3rdyear_Project.Controllers
         public async Task<IActionResult> LiveSearch(string query, string ward, string bed)
         {
             var wards = await _context.Wards.ToListAsync();
+            var beds = await _context.Beds.Where(b => !b.IsDeleted).ToListAsync();
 
             // Pass to the view
             ViewBag.Wards = new SelectList(wards, "WardID", "Name");
-            var patientsQuery = _context.Patients
+            ViewBag.Beds = new SelectList(beds, "BedId", "BedNo");
+
+            /*var patientsQuery = _context.Patients
                 .Include(p => p.Admissions)
                     .ThenInclude(a => a.Ward)
                 .Include(p => p.Admissions)
                     .ThenInclude(a => a.Bed)
-                .AsQueryable();
+                .AsQueryable();*/
+            var patientsQuery = (
+        from p in _context.Patients
+        join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
+        from a in admissionGroup.DefaultIfEmpty()
+        join w in _context.Wards on a.WardID equals w.WardID into wardGroup
+        from w in wardGroup.DefaultIfEmpty()
+        join b in _context.Beds on a.BedID equals b.BedId into bedGroup
+        from b in bedGroup.DefaultIfEmpty()
+        join d in _context.Discharges on p.PatientID equals d.PatientID into dischargeGroup
+        from d in dischargeGroup.OrderByDescending(x => x.DischargeDate).Take(1).DefaultIfEmpty()
+        select new
+        {
+            Patient = p,
+            Admission = a,
+            Ward = w,
+            Bed = b,
+            LatestDischarge = d
+        }
+    ).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(query))
             {
-                patientsQuery = patientsQuery.Where(p => p.FirstName.Contains(query) || p.LastName.Contains(query));
+                patientsQuery = patientsQuery.Where(p => p.Patient.FirstName.Contains(query) || p.Patient.LastName.Contains(query));
             }
 
             if (!string.IsNullOrWhiteSpace(ward))
             {
-                patientsQuery = patientsQuery.Where(p => p.Admissions != null && p.Admissions.Ward.Name == ward);
+                patientsQuery = patientsQuery.Where(p =>p.Ward != null && p.Ward.Name == ward);
             }
 
             if (!string.IsNullOrWhiteSpace(bed))
             {
-                patientsQuery = patientsQuery.Where(p =>
-                    p.Admissions != null &&
-                    p.Admissions.Bed != null &&
-                    p.Admissions.Bed.BedNo.StartsWith(bed));
+                patientsQuery = patientsQuery.Where(p =>p.Bed != null && p.Bed.BedNo.StartsWith(bed));
             }
 
             var patients = await patientsQuery.ToListAsync();
 
             var viewModel = patients.Select(p => new PatientDashboardViewModel
             {
-                PatientID = p.PatientID,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
-                WardName = p.Admissions?.Ward?.Name ?? "N/A",
-                BedNo = p.Admissions?.Bed?.BedNo ?? "N/A",
-                Status = p.Admissions != null ? "Admitted" : "Not Admitted"
+                PatientID = p.Patient.PatientID,
+                FirstName = p.Patient.FirstName,
+                LastName = p.Patient.LastName,
+                WardName = p.Ward != null ? p.Ward.Name : "N/A",
+                BedNo = p.Bed != null ? p.Bed.BedNo : "N/A",
+                Status = p.LatestDischarge != null && p.LatestDischarge.IsDischarged == true ? "Discharged" :
+                p.Admission != null ? "Admitted" : "Not Admitted"
             }).ToList();
 
             
@@ -853,24 +773,29 @@ namespace ONT_3rdyear_Project.Controllers
 
         public async Task<IActionResult> LiveSearchAll()
         {
-            var patients = await _context.Patients
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Ward)
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Bed)
-                .ToListAsync();
+            var data = await (
+                from p in _context.Patients
+                join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
+                from a in admissionGroup.DefaultIfEmpty()
+                join w in _context.Wards on a.WardID equals w.WardID into wardGroup
+                from w in wardGroup.DefaultIfEmpty()
+                join b in _context.Beds on a.BedID equals b.BedId into bedGroup
+                from b in bedGroup.DefaultIfEmpty()
+                join d in _context.Discharges on p.PatientID equals d.PatientID into dischargeGroup
+                from d in dischargeGroup.OrderByDescending(x => x.DischargeDate).Take(1).DefaultIfEmpty()
+                select new PatientDashboardViewModel
+                {
+                    PatientID = p.PatientID,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    WardName = w != null ? w.Name : "N/A",
+                    BedNo = b != null ? b.BedNo : "N/A",
+                    Status = d != null && d.IsDischarged == true ? "Discharged" :
+                             a != null ? "Admitted" : "Not Admitted"
+                }
+            ).ToListAsync();
 
-            var viewModel = patients.Select(p => new PatientDashboardViewModel
-            {
-                PatientID = p.PatientID,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
-                WardName = p.Admissions != null ? p.Admissions.Ward.Name : "N/A",
-                BedNo = p.Admissions != null ? p.Admissions.Bed.BedNo : "N/A",
-                Status = p.Admissions != null ? "Admitted" : "Not Admitted"
-            }).ToList();
-
-            return PartialView("_PatientSearchResults", viewModel);
+            return PartialView("_PatientSearchResults", data);
         }
 
 

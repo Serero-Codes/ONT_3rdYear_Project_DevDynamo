@@ -101,15 +101,25 @@
     }
 </div>
 
-                <div class="form-group-custom">
+                @* <div class="form-group-custom">
                     <label asp-for="Dosage"></label>
                     <input asp-for="Dosage" class="form-control" />
                     <span asp-validation-for="Dosage" class="text-danger"></span>
+                </div> *@
+                <div class="form-group-custom">
+                    <label asp-for="Dosage"></label>
+                    <input asp-for="Dosage" class="form-control" id="Dosage" /> <!-- Ensure this ID exists -->
+                    <span asp-validation-for="Dosage" class="text-danger"></span>
+
+                    <!-- Optional: Show message when dosage is auto-filled -->
+                    <div id="dosageAutoFillMessage" class="text-success" style="display: none; font-size: 12px; margin-top: 5px;">
+                        <i class="fas fa-check-circle"></i> Dosage auto-filled from prescription
+                    </div>
                 </div>
 
                 <div class="form-group-custom">
                     <label asp-for="AdministeredDate"></label>
-                    <input asp-for="AdministeredDate" type="date" class="form-control" />
+                    <input asp-for="AdministeredDate" type="datetime-local" class="form-control" />
                     <span asp-validation-for="AdministeredDate" class="text-danger"></span>
                 </div>
 
@@ -502,6 +512,7 @@
         const selected = select.options[select.selectedIndex];
         const schedule = parseInt(selected.text.match(/Schedule (\d+)/)?.[1] || 0);
         const prescriptionField = document.getElementById('prescriptionField');
+        const dosageInput = document.getElementById('Dosage');
 
         if (schedule > 4) {
             prescriptionField.style.display = 'block';
@@ -534,6 +545,11 @@
                                     <i class="fas fa-check-circle"></i>
                                     Auto-selected Prescription #${data[0].prescriptionId}
                                 </div>`;
+
+                                // Auto-fill dosage from prescription
+                        if (data[0].dosage) {
+                            dosageInput.value = data[0].dosage;
+                            showToast(`✅ Dosage auto-filled from prescription: ${data[0].dosage}`);}
                         } else {
                             // Show dropdown for multiple prescriptions
                             let options = '<option value="">-- Select Prescription --</option>';
@@ -545,6 +561,17 @@
                                 <label for="PrescriptionId">Select Prescription</label>
                                 <select name="PrescriptionId" class="form-control" required>${options}</select>
                                 <span class="text-danger field-validation-valid" data-valmsg-for="PrescriptionId" data-valmsg-replace="true"></span>`;
+
+                                // Add event listener for prescription selection changes
+                        const prescriptionSelect = document.getElementById('PrescriptionSelect');
+                        prescriptionSelect.addEventListener('change', function() {
+                            const selectedOption = this.options[this.selectedIndex];
+                            const dosage = selectedOption.getAttribute('data-dosage');
+                            if (dosage) {
+                                dosageInput.value = dosage;
+                                showToast(`✅ Dosage auto-filled from prescription: ${dosage}`);
+                            }
+                        });
                         }
                     })
                     .catch(err => {
@@ -559,10 +586,32 @@
         } else {
             prescriptionField.style.display = 'none';
             prescriptionField.innerHTML = ''; // Clear prescription content
+            // Clear dosage if not needed
+            dosageInput.value = '';
         }
 
         // Also check for allergies
         checkAllergy(select);
+
+            function showToast(message) {
+        // Create toast element
+        var toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.style.background = '#28a745'; // Green for success
+        toast.innerText = message;
+        document.body.appendChild(toast);
+
+        // Animate and remove after 3 seconds
+        setTimeout(function() {
+            toast.style.opacity = '1';
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                setTimeout(function() {
+                    document.body.removeChild(toast);
+                }, 500);
+            }, 2500);
+        }, 100);
+    }
     }
 </script>
 
