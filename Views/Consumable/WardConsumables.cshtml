@@ -12,10 +12,18 @@
                 <div class="btn-group gap-2">
                     <a asp-controller="Consumable" asp-action="StockTake" class="btn btn-primary mt-2">New Stock Take</a>
                     <a asp-controller="Consumable" asp-action="OrderConsumables" class="btn btn-success mt-2">New Order</a>
+                    <a asp-controller="Consumable" asp-action="Dashboard" class="btn btn-secondary mt-2 text-nowrap">Back</a>
                 </div>
             </div>
         </div>
     </div>    
+    <form asp-action="Wards" method="get" class="mb-3">
+    <input type="text" name="searchString" 
+           value="@ViewData["CurrentFilter"]" 
+           placeholder="Search wards..." 
+           class="form-control d-inline-block w-auto" />
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
 @foreach (var WardGroup in GroupByWard)
 {
         <div class="card w-80 mb-3">
@@ -29,7 +37,9 @@
                                     <tr>
                                         <th>Consumable Name</th>
                                         <th>Category</th>
+                                        <th>System Quantity</th>
                                         <th>Quantity Available</th>
+                                        <th>Discrepancy</th>
                                         <th>Last Updated</th>
                                     </tr>
                                 </thead>
@@ -39,8 +49,12 @@
                                             <tr>
                                                 <td>@item.ConsumableName</td>
                                                 <td>@item.Category</td>
-                                                <td class="@(item.SystemQuantity < 5 ? "text-danger fw-bold" : "")">
-                                                    @item.SystemQuantity
+                                                <td>@item.SystemQuantity</td>
+                                                <td class="@(item.QuantityCounted < 5 ? "text-danger fw-bold" : "")">
+                                                    @item.QuantityCounted
+                                                </td>
+                                                <td class="@(item.Discrepancy < 5 ? "text-danger fw-bold" : "")">
+                                                    @item.Discrepancy
                                                 </td>
                                                 <td>
                                                     @item.LastUpdated.ToString("yyyy-MM-dd")

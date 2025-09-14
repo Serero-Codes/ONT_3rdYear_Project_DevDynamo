@@ -477,7 +477,21 @@
         </nav>
     </header>
     </div>
-
+  @if (TempData["Message"] != null)
+  {
+      <div  class="alert alert-info alert-dismissible fade show autoCloseAlert" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050; min-width: 250px;">                
+          @TempData["Message"]
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+     
+  }
+  @if (TempData["Error"] != null)
+  {
+     <div  class="alert alert-danger alert-dismissible fade show autoCloseAlert" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050; min-width: 250px;">                
+          @TempData["Error"]
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+  }
     <main  class="main-content" >
         @RenderBody()
     </main>
@@ -625,8 +639,14 @@
         });
     </script>
 
-
-
+<script>
+    setTimeout(function () {
+        document.querySelectorAll('.autoCloseAlert').forEach(function (alertEl) {
+            var bsAlert = new bootstrap.Alert(alertEl);
+            bsAlert.close();
+        });
+    }, 3000); // closes after 3s
+</script>
 
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

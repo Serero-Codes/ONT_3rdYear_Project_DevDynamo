@@ -19,7 +19,11 @@
         </div>
     </div>
 </div>
-
+<form asp-action="Index" method="get" class="mb-3">
+    <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" 
+           placeholder="Search wards..." class="form-control d-inline-block w-auto" />
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
 
 <div class="position-relative">
 </div>

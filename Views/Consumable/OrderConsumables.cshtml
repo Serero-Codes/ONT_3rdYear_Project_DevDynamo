@@ -52,12 +52,13 @@
         <span asp-validation-for="Remark" class="text-danger"></span>
     </div>
 
-    <button type="button" class="btn btn-primary" id="AddBtnRow">Add Row</button>
+    <button type="button" class="btn btn-primary mt-3" id="AddBtnRow">Add Item</button>
    @*  <select id="consumableSelect" style="display:none;">
         <option value="">-- Select Consumable --</option>
         <!-- Will be populated dynamically -->
-    </select> *@
-    <button type="submit" class="btn btn-primary">Submit Request</button>
+    </select> *@ 
+    <button type="submit" class="btn btn-primary mt-3">Submit Request</button>
+    <a asp-controller="Consumable" asp-action="Dashboard" class="btn btn-secondary mt-3 text-nowrap">Back</a>
 </form>
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -332,7 +332,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "d2435721-09e2-41cf-ac36-b98a6ad10763",
+                            ConcurrencyStamp = "e68271d6-ae01-4407-b5f1-8a3af2c227cc",
                             Email = "doctor@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Dr. John Doe",
@@ -340,7 +340,7 @@ namespace ONT_3rdyear_Project.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "DOCTOR@HOSPITAL.COM",
                             NormalizedUserName = "DOCTOR@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEDZA9UqQWW2lt+DPL53onqRQ4JwCQUNJIPz0dTpYWGzkhsKdmQ+8RcmZFbyXJFTOKw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEP46ee7XlOt5UGcca0C7wvncTAwMzD1BgMg9vMF6X0j/jnlm62Yf+RU7P6azr+h+oA==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Doctor",
                             TwoFactorEnabled = false,
@@ -350,7 +350,7 @@ namespace ONT_3rdyear_Project.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "aa2807dd-0944-459c-9d0c-86c94cbefb6a",
+                            ConcurrencyStamp = "7f2c255c-6991-4cd5-8ad1-a5482fca5f68",
                             Email = "nurse@hospital.com",
                             EmailConfirmed = true,
                             FullName = "Nurse Thabo",
@@ -358,7 +358,7 @@ namespace ONT_3rdyear_Project.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "NURSE@HOSPITAL.COM",
                             NormalizedUserName = "NURSE@HOSPITAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEL13O/U8Z+nUI3ZyyuP+/Nupmz+r8fX01MfqEIGVWJ4dkadC59GD1kwx/rMCztnqtg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJEQrztTaTgVFGnvkSjfRqZm6Ugzm+Pug6cl9BzsEgRgxkzjvYBrUsatR1AUTL0AHQ==",
                             PhoneNumberConfirmed = false,
                             RoleType = "Nurse",
                             TwoFactorEnabled = false,
@@ -551,7 +551,7 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<string>("DischargeInstructions")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsDischarged")
+                    b.Property<bool?>("IsDischarged")
                         .HasColumnType("bit");
 
                     b.Property<int>("PatientID")
@@ -647,7 +647,7 @@ namespace ONT_3rdyear_Project.Migrations
                             Description = "Sunrise Medical Centre is a state-of-the-art healthcare facility offering comprehensive care, modern technology, and highly qualified staff.",
                             DirectorName = "Dr. Lindiwe Mokoena",
                             EmailAddress = "info@sunrisemedical.co.za",
-                            LastUpdated = new DateTime(2025, 9, 6, 19, 2, 42, 733, DateTimeKind.Local).AddTicks(7960),
+                            LastUpdated = new DateTime(2025, 9, 14, 5, 44, 40, 533, DateTimeKind.Local).AddTicks(9825),
                             Name = "Sunrise Medical centre",
                             Phone = "+27 21 555 1234",
                             Website = "https://www.sunrisemedical.co.za"
@@ -687,6 +687,9 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<int?>("VisitID")
                         .HasColumnType("int");
 
+                    b.Property<bool>("isActive")
+                        .HasColumnType("bit");
+
                     b.HasKey("InstructionID");
 
                     b.HasIndex("ApplicationUserID");
@@ -708,7 +711,8 @@ namespace ONT_3rdyear_Project.Migrations
                             Instructions = "Monitor vitls every 4 hours",
                             NurseRequest = "Please advise on wound management.",
                             PatientID = 1,
-                            VisitID = 1
+                            VisitID = 1,
+                            isActive = true
                         },
                         new
                         {
@@ -719,7 +723,8 @@ namespace ONT_3rdyear_Project.Migrations
                             NurseRequest = "Please advise on wound management.",
                             PatientID = 2,
                             TreatVisitID = 1,
-                            VisitID = 2
+                            VisitID = 2,
+                            isActive = true
                         });
                 });
 
@@ -910,7 +915,7 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<bool>("Admitted")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("ApplicationUsersId")
+                    b.Property<int?>("ApplicationUserId")
                         .HasColumnType("int");
 
                     b.Property<string>("ChronicIllness")
@@ -919,9 +924,6 @@ namespace ONT_3rdyear_Project.Migrations
 
                     b.Property<DateOnly>("DateOfBirth")
                         .HasColumnType("date");
-
-                    b.Property<int>("DoctorID")
-                        .HasColumnType("int");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -942,7 +944,7 @@ namespace ONT_3rdyear_Project.Migrations
 
                     b.HasKey("PatientID");
 
-                    b.HasIndex("ApplicationUsersId");
+                    b.HasIndex("ApplicationUserId");
 
                     b.ToTable("Patients");
 
@@ -953,7 +955,6 @@ namespace ONT_3rdyear_Project.Migrations
                             Admitted = false,
                             ChronicIllness = "Hypertension",
                             DateOfBirth = new DateOnly(2000, 1, 15),
-                            DoctorID = 0,
                             FirstName = "Naledi",
                             Gender = "Female",
                             IsDeleted = false,
@@ -965,7 +966,6 @@ namespace ONT_3rdyear_Project.Migrations
                             Admitted = true,
                             ChronicIllness = "Diabetes",
                             DateOfBirth = new DateOnly(1995, 6, 21),
-                            DoctorID = 0,
                             FirstName = "Tshepo",
                             Gender = "Male",
                             IsDeleted = false,
@@ -977,7 +977,6 @@ namespace ONT_3rdyear_Project.Migrations
                             Admitted = true,
                             ChronicIllness = "Herpertension",
                             DateOfBirth = new DateOnly(2003, 2, 28),
-                            DoctorID = 0,
                             FirstName = "Thando",
                             Gender = "Female",
                             IsDeleted = false,
@@ -1005,9 +1004,6 @@ namespace ONT_3rdyear_Project.Migrations
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PatientAllergyId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Severity")
                         .IsRequired()
@@ -1982,11 +1978,9 @@ namespace ONT_3rdyear_Project.Migrations
 
             modelBuilder.Entity("ONT_3rdyear_Project.Models.Patient", b =>
                 {
-                    b.HasOne("ONT_3rdyear_Project.Models.ApplicationUser", "ApplicationUsers")
+                    b.HasOne("ONT_3rdyear_Project.Models.ApplicationUser", null)
                         .WithMany("Patients")
-                        .HasForeignKey("ApplicationUsersId");
-
-                    b.Navigation("ApplicationUsers");
+                        .HasForeignKey("ApplicationUserId");
                 });
 
             modelBuilder.Entity("ONT_3rdyear_Project.Models.PatientAllergy", b =>

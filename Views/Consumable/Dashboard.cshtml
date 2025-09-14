@@ -2,7 +2,8 @@
 
 @{
     ViewData["Title"] = "Dashboard";
-   
+   var requestsP = ViewBag.FinalOrders as List<Order>;
+    var requestsA = ViewBag.ProcessOrders as List<Order>;
 }
 
 
@@ -14,7 +15,7 @@
                 <h5 class="card-title text-danger">
                     <i class="fas fa-exclamation-triangle"></i> Critical Stock
                 </h5>
-                <h2 class="text-danger">@Model.</h2>
+                <h2 class="text-danger">@ViewBag.CriticalStock</h2>
                 <p class="card-text">Items below minimum level</p>
             </div>
         </div>
@@ -25,7 +26,7 @@
                 <h5 class="card-title text-warning">
                     <i class="fas fa-exclamation"></i> Low Stock
                 </h5>
-                <h2 class="text-warning">@Model.</h2>
+                <h2 class="text-warning">@ViewBag.LowStock</h2>
                 <p class="card-text">Items approaching minimum</p>
             </div>
         </div>
@@ -36,7 +37,7 @@
                 <h5 class="card-title text-info">
                     <i class="fas fa-truck"></i> Pending Orders
                 </h5>
-                <h2 class="text-info">@Model.</h2>
+                <h2 class="text-info">@ViewBag.PendingOrders</h2>
                 <p class="card-text">Orders awaiting delivery</p>
             </div>
         </div>
@@ -47,7 +48,7 @@
                 <h5 class="card-title text-success">
                     <i class="fas fa-check-circle"></i> Total Items
                 </h5>
-                <h2 class="text-success">@Model.</h2>
+                <h2 class="text-success">@ViewBag.TotalConsumables</h2>
                 <p class="card-text">Consumables managed</p>
             </div>
         </div>
@@ -65,11 +66,11 @@
                 <div class="row">
                     <div class="col-md-6">
                      
-                        <a href="/StockManager/Receive" class="btn btn-outline-success btn-block mb-2">
+                        <a asp-controller="Consumable" asp-action="ApprovedOrders" class="btn btn-outline-success btn-block mb-2">
                             <i class="fas fa-arrow-down"></i> Receive Delivery
                         </a>
                         <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="WardConsumables">WardConsumables</a>
-
+                        <a asp-controller="Consumable" asp-action="ListOfOrders" class="btn btn-secondary mb-2 text-nowrap">View Requests</a>
                         <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="Index">Consumables</a>
                         <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="Wards">Wards</a>
 
@@ -95,6 +96,45 @@
                 <h5 class="mb-0">Recent Stock Movements</h5>
             </div>
             <div class="card-body">
+              @if (requestsP != null && requestsP.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var c in requestsP)
+                            {
+                                <div class="list-group-item py-2 px-3">
+                                    <div class="row g-0 align-items-center">
+                                        <div class="col-4">
+                                            <strong>@c.Ward.Name</strong>
+                                        </div>
+                                        <div class="col-4">
+                                            <small><strong>Date:</strong> @c.OrderDate.ToString("yyyy-MM-dd")</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <small>
+                                                <strong>Status:</strong>  @if (c.Status == "Delivered")
+                                                {
+                                                    <span class="badge bg-success">@c.Status</span>
+                                                }
+                                                                            else if (c.Status == "Rejected")
+                                                {
+                                                    <span class="badge bg-danger">@c.Status</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">@c.Status</span>
+                                                }
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted card-footer">No Approved Consumables.</p>                        
+                        
+                    }
             </div>
         </div>
     </div>
@@ -105,7 +145,60 @@
                 <h5 class="mb-0">Upcoming Deliveries</h5>
             </div>
             <div class="card-body">
-                <p class="text-muted">No upcoming deliveries scheduled</p>
+              @if (requestsA != null && requestsA.Any())
+                    {
+                        @* var recentStock = (List<DevDynamoMedic.Models.Request>)ViewBag.RecentStock; *@
+
+                        <div class="list-group">
+                            @foreach (var stock in requestsA)
+                            {
+                                <div class="list-group-item py-2 px-3">
+                                    <div class="list-group-item py-2 px-3">
+                                        <div class="row g-0 align-items-center">
+                                            <div class="col-4">
+                                                <strong>@stock.Ward?.Name</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small><strong>Date:</strong> @stock.OrderDate.ToString("yyyy-MM-dd")</small>
+                                            </div>
+                                            <div class="col-4">
+                                                <small>
+                                                    <strong>Status:</strong>  @if (stock.Status == "Approved")
+                                                    {
+                                                        <span class="badge bg-success">@stock.Status</span>
+                                                    }
+                                                                                    else if (stock.Status == "Rejected")
+                                                    {
+                                                        <span class="badge bg-danger">@stock.Status</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning text-dark">@stock.Status</span>
+                                                    }
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Detailed items -->
+                                    <ul class="mb-0 ps-3">
+                                        @foreach (var item in stock.ConsumableOrders)
+                                        {
+                                            <li>
+                                                <strong>@item.Consumable?.Name</strong>
+                                                (Ordered: @item.QuantityRequested,
+                                                Approved: @(item.QuantityApproved ))
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                          <p class="text-muted">No upcoming deliveries scheduled</p>
+                    }
+              
             </div>
         </div>
     </div>

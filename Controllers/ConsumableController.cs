@@ -20,20 +20,56 @@ namespace ONT_3rdyear_Project.Controllers
             _userManager = userManager;
         }
         //Dashboard for Consumables Management
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-           
+           var orders = await _context.Orders.Include(o => o.Ward)
+           .Include(o => o.ConsumableOrders)
+           .ThenInclude(o => o.Consumable).ToListAsync();
+            ViewBag.FinalOrders = orders.Where(s => s.Status == "Delivered" || s.Status == "Rejected").ToList();
+            ViewBag.ProcessOrders = orders.Where(s => s.Status == "pending" || s.Status == "Approved").ToList();
+            //return to the Dashboardy
+            ViewBag.TotalConsumables = await _context.Consumables
+                .Where(c => c.IsDeleted == false)
+                .CountAsync();
+             ViewBag.PendingOrders = await _context.Orders.Where(s => s.Status == "pending")
+                .CountAsync();
+            ViewBag.CriticalStock = await _context.WardConsumables
+                .Where(c => c.Quantity <= 10 )
+                .CountAsync();
+            ViewBag.LowStock = await _context.WardConsumables
+                .Where(c => c.Quantity == 11  || c.Quantity <= 50)
+                .CountAsync();
             return View();
         }
-        public async Task<IActionResult> Wards()
+        public async Task<IActionResult> ApprovedOrders()
         {
-            var wards = await _context.Wards.ToListAsync();
-            return View(wards);
+            var orders = await _context.Orders.Include(o => o.Ward)
+            .Where(s => s.Status == "pending" || s.Status == "Approved")
+            .Include(o => o.User)
+            .Include(o => o.ConsumableOrders)
+            .ThenInclude(o => o.Consumable).ToListAsync();
+            
+            return View(orders);
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Wards(string searchString)
         {
-            var consumables = await _context.Consumables.ToListAsync();
-            return View(consumables);
+            var wards = _context.Wards.AsQueryable();
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                wards = wards.Where(w => w.Name.Contains(searchString));
+            }
+             ViewData["CurrentFilter"] = searchString;
+            return View(await wards.ToListAsync());
+        }
+        public async Task<IActionResult> Index(string searchString)
+        {
+            var consumables = _context.Consumables.AsQueryable();
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                consumables = consumables.Where(c => c.Name.Contains(searchString) || c.Category.Contains(searchString));
+            }
+             ViewData["CurrentFilter"] = searchString;
+            return View(await consumables.ToListAsync());
         }
         //Add New Consumable controller
         [HttpGet]
@@ -138,6 +174,16 @@ namespace ONT_3rdyear_Project.Controllers
                       .OrderByDescending(sti => sti.StockTake.StockTakeDate)
                       .Select(sti => sti.SystemQuantity)
                       .FirstOrDefault ():0,
+                      QuantityCounted = wc != null ? wc.Consumable.StockTakeItems
+                      .Where(sti => sti.ConsumableID == wc.ConsumableID && sti.StockTake.WardID == wc.WardID)
+                      .OrderByDescending(sti => sti.StockTake.StockTakeDate)
+                      .Select(sti => sti.QuantityCounted)
+                      .FirstOrDefault ():0,
+                       Discrepancy = wc != null ? wc.Consumable.StockTakeItems
+                      .Where(sti => sti.ConsumableID == wc.ConsumableID && sti.StockTake.WardID == wc.WardID)
+                      .OrderByDescending(sti => sti.StockTake.StockTakeDate)
+                      .Select(sti => sti.Discrepancy)
+                      .FirstOrDefault ():0,
                       LastUpdated = wc.Consumable.StockTakeItems
                       .Where(sti => sti.ConsumableID == wc.ConsumableID && sti.StockTake.WardID == wc.WardID)
                       .OrderByDescending(sti => sti.StockTake.StockTakeDate)
@@ -165,11 +211,7 @@ namespace ONT_3rdyear_Project.Controllers
                     ConsumableID = wc.ConsumableID,
                     ConsumableName = wc.Consumable.Name,
                     Category = wc.Consumable.Category,                  
-                    SystemQuantity = wc.Consumable.StockTakeItems
-                    .Where(sti => sti.ConsumableID == wc.ConsumableID && sti.StockTake.WardID == wc.WardID)
-                    .OrderByDescending(sti => sti.StockTake.StockTakeDate)
-                    .Select(sti => sti.SystemQuantity)
-                    .FirstOrDefault(),
+                    SystemQuantity = wc.Consumable.StockQuantity,
                     LastUpdated = wc.Consumable.StockTakeItems
                     .Where(sti => sti.ConsumableID == wc.ConsumableID && sti.StockTake.WardID == wc.WardID)
                     .OrderByDescending(sti => sti.StockTake.StockTakeDate)
@@ -195,7 +237,7 @@ namespace ONT_3rdyear_Project.Controllers
 
             return PartialView("AddConsumableToWard");
         }
-
+        //This post method handles the addition of a consumable to a specific ward and also do Stock Take.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddConsumableToWard(int WardId, int ConsumableID, int Quantity)
@@ -236,8 +278,9 @@ namespace ONT_3rdyear_Project.Controllers
                     StockTakeID = stocktake.StockTakeID,
                     ConsumableID = ConsumableID,
                     QuantityCounted = Quantity,
-                    SystemQuantity = Quantity
+                    SystemQuantity = Quantity                   
                 };
+               
                 var wardConsumable = new WardConsumable
                 {
                     ConsumableID = ConsumableID,
@@ -253,12 +296,32 @@ namespace ONT_3rdyear_Project.Controllers
             return RedirectToAction("WardConsumables", "Consumable");
         }
         //Add Consumable direct from the ward masterList
-        public async Task<IActionResult> AddConsumableDirect()
+        public async Task<IActionResult> AddConsumableDirect(int wardId)
         {
-            ViewBag.WardList = new SelectList(_context.Wards.ToList(), "WardID", "Name");
-            ViewBag.ConsumableList = new SelectList(_context.Consumables.ToList(), "ConsumableId", "Name");
-            return PartialView("AddConsumableDirect");
+           var ward = await _context.Wards.FindAsync(wardId);
+           var consumablesInWard = await _context.WardConsumables
+                .Where(wc => wc.WardID == wardId)
+                .Select(wc => wc.ConsumableID)
+                .ToListAsync();
+             if (ward == null)
+            {
+                // Ward not found — return 404 or handle gracefully
+                return NotFound($"Ward with ID {wardId} does not exist.");
+            }
+           var model = new WardConsumable
+            {
+                WardID = wardId               
+            };
+            ViewBag.WardName = ward.Name;
+           var consumableList = _context.Consumables
+                .Where(c => !consumablesInWard.Contains(c.ConsumableId))
+                .ToList();
+
+            ViewBag.ConsumableList = new SelectList(consumableList, "ConsumableId", "Name");
+           
+            return PartialView("AddConsumableDirect",model);
         }
+       
         [HttpPost]
         public async Task<IActionResult> AddConsumableDirect(WardConsumable model)
         {
@@ -266,12 +329,16 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 var user = await _userManager.GetUserAsync(User);
                 
-                var existingConsumable = await _context.WardConsumables
+                var existingConsumable = await _context.WardConsumables.Include(wc => wc.Consumable)
                     .FirstOrDefaultAsync(wc => wc.WardID == model.WardID && wc.ConsumableID == model.ConsumableID);
                 
                 if (existingConsumable != null)
                 {
-                    ModelState.AddModelError("", "This consumable already exists in the selected ward.");
+                    TempData["Error"] = "This consumable already exists in the selected ward.";
+                     ModelState.AddModelError("", "This consumable already exists in the selected ward.");
+                    ViewBag.WardName = (await _context.Wards.FindAsync(model.WardID))?.Name;
+                    ViewBag.ConsumableList = new SelectList(_context.Consumables.ToList(), "ConsumableId", "Name");
+                    return PartialView("AddConsumableDirect", model);
                 }
                 else
                 {
@@ -289,9 +356,12 @@ namespace ONT_3rdyear_Project.Controllers
                     {
                         StockTakeID = stocktake.StockTakeID,
                         ConsumableID = model.ConsumableID,
-                        QuantityCounted = model.Quantity,
-                        SystemQuantity = model.Quantity
+                        QuantityCounted = 0,
+                        SystemQuantity = model.Quantity,
+                        Discrepancy = 0 - model.Quantity
                     };
+                     
+                     _context.StockTakeItems.Add(stockTakeItem);
                     _context.WardConsumables.Add(model);
                     await _context.SaveChangesAsync();
                     return RedirectToAction("WardConsumables");
@@ -301,7 +371,7 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 ModelState.AddModelError("", "Please fill in all required fields.");
             }
-            return View("WardConsumables");
+            return RedirectToAction("WardConsumables");
         }
         //Creating a New Stock Take request for a Ward
         [HttpGet]
@@ -341,17 +411,23 @@ namespace ONT_3rdyear_Project.Controllers
                 TakenBy = user.Id,
                 TakenByUser = user,
 
-                StockTakes = model.Items.Select(i => new StockTakeItem
+                StockTakes = model.Items.Select(i => 
+                {
+                    var systemQty = wardConsumables
+                    .Where(wc => wc.ConsumableID == i.ConsumableID)
+                    .Select(wc => wc.Consumable.StockQuantity)
+                    .FirstOrDefault();
+
+                return new StockTakeItem
                 {
                     ConsumableID = i.ConsumableID,
                     QuantityCounted = i.CountedQuantity,
-                    SystemQuantity = wardConsumables
-                        .Where(wc => wc.ConsumableID == i.ConsumableID)
-                        .Select(wc => wc.Quantity)
-                        .FirstOrDefault(),
+                    SystemQuantity = systemQty,
+                    Discrepancy = i.CountedQuantity - systemQty
+                };
                 }).ToList()
             };
-
+          
             if (!ModelState.IsValid)
             {
                 var Wards = await _context.Wards
@@ -364,7 +440,6 @@ namespace ONT_3rdyear_Project.Controllers
 
                 return View(model);
             }
-
             _context.Add(stockTake);
             //Update Available Quantity
             foreach (var item in model.Items)
@@ -443,6 +518,103 @@ namespace ONT_3rdyear_Project.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Index");
+        }
+        //Get a list of Order Requests
+        [HttpGet]
+        public async Task<IActionResult> ListOfOrders()
+        {
+            var requests = await _context.Orders.Include(r => r.ConsumableOrders).ThenInclude(r =>r.Consumable).Include(r => r.Ward).Where(r => r.Status == "Pending").ToListAsync();
+            return View(requests);
+        }
+        //Approve Order Request
+         [HttpPost]
+        public async Task<IActionResult> ApproveRequest(int requestId,int type, IEnumerable<ConsumableOrder> items)
+        {
+            // Load the request with tracked items
+              var user = await _userManager.GetUserAsync(User);
+            var order = await _context.Orders
+                .Include(r => r.ConsumableOrders)
+                .FirstOrDefaultAsync(r => r.OrderID == requestId);
+        
+            if (order == null) return NotFound();
+
+            // Update approved quantities only for posted items
+            foreach (var item in items)
+            {
+                var consumableOrder = order.ConsumableOrders.FirstOrDefault(ri => ri.ConsumableId == item.ConsumableId && ri.OrderId == item.OrderId);
+                if (consumableOrder != null)
+                {
+                
+                    // Update request status
+                    if (type == 1)
+                    {
+                        order.Status = "Rejected";
+                        order.OrderDate = DateTime.UtcNow;
+                        consumableOrder.QuantityApproved = 0;
+                    }
+                    else if(type == 2)
+                    {  
+                       var D = _context.Deliveries
+                        .Include(d => d.DeliveryItems)
+                            .ThenInclude(di => di.Consumable)
+                        .FirstOrDefault(d => d.OrderID == order.OrderID);
+
+                    if (D != null)
+                    {
+                        D.RecievedBy = user.Id;
+                        D.RecievedByUser = user;
+
+                        _context.Deliveries.Update(D);
+                        await _context.SaveChangesAsync();
+                    }
+                       
+                        order.Status = "Delivered";
+                        order.OrderDate = DateTime.UtcNow;
+                        var sysQuantity = _context.StockTakeItems.FirstOrDefault(s => s.ConsumableID == item.ConsumableId);
+                        if (sysQuantity != null)
+                        {
+                            sysQuantity.QuantityCounted = consumableOrder.QuantityApproved;
+                            _context.StockTakeItems.Update(sysQuantity);
+                        }
+                        TempData["Message"] = "Consumables Delivered Successful";
+                        await _context.SaveChangesAsync();
+                        return RedirectToAction("Dashboard");
+
+                    }
+                    else
+                    {
+                        var Delivery = new Delivery
+                        {
+                            OrderID = order.OrderID,
+                            DeliveryDate = DateTime.UtcNow,                           
+                            DeliveredBy = user.Id,
+                            DeliveredByUser = user,
+                            DeliveryItems = new List<DeliveryItem>
+                            {
+                                new DeliveryItem
+                                {
+                                    ConsumableID = item.ConsumableId,
+                                    QuantityDelivered = item.QuantityApproved
+                                }
+                            }
+                        };
+                        _context.Deliveries.Add(Delivery);                      
+                        order.Status = "Approved";
+                         TempData["Message"] = "Consumables Approved ";
+                        order.OrderDate = DateTime.UtcNow;
+                        consumableOrder.QuantityApproved = item.QuantityApproved;
+                        
+                    }
+
+                }
+            }
+            
+
+        
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ListOfOrders");
         }
     }
 }

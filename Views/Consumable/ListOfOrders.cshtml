@@ -1,0 +1,119 @@
+@model IEnumerable<ONT_3rdyear_Project.Models.Order>
+@{
+    ViewData["Title"] = "List of Orders";
+   
+}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class=" mb-0 text-nowrap">List of Requests</h1>
+                <div class="btn-group gap-2"> 
+                    <a asp-controller="Consumable" asp-action="Dashboard" class="btn btn-secondary text-nowrap">Back</a>
+                </div>
+            </div>
+        </div>
+    </div>
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th scope="col">Request ID</th>
+            <th scope="col">Ward</th>
+            <th scope="col">Consumables</th>
+            <th>Requested Qty</th>
+            <th scope="col">Request Date</th>
+            <th scope="col">Remarks</th>
+            <th scope="col">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        { 
+            <tr>
+                @if (r.Status == "pending" || r.Status == "New")
+                {
+                <td>@r.OrderID</td>
+                <td>@r.Ward.Name</td>
+                <td>
+                    @{var items = r.ConsumableOrders.ToList();}
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var item in r.ConsumableOrders)
+                        {
+
+                            <li>
+                                <strong>@item.Consumable.Name</strong>
+                                (Qty Requested: @item.QuantityRequested)
+                                <br />
+                                <small class="text-muted"><strong>Reason:</strong> @item.Reason</small>
+                            </li>
+                        }
+
+                    </ul>
+                </td>
+                <td>
+                    <form asp-controller="Consumable" asp-action="ApproveRequest" method="post">
+                        <input type="hidden" name="RequestId" value="@r.OrderID" />
+
+                        @for (int i = 0; i < items.Count; i++)
+                        {
+                            <div class="mb-2">
+                                <label>@items[i].Consumable.Name (Qty Requested: @items[i].QuantityRequested)</label>
+
+                                <!-- Quantity input -->
+                                <input asp-for="@items[i].QuantityApproved"
+                                       class="form-control form-control-sm mb-2"
+                                       value="@items[i].QuantityRequested"
+                                       min="0" type="number" />
+
+                                <!-- Hidden IDs -->
+                                <input type="hidden" asp-for="@items[i].OrderId" />
+                                <input type="hidden" asp-for="@items[i].ConsumableId" />
+                            </div>
+                        }
+
+                        <!-- Buttons side by side -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" name="type" value="0" class="btn btn-success btn-sm flex-fill">
+                                Approve All
+                            </button>
+                            <button type="submit" name="type" value="1" class="btn btn-danger btn-sm flex-fill">
+                                Reject All
+                            </button>
+                        </div>
+                    </form>
+
+
+                 
+                </td>
+
+                <td>@r.OrderDate.ToString("yyyy-MM-dd")</td>
+                <td>@r.Remark</td>
+                <td>
+                    @if (r.Status == "pending")
+                    {
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    }
+                    else if (r.Status == "Approved")
+                    {
+                        <span class="badge bg-success">@r.Status</span>
+                    }
+                    else if (r.Status == "Rejected")
+                    {
+                        <span class="badge bg-danger">@r.Status</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">@r.Status</span>
+                    }
+                </td>
+                }else
+                    {
+                       <td colspan="7" class="text-center">
+                            <p class="text-muted">No recent stock activity.</p>
+                       </td> 
+                        break;
+                    }
+            </tr>
+        }
+    </tbody>
+</table>
