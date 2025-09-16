@@ -50,7 +50,7 @@ namespace ONT_3rdyear_Project.Controllers
                     TotalPatients = totalPatients,
                     TreatmentsToday = treatmentsToday,
                     MedicationsGivenToday = medicationsGivenToday,
-                    //HoursOnDuty = 24 // Replace with actual logic if needed
+                    
                     TotalVitals = totalVitals
                 },
                 Patients = await (
@@ -132,11 +132,6 @@ namespace ONT_3rdyear_Project.Controllers
 
 
         //CRUD for Vitals
-        /* public async Task<IActionResult> Vitals()
-         {
-             var vitals = await _context.Vitals.Include(v => v.Patient).Include(v=>v.VisitSchedule).Include(u=>u.User).Where(v=> v.IsActive).OrderByDescending(v => v.Date).ToListAsync();
-             return View(vitals);
-         }*/
 
         public async Task<IActionResult> Vitals(string searchPatient, DateTime? fromDate, DateTime? toDate)
         {
@@ -148,9 +143,7 @@ namespace ONT_3rdyear_Project.Controllers
 
             if (!string.IsNullOrEmpty(searchPatient))
             {
-                vitalsQuery = vitalsQuery.Where(v =>
-                    v.Patient.FirstName.Contains(searchPatient) ||
-                    v.Patient.LastName.Contains(searchPatient));
+                vitalsQuery = vitalsQuery.Where(v => v.Patient.FirstName.Contains(searchPatient) ||  v.Patient.LastName.Contains(searchPatient));
             }
 
             if (fromDate.HasValue)
@@ -573,11 +566,7 @@ namespace ONT_3rdyear_Project.Controllers
 
 
         //TREATMENT CRUD
-       /* public async Task<IActionResult> Treatments()
-        {
-            var treatments = await _context.Treatments.Include(p=>p.Patient).Include(u=>u.User).Include(v=>v.VisitSchedule).Where(t=>t.IsActive).ToListAsync();
-            return View(treatments);
-        }*/
+      
        public async Task<IActionResult>Treatments(string searchPatient, DateTime? fromDate, DateTime? toDate)
         {
             var treatmentQuery = _context.Treatments.Include(p => p.Patient).Include(p => p.User).Include(p => p.VisitSchedule).Where(p => p.IsActive);
@@ -977,9 +966,7 @@ namespace ONT_3rdyear_Project.Controllers
 
                 // Keep other fields like PatientID, ApplicationUserID unchanged or adjust as needed
                 model.ApplicationUserID = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
-                existingTreatment.ApplicationUserID = int.Parse(
-    User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-);
+                existingTreatment.ApplicationUserID = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
 
                 _context.Update(existingTreatment);
                 await _context.SaveChangesAsync();
@@ -1074,11 +1061,7 @@ namespace ONT_3rdyear_Project.Controllers
 
 
         //administer medication
-        /*public async Task<IActionResult> Administered()
-        {
-            var medication = await _context.PatientMedicationScripts.Include(p=>p.Patient).Include(v=>v.VisitSchedule).Include(p => p.Prescription).Include(a=>a.AdministeredBy).Include(m=>m.Medication).Where(ad=>ad.isActive).ToListAsync();
-            return View(medication);
-        }*/
+        
         public async Task<IActionResult> Administered(string searchPatient, DateTime? fromDate, DateTime? toDate)
         {
             var medsQuery = _context.PatientMedicationScripts
@@ -1677,12 +1660,7 @@ namespace ONT_3rdyear_Project.Controllers
             ViewBag.Wards = new SelectList(wards, "WardID", "Name");
             ViewBag.Beds = new SelectList(beds, "BedId", "BedNo");
 
-            /*var patientsQuery = _context.Patients
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Ward)
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Bed)
-                .AsQueryable();*/
+           
             var patientsQuery = (
         from p in _context.Patients
         join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
@@ -1765,7 +1743,7 @@ namespace ONT_3rdyear_Project.Controllers
 
 
 
-        public IActionResult LiveSearchVitals(string query)
+       /* public IActionResult LiveSearchVitals(string query)
         {
             var results = _context.Vitals.Include(v => v.Patient).Include(v => v.User).Where(v => v.Patient.FirstName.Contains(query) || v.Patient.LastName.Contains(query)).ToList();
 
@@ -1777,9 +1755,9 @@ namespace ONT_3rdyear_Project.Controllers
             var allVitals = _context.Vitals.Include(v => v.Patient).Include(v => v.User).ToList();
 
             return PartialView("_VitalSearchResultsPartial", allVitals);
-        }
+        }*/
 
-        public IActionResult LiveSearchTreatments(string query)
+        /*public IActionResult LiveSearchTreatments(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -1799,6 +1777,29 @@ namespace ONT_3rdyear_Project.Controllers
             var allTreatments = _context.Treatments.Include(v => v.Patient).Include(v => v.User).ToList();
 
             return PartialView("_TreatmentSearchResultsPartial", allTreatments);
+        }*/
+
+        public IActionResult LiveSearchInstructions(string query)
+        {
+            var results = _context.Instructions
+                .Include(i => i.Patient)
+                .Include(i => i.User)
+                .Where(i => i.Patient.FirstName.Contains(query) ||
+                           i.Patient.LastName.Contains(query) ||
+                           i.NurseRequest.Contains(query))
+                .ToList();
+
+            return PartialView("_InstructionSearchResultsPartial", results);
+        }
+
+        public IActionResult LiveSearchAllInstructions()
+        {
+            var allInstructions = _context.Instructions
+                .Include(i => i.Patient)
+                .Include(i => i.User)
+                .ToList();
+
+            return PartialView("_InstructionSearchResultsPartial", allInstructions);
         }
 
 

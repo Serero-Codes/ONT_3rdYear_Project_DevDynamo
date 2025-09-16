@@ -31,8 +31,11 @@
                 </div>
             </div>
 
-            <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+            <a asp-action="Dashboard" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Dashboard">
                 <i class="fas fa-home"></i>
+            </a>
+            <a asp-action="PatientsList" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Back to List of Patients">
+                <i class="fas fa-users"></i>
             </a>
 
             <a asp-action="AdministeredPdf" class="btn btn-danger">

@@ -596,7 +596,8 @@
 
                             <td>
                                 <div class="action-buttons">
-                                    <a asp-controller="Nurse" asp-action="ViewAdvice" asp-route-patientId="@patient.PatientID" class="action-btn btn-view-instructions">
+                                    <a asp-controller="Nurse" asp-action="ViewAdvice" asp-route-patientId="@patient.PatientID" class="action-btn btn-view-instructions"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                         <i class="fas fa-eye"></i>
                                         View Instructions
                                     </a>

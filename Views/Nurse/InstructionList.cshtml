@@ -23,8 +23,11 @@
 
     <div class="search-section">
         <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
-        <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Dashboard">
+            <i class="fas fa-arrow-left"></i> 
+        </a>
+        <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Back to List of Patients">
+            <i class="fas fa-users"></i>
         </a>
     </div>
 
@@ -507,10 +510,10 @@
         animation: fadeInUp 0.6s ease-out;
     }
 
-    #btn-back{
-        margin-left:60%;
+   /*  #btn-back{
+        margin-left:50%;
         border-radius:50px;
-    }
+    } */
 </style>
 
 @if (TempData["SuccessMessage"] != null)
@@ -531,5 +534,52 @@
         var button = event.relatedTarget;
         var id = button.getAttribute('data-id');
         document.getElementById('deleteId').value = id;
+    });
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Live search functionality
+        $('#liveSearchInput').on('input', function () {
+            var query = $(this).val().trim();
+
+            if (query.length === 0) {
+                // If search is empty, load all instructions
+                loadAllInstructions();
+            } else if (query.length >= 2) {
+                // Only search if query is at least 2 characters
+                performSearch(query);
+            }
+        });
+
+        function performSearch(query) {
+            $.ajax({
+                url: '@Url.Action("LiveSearchInstructions", "Nurse")',
+                type: 'GET',
+                data: { query: query },
+                success: function (result) {
+                    $('#searchResults').html(result);
+                },
+                error: function () {
+                    console.error('Search failed');
+                }
+            });
+        }
+
+        function loadAllInstructions() {
+            $.ajax({
+                url: '@Url.Action("LiveSearchAllInstructions", "Nurse")',
+                type: 'GET',
+                success: function (result) {
+                    $('#searchResults').html(result);
+                },
+                error: function () {
+                    console.error('Failed to load all instructions');
+                }
+            });
+        }
+
+        // Optional: Load all instructions on page load
+        loadAllInstructions();
     });
 </script>

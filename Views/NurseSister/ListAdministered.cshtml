@@ -44,8 +44,11 @@
                         </div>
                     </div>
 
-                    <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+                    <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Dashboard">
                         <i class="fas fa-home"></i>
+                    </a>
+                    <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Back to List">
+                        <i class="fas fa-users"></i>
                     </a>
 
                     <a asp-action="AdministeredPdf" class="btn btn-danger">
@@ -587,12 +590,15 @@
 
         .chart-container {
             width: 400px;
+            height: 400px;
             flex-shrink: 0;
             background: var(--white);
             border-radius: 16px;
             padding: 1.5rem;
             box-shadow: var(--shadow);
             border: 1px solid var(--gray-200);
+        display: flex;
+        flex-direction: column;
         }
 
             .chart-container h2 {
@@ -630,6 +636,11 @@
                 .table-scroll::-webkit-scrollbar-thumb:hover {
                     background: var(--gray-500);
                 }
+
+    #medicationsChart {
+        flex: 1;
+        min-height: 300px;
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -648,43 +659,87 @@
 
 
 
-     document.addEventListener("DOMContentLoaded", function () {
-        // Prepare chart data from your model
+         // Enhanced medications chart
+    document.addEventListener("DOMContentLoaded", function () {
         var medications = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                                                Model.Select(m => m.MedicationName).ToList()
-                                ));
+                        Model.Select(m => m.MedicationName).ToList()
+                ));
+
         var counts = {};
         medications.forEach(function (med) {
             counts[med] = (counts[med] || 0) + 1;
         });
 
         var ctx = document.getElementById('medicationsChart').getContext('2d');
-        new Chart(ctx, {
+
+        // Enhanced color palette for medications
+        const medicationColors = [
+            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+            '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1',
+            '#A855F7', '#F43F5E', '#14B8A6', '#FACC15'
+        ];
+
+        window.medicationsChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: Object.keys(counts),
                 datasets: [{
-                    label: 'Administered Count',
+                    label: 'Times Administered',
                     data: Object.values(counts),
-                    backgroundColor: 'rgba(37, 99, 235, 0.7)',
-                    borderColor: 'rgba(37, 99, 235, 1)',
-                    borderWidth: 1
+                    backgroundColor: Object.keys(counts).map((_, i) =>
+                        medicationColors[i % medicationColors.length]),
+                    borderRadius: 6,
+                    borderWidth: 1,
+                    borderColor: '#fff'
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        display: false
+                    },
                     title: {
                         display: true,
-                        text: 'Administered Medications'
+                        text: 'Most Administered Medications',
+                        font: { size: 16, weight: 'bold' },
+                        padding: { top: 10, bottom: 20 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.parsed.y} time${context.parsed.y !== 1 ? 's' : ''}`;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        precision: 0
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        title: {
+                            display: true,
+                            text: 'Times Administered'
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
                     }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
                 }
             }
         });

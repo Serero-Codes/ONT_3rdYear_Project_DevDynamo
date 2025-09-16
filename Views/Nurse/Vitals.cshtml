@@ -474,7 +474,7 @@
         }
 
     .table-scroll-container {
-        max-height: 400px;
+        max-height: 460px;
         overflow-y: auto;
         overflow-x: auto;
     }
@@ -495,12 +495,23 @@
 
     .chart-container {
         width: 400px;
+        height: 500px;
         flex-shrink: 0;
         background: var(--white);
         border-radius: 16px;
         padding: 1.5rem;
         box-shadow: var(--shadow);
         border: 1px solid var(--gray-200);
+        display: flex;
+        flex-direction: column;
+        overflow-x: auto; /* This enables horizontal scrolling */
+    overflow-y: hidden;
+    }
+
+    #vitalsChart {
+        flex: 1;
+        min-height: 400px;
+        min-width: 400px;
     }
 
         .chart-container h2 {
@@ -517,6 +528,24 @@
                 content: '📊';
                 font-size: 1.2rem;
             }
+
+    .chart-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.chart-container::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 4px;
+}
+
+.chart-container::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 4px;
+}
+
+.chart-container::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}
 </style>
 
 <div class="container patient-container mt-3">
@@ -544,8 +573,11 @@
                     <button type="submit" class="btn btn-primary">Filter</button>
                 </div>
             </div>
-            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back">
+            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Dashboard">
                 <i class="fas fa-home"></i>
+            </a>
+            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Back to List of Patients">
+                <i class="fas fa-users"></i>
             </a>
             <a asp-action="VitalsPdf" class="btn btn-danger">
                 <i class="fas fa-file-pdf"></i> Export All to PDF
@@ -604,34 +636,12 @@
 
         <!-- Chart container on the side -->
         <div class="chart-container">
-            <h2>Vitals Trends</h2>
             <canvas id="vitalsChart"></canvas>
         </div>
     </div>
 </div>
 
-@*Modal for deleting vitals*@
-@* <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete vitals for <strong id="deletePatientName"></strong>?</p>
-            </div>
-            <div class="modal-footer">
-                <form id="deleteForm" method="post">
-                    <input type="hidden" name="id" id="deleteVitalId" />
-                    @Html.AntiForgeryToken()
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div> *@
+
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -662,52 +672,165 @@
     let deleteVitalId = null;
     let deleteRow = null;
 
-    // Keep a local copy of the chart data
-    let vitalsChartData = {
-        labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.Date.ToString("g")))),
-        datasets: [
-            {
-                label: 'BP',
-                data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.BP))),
-                borderColor: 'red',
-                fill: false
-            },
-            {
-                label: 'Sugar',
-                data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.SugarLevel))),
-                borderColor: 'blue',
-                fill: false
-            },
-            {
-                label: 'Temperature',
-                data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.Temperature))),
-                borderColor: 'orange',
-                fill: false
-            },
-            {
-                label: 'Pulse',
-                data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(v => v.PulseRate))),
-                borderColor: 'green',
-                fill: false
-            }
-        ]
-    };
+      // Get data for all vital signs
+    const patientData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+        Model.GroupBy(v => v.Patient?.FirstName + " " + v.Patient?.LastName)
+             .Select(g => new {
+                 PatientName = g.Key,
+                 LatestBP = g.OrderByDescending(v => v.Date).FirstOrDefault()?.BP,
+                 LatestPulse = g.OrderByDescending(v => v.Date).FirstOrDefault()?.PulseRate,
+                 LatestSugar = g.OrderByDescending(v => v.Date).FirstOrDefault()?.SugarLevel,
+                 LatestTemp = g.OrderByDescending(v => v.Date).FirstOrDefault()?.Temperature
+             })
+    ));
 
-    // Initialize chart
+    // Process the data
+    const patientNames = patientData.map(p => p.PatientName);
+    
+    const latestBP = patientData.map(p => {
+        if (!p.LatestBP) return null;
+        const parts = p.LatestBP.split('/');
+        return parts.length > 0 ? parseInt(parts[0]) : null;
+    });
+
+    const latestPulse = patientData.map(p => p.LatestPulse);
+    const latestSugar = patientData.map(p => p.LatestSugar);
+    const latestTemp = patientData.map(p => p.LatestTemp);
+
+    // Create the chart
     var ctx = document.getElementById('vitalsChart').getContext('2d');
-    var chart = new Chart(ctx, {
-        type: 'line',
-        data: vitalsChartData,
+    
+    window.vitalsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: patientNames,
+            datasets: [
+                {
+                    label: 'BP (Systolic)',
+                    data: latestBP,
+                    backgroundColor: '#EF4444',
+                    borderColor: '#DC2626',
+                    borderWidth: 1,
+                    yAxisID: 'y',
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.7
+                },
+                {
+                    label: 'Pulse Rate',
+                    data: latestPulse,
+                    backgroundColor: '#10B981',
+                    borderColor: '#059669',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.7
+                },
+                {
+                    label: 'Sugar Level',
+                    data: latestSugar,
+                    backgroundColor: '#3B82F6',
+                    borderColor: '#1D4ED8',
+                    borderWidth: 1,
+                    yAxisID: 'y2',
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.7
+                },
+                {
+                    label: 'Temperature',
+                    data: latestTemp,
+                    backgroundColor: '#F59E0B',
+                    borderColor: '#D97706',
+                    borderWidth: 1,
+                    yAxisID: 'y3',
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.7
+                }
+            ]
+        },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
+                title: {
+                    display: true,
+                    text: 'Latest Vital Signs by Patient',
+                    font: { size: 16, weight: 'bold' }
+                },
                 legend: {
-                    position: 'bottom'
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            // Show patient name in tooltip title
+                            return patientNames[context[0].dataIndex];
+                        },
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (context.parsed.y !== null) {
+                                // Add units to tooltip
+                                if (label.includes('BP')) label += ': ' + context.parsed.y + ' mmHg';
+                                else if (label.includes('Pulse')) label += ': ' + context.parsed.y + ' bpm';
+                                else if (label.includes('Sugar')) label += ': ' + context.parsed.y + ' mg/dL';
+                                else if (label.includes('Temp')) label += ': ' + context.parsed.y + ' °C';
+                                else label += ': ' + context.parsed.y;
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: { display: true, text: 'BP (mmHg)' },
+                    min: 60,
+                    max: 200
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: { display: true, text: 'Pulse (bpm)' },
+                    min: 40,
+                    max: 120,
+                    grid: { drawOnChartArea: false }
+                },
+                y2: {
+                    type: 'linear',
+                    display: false,
+                    title: { display: true, text: 'Sugar (mg/dL)' }
+                },
+                y3: {
+                    type: 'linear',
+                    display: false,
+                    title: { display: true, text: 'Temp (°C)' }
+                },
+                x: {
+                    display: false, // Hide patient names at bottom
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
                 }
             }
         }
     });
+
+    // Make chart container scrollable
+    const chartContainer = document.querySelector('.chart-container');
+    chartContainer.style.overflowX = 'auto';
+    chartContainer.style.overflowY = 'hidden';
+    
+    // Adjust canvas width based on number of patients
+    const canvas = document.getElementById('vitalsChart');
+    const minWidth = 400; // Minimum width
+    const patientWidth = 100; // Width per patient
+    const calculatedWidth = Math.max(minWidth, patientNames.length * patientWidth);
+    
+    canvas.style.minWidth = calculatedWidth + 'px';
 
     // When delete button is clicked
     document.querySelectorAll('.delete-btn').forEach(button => {
@@ -718,54 +841,51 @@
     });
 
     // When confirm delete is clicked
-    document.getElementById('confirmDelete').addEventListener('click', function () {
-        if (deleteVitalId) {
-            fetch(`/Nurse/DeleteVital/${deleteVitalId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Remove table row
-                    if (deleteRow) deleteRow.remove();
-
-                    // Remove the deleted vital from chart
-                    const index = vitalsChartData.labels.findIndex((label, i) => chart.data.labels[i] === deleteRow.querySelector('td').innerText);
-                    if (index > -1) {
-                        vitalsChartData.labels.splice(index, 1);
-                        vitalsChartData.datasets.forEach(ds => ds.data.splice(index, 1));
-                        chart.update();
-                    }
-
-                    var modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
-                    modal.hide();
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Deleted!',
-                        text: 'Vitals successfully deleted!',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Error deleting vital.'
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+document.getElementById('confirmDelete').addEventListener('click', function () {
+    if (deleteVitalId) {
+        fetch(`/Nurse/DeleteVital/${deleteVitalId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Remove table row
+                if (deleteRow) deleteRow.remove();
+                
+                var modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                modal.hide();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Deleted!',
+                    text: 'Vitals successfully deleted!',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                // Refresh the page to update the chart instead of trying to update it manually
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: 'Something went wrong.'
+                    text: 'Error deleting vital.'
                 });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong.'
             });
-        }
-    });
+        });
+    }
+});
 </script>

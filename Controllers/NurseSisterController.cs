@@ -117,35 +117,7 @@ namespace ONT_3rdyear_Project.Controllers
 
 
         //CRUD for administering
-        /* public async Task<IActionResult> ListAdministered()
-         {
-             var scheduledScripts = await _context.PatientMedicationScripts
-                 .Include(p => p.Prescription)
-                     .Include(pm => pm.Medication).Include(d=>d.Prescription)
-
-                 .Include(p => p.AdministeredBy)
-                 .Include(p => p.VisitSchedule)
-                 .Include(p => p.Patient)
-
-                 .Where(s=>s.isActive) 
-                 .ToListAsync();
-
-             var viewModel = scheduledScripts.Select(m => new AdministerMedicationViewModel
-             {
-                 Id = m.Id,
-                 PatientName = m.Patient.FirstName + " " + m.Patient.LastName,
-                 MedicationName = m.Medication.Name,
-                 Dosage = m.Dosage,
-                 ApplicationUserName = m.AdministeredBy.FullName,
-                 //HasPrescription = m.PrescriptionId != null,
-                 PrescriptionId = m.PrescriptionId,
-                 AdministeredDate = m.AdministeredDate
-             }).ToList();
-
-             return View(viewModel);
-
-
-         }*/
+        
         public async Task<IActionResult> ListAdministered(string searchPatient, DateTime? fromDate, DateTime? toDate)
         {
             var scheduledScripts = await _context.PatientMedicationScripts
@@ -254,7 +226,7 @@ namespace ONT_3rdyear_Project.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateAdminister(int patientId, int? medicationId = null)
         {
-            //var patient = await _context.Patients.FindAsync(patientId);
+            
             var patient = await _context.Patients.Include(p => p.PatientAllergies).ThenInclude(pa => pa.Allergy).FirstOrDefaultAsync(p => p.PatientID == patientId);
 
             if (patient == null) return NotFound();
@@ -346,7 +318,7 @@ namespace ONT_3rdyear_Project.Controllers
             if (vm.RequiresPrescription && vm.PrescriptionId != null)
             {
                 var prescription = await _context.Prescriptions
-                    .Where(p => p.PrescriptionId == vm.PrescriptionId && p.Status == "Approved") // or .IsApproved
+                    .Where(p => p.PrescriptionId == vm.PrescriptionId && p.Status == "Approved") 
                     .FirstOrDefaultAsync();
 
                 if (prescription == null)
@@ -401,7 +373,7 @@ namespace ONT_3rdyear_Project.Controllers
                 return View(vm);
             }
 
-            // Find prescription again (or use cached variable)
+            // Find prescription again
             var script = new PatientMedicationScript
             {
                 PatientId = vm.PatientId,
@@ -481,7 +453,7 @@ namespace ONT_3rdyear_Project.Controllers
 
 
 
-        public async Task<IActionResult> ManageAdministered(int id)
+       /* public async Task<IActionResult> ManageAdministered(int id)
         {
             var medication = await _context.PatientMedicationScripts
                 .Include(p => p.Patient)
@@ -499,7 +471,7 @@ namespace ONT_3rdyear_Project.Controllers
 
 
             return View(medication);
-        }
+        }*/
 
 
 
@@ -701,31 +673,26 @@ namespace ONT_3rdyear_Project.Controllers
             ViewBag.Wards = new SelectList(wards, "WardID", "Name");
             ViewBag.Beds = new SelectList(beds, "BedId", "BedNo");
 
-            /*var patientsQuery = _context.Patients
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Ward)
-                .Include(p => p.Admissions)
-                    .ThenInclude(a => a.Bed)
-                .AsQueryable();*/
+            
             var patientsQuery = (
-        from p in _context.Patients
-        join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
-        from a in admissionGroup.DefaultIfEmpty()
-        join w in _context.Wards on a.WardID equals w.WardID into wardGroup
-        from w in wardGroup.DefaultIfEmpty()
-        join b in _context.Beds on a.BedID equals b.BedId into bedGroup
-        from b in bedGroup.DefaultIfEmpty()
-        join d in _context.Discharges on p.PatientID equals d.PatientID into dischargeGroup
-        from d in dischargeGroup.OrderByDescending(x => x.DischargeDate).Take(1).DefaultIfEmpty()
-        select new
-        {
-            Patient = p,
-            Admission = a,
-            Ward = w,
-            Bed = b,
-            LatestDischarge = d
-        }
-    ).AsQueryable();
+                    from p in _context.Patients
+                    join a in _context.Admissions on p.PatientID equals a.PatientID into admissionGroup
+                    from a in admissionGroup.DefaultIfEmpty()
+                    join w in _context.Wards on a.WardID equals w.WardID into wardGroup
+                    from w in wardGroup.DefaultIfEmpty()
+                    join b in _context.Beds on a.BedID equals b.BedId into bedGroup
+                    from b in bedGroup.DefaultIfEmpty()
+                    join d in _context.Discharges on p.PatientID equals d.PatientID into dischargeGroup
+                    from d in dischargeGroup.OrderByDescending(x => x.DischargeDate).Take(1).DefaultIfEmpty()
+                    select new
+                    {
+                        Patient = p,
+                        Admission = a,
+                        Ward = w,
+                        Bed = b,
+                        LatestDischarge = d
+                    }
+                ).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(query))
             {
@@ -759,7 +726,7 @@ namespace ONT_3rdyear_Project.Controllers
             return PartialView("_PatientSearchResults", viewModel);
         }
 
-        public async Task<IActionResult> GetDosage(int prescriptionId, int medicationId)
+       /* public async Task<IActionResult> GetDosage(int prescriptionId, int medicationId)
         {
             var prescribedMed = await _context.PrescribeMedications
                 .FirstOrDefaultAsync(pm => pm.PrescriptionId == prescriptionId && pm.MedicationId == medicationId);
@@ -768,7 +735,7 @@ namespace ONT_3rdyear_Project.Controllers
                 return NotFound();
 
             return Json(new { dosage = prescribedMed.Dosage });
-        }
+        }*/
 
 
         public async Task<IActionResult> LiveSearchAll()
@@ -799,72 +766,7 @@ namespace ONT_3rdyear_Project.Controllers
         }
 
 
-        /* public async Task<IActionResult> DownloadPrescription(int id)
-         {
-             var prescription = await _context.Prescriptions
-                 .Include(p => p.Patient)
-                 .Include(p => p.User)
-                 .Include(p => p.Prescribed_Medication)
-                     .ThenInclude(pm => pm.Medication)
-                 .FirstOrDefaultAsync(p => p.PrescriptionId == id);
-
-             if (prescription == null) return NotFound();
-
-             using (var ms = new MemoryStream())
-             {
-                 var doc = new Document(PageSize.A4, 50, 50, 50, 50);
-                 PdfWriter.GetInstance(doc, ms);
-                 doc.Open();
-
-                 // Title
-                 var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
-                 doc.Add(new Paragraph("Prescription", titleFont));
-                 doc.Add(new Paragraph("\n"));
-
-                 // Patient & Doctor Info
-                 doc.Add(new Paragraph($"Prescription ID: {prescription.PrescriptionId}"));
-                 doc.Add(new Paragraph($"Patient: {prescription.Patient.FirstName} {prescription.Patient.LastName}"));
-                 doc.Add(new Paragraph($"Issued By: {prescription.User.FullName}"));
-                 doc.Add(new Paragraph($"Date Issued: {prescription.DateIssued.ToString("yyyy-MM-dd")}"));
-                 doc.Add(new Paragraph("\n"));
-
-                 // Prescription instruction
-                 doc.Add(new Paragraph("Instruction:"));
-                 //doc.Add(new Paragraph(prescription.PrescriptionInstruction ?? "N/A"));
-                 doc.Add(new Paragraph("\n"));
-
-                 // Table of Medications
-                 if (prescription.Prescribed_Medication.Any())
-                 {
-                     var table = new PdfPTable(3); // Columns: Medication, Dosage, Schedule
-                     table.WidthPercentage = 100;
-
-                     // Header
-                     var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
-                     table.AddCell(new Phrase("Medication", headerFont));
-                     table.AddCell(new Phrase("Dosage", headerFont));
-                     table.AddCell(new Phrase("Schedule", headerFont));
-
-                     foreach (var pm in prescription.Prescribed_Medication)
-                     {
-                         table.AddCell(pm.Medication?.Name ?? "N/A");
-                         table.AddCell(pm.Dosage ?? "N/A");
-                         table.AddCell(pm.Medication?.Schedule.ToString() ?? "N/A");
-                     }
-
-                     doc.Add(table);
-                 }
-                 else
-                 {
-                     doc.Add(new Paragraph("No medications listed for this prescription."));
-                 }
-
-                 doc.Close();
-
-                 return File(ms.ToArray(), "application/pdf", $"Prescription_{prescription.Patient.FirstName}_{prescription.Patient.LastName}.pdf");
-             }
-         }*/
-
+        
         public async Task<IActionResult> DownloadPrescription(int id)
         {
             var prescription = await _context.Prescriptions

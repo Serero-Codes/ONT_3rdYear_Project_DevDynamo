@@ -470,6 +470,20 @@
         margin-left: 30%;
         border-radius: 50px;
     }
+
+    .patients-table-scroll {
+        max-height: 300px; /* adjust so ~3 rows fit */
+        overflow-y: auto;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch; 
+        display: block;
+    }
+
+        /* Ensure table doesn’t shrink on small screens */
+        .patients-table-scroll .custom-table {
+            min-width: 800px; 
+            width: 100%;
+        }
 </style>
 
 <div class="container patients-container">
@@ -511,99 +525,103 @@
     </div>
 
 
-    <table class="custom-table">
-        <thead>
-            <tr>
-                <th><i class="fas fa-user"></i> Patient Name</th>
-                <th><i class="fas fa-home"></i> Ward</th>
-                <th><i class="fas fa-bed"></i> Bed</th>
-                <th>Status</th>
-                <th><i class="fas fa-cogs"></i> Actions</th>
-            </tr>
-        </thead>
-        <tbody id="searchResults">
-            @foreach (var patient in Model)
-            {
-                <tr>
-                    <td>
-                        <div class="patient-info">
-                            <div class="patient-avatar">
-                                @(patient.FirstName?.Substring(0, 1))@(patient.LastName?.Substring(0, 1))
-                            </div>
-                            <div>
-                                <div class="patient-name">@patient.FirstName @patient.LastName</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        @if (patient.Status == "Discharged")
-                        {
-                            <span class="ward-badge">N/A</span>
-                        }
-                        else
-                        {
-                            <span class="ward-badge">@patient.WardName</span>
-                        }
-                    </td>
-                    <td>
-                        @if (patient.Status == "Discharged")
-                        {
-                            <span class="bed-badge">N/A</span>
-                        }
-                        else
-                        {
-                            <span class="bed-badge">Bed @patient.BedNo</span>
-                        }
-                    </td>
-                    <td>
-                        @switch (patient.Status)
-                        {
-                            case "Admitted":
-                                <span class="badge bg-success">Admitted</span>
-                                ;
-                                break;
-                            case "Discharged":
-                                <span class="badge bg-secondary">Discharged</span>
-                                ;
-                                break;
-                            default:
-                                <span class="badge bg-danger">Not Admitted</span>
-                                ;
-                                break;
-                        }
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <a asp-controller="Nurse" asp-action="ViewAdvice" asp-route-patientId="@patient.PatientID" class="action-btn btn-view-instructions"
-                               onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
-                                <i class="fas fa-eye"></i>
-                                View Instructions
-                            </a>
-                            <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="action-btn btn-vitals">
-                                <i class="fas fa-heartbeat"></i>
-                                Vitals
-                            </a>
-                            <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment"
-                               onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
-                                <i class="fas fa-user-md"></i>
-                                Treatment
-                            </a>
-                            <a asp-controller="NurseSister" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication"
-                               onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
-                                <i class="fas fa-pills"></i>
-                                Medication
-                            </a>
-                            <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions"
-                               onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
-                                <i class="fas fa-clipboard-list"></i>
-                                Instructions
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="table-wrapper">
+        <div class="table-responsive patients-table-scroll">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-user"></i> Patient Name</th>
+                        <th><i class="fas fa-home"></i> Ward</th>
+                        <th><i class="fas fa-bed"></i> Bed</th>
+                        <th>Status</th>
+                        <th><i class="fas fa-cogs"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="searchResults">
+                    @foreach (var patient in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="patient-info">
+                                    <div class="patient-avatar">
+                                        @(patient.FirstName?.Substring(0, 1))@(patient.LastName?.Substring(0, 1))
+                                    </div>
+                                    <div>
+                                        <div class="patient-name">@patient.FirstName @patient.LastName</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @if (patient.Status == "Discharged")
+                                {
+                                    <span class="ward-badge">N/A</span>
+                                }
+                                else
+                                {
+                                    <span class="ward-badge">@patient.WardName</span>
+                                }
+                            </td>
+                            <td>
+                                @if (patient.Status == "Discharged")
+                                {
+                                    <span class="bed-badge">N/A</span>
+                                }
+                                else
+                                {
+                                    <span class="bed-badge">Bed @patient.BedNo</span>
+                                }
+                            </td>
+                            <td>
+                                @switch (patient.Status)
+                                {
+                                    case "Admitted":
+                                        <span class="badge bg-success">Admitted</span>
+                                        ;
+                                        break;
+                                    case "Discharged":
+                                        <span class="badge bg-secondary">Discharged</span>
+                                        ;
+                                        break;
+                                    default:
+                                        <span class="badge bg-danger">Not Admitted</span>
+                                        ;
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-controller="Nurse" asp-action="ViewAdvice" asp-route-patientId="@patient.PatientID" class="action-btn btn-view-instructions"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
+                                        <i class="fas fa-eye"></i>
+                                        View Instructions
+                                    </a>
+                                    <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="action-btn btn-vitals">
+                                        <i class="fas fa-heartbeat"></i>
+                                        Vitals
+                                    </a>
+                                    <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
+                                        <i class="fas fa-user-md"></i>
+                                        Treatment
+                                    </a>
+                                    <a asp-controller="NurseSister" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
+                                        <i class="fas fa-pills"></i>
+                                        Medication
+                                    </a>
+                                    <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
+                                        <i class="fas fa-clipboard-list"></i>
+                                        Instructions
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Admission Warning Modal -->
