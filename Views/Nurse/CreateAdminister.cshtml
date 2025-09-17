@@ -22,11 +22,21 @@
         <!-- Main Form Card -->
         <div class="medication-form-card">
 
-           
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <p>@error.ErrorMessage</p>
+                    }
+                </div>
+            }
 
             <!-- Medication Form -->
             <form asp-action="CreateAdminister" method="post">
-                <input type="hidden" name="PatientId" value="@ViewBag.PatientId" />
+                <input type="hidden" asp-for="PatientId" value="@ViewBag.PatientId" />
+                <!-- Add this hidden field inside your form -->
+                <input type="hidden" asp-for="ApplicationUserID" value="@UserManager.GetUserId(User)" />
 
                 <!-- Patient Name (Read-only) -->
                 <div class="form-group-custom">
@@ -95,11 +105,11 @@
 
                 <!-- Action Buttons -->
                 <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-save">
+                    <button type="submit" class="btn btn-save" id="submitButton">
                         <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
                         Administer & Record
                     </button>
-                    <a href="javascript:history.back()" class="btn btn-back" id="saveButton">
+                    <a href="javascript:history.back()" class="btn btn-back">
                         <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
                         Cancel
                     </a>
@@ -467,7 +477,7 @@
 
              var patientAllergies = @Html.Raw(Json.Serialize(ViewBag.PatientAllergies ?? new List<string>()));
         var medicationSelect = document.getElementById("medicationSelect");
-        var saveButton = document.getElementById("saveButton");
+        var saveButton = document.getElementById("submitButton");
 
         function checkAllergy() {
             var selectedMedication = medicationSelect.options[medicationSelect.selectedIndex].text || "";

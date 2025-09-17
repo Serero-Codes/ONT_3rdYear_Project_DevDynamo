@@ -835,6 +835,8 @@ namespace ONT_3rdyear_Project.Controllers
                 else
                     ModelState.AddModelError("TreatmentTypeOther", "Please specify the treatment type.");
             }
+            
+
 
             if (!ModelState.IsValid)
             {
@@ -1225,7 +1227,7 @@ namespace ONT_3rdyear_Project.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Medication is out of stock!");
+                    ModelState.AddModelError("", "This Medication is out of stock!");
                     ViewBag.PatientId = patient?.PatientID;
                     ViewBag.PatientName = $"{patient?.FirstName} {patient?.LastName}";
                     ViewBag.MedicationList = _context.Medications.ToList();
