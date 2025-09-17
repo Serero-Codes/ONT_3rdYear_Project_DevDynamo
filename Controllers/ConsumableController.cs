@@ -7,9 +7,11 @@ using ONT_3rdyear_Project.Data;
 using ONT_3rdyear_Project.Models;
 using ONT_3rdyear_Project.StaticHelper;
 using ONT_3rdyear_Project.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ONT_3rdyear_Project.Controllers
 {
+    [Authorize(Roles = "ConsumableManager,Admin")]
     public class ConsumableController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -25,13 +27,13 @@ namespace ONT_3rdyear_Project.Controllers
            var orders = await _context.Orders.Include(o => o.Ward)
            .Include(o => o.ConsumableOrders)
            .ThenInclude(o => o.Consumable).ToListAsync();
-            ViewBag.FinalOrders = orders.Where(s => s.Status == "Delivered" || s.Status == "Rejected").ToList();
-            ViewBag.ProcessOrders = orders.Where(s => s.Status == "pending" || s.Status == "Approved").ToList();
+            ViewBag.FinalOrders = orders.Where(s => s.Status == "Delivered" || s.Status == "Rejected"  && s.OrderDate >= DateTime.Now.AddDays(-7)).ToList();
+            ViewBag.ProcessOrders = orders.Where(s => s.Status == "Pending" || s.Status == "pending"|| s.Status == "Approved").ToList();
             //return to the Dashboardy
             ViewBag.TotalConsumables = await _context.Consumables
                 .Where(c => c.IsDeleted == false)
                 .CountAsync();
-             ViewBag.PendingOrders = await _context.Orders.Where(s => s.Status == "pending")
+             ViewBag.PendingOrders = await _context.Orders.Where(s => s.Status == "Pending" || s.Status == "pending")
                 .CountAsync();
             ViewBag.CriticalStock = await _context.WardConsumables
                 .Where(c => c.Quantity <= 10 )
@@ -44,12 +46,62 @@ namespace ONT_3rdyear_Project.Controllers
         public async Task<IActionResult> ApprovedOrders()
         {
             var orders = await _context.Orders.Include(o => o.Ward)
-            .Where(s => s.Status == "pending" || s.Status == "Approved")
+            .Where(s => s.Status == "Pending" || s.Status == "pending" || s.Status == "Approved")
             .Include(o => o.User)
             .Include(o => o.ConsumableOrders)
             .ThenInclude(o => o.Consumable).ToListAsync();
             
             return View(orders);
+        }
+        public async Task<IActionResult> OrderHistory()
+        {
+            var orders = await _context.Orders.Include(o => o.Ward)
+            .Where(s => s.Status == "Delivered" || s.Status == "Rejected")
+            .Include(o => o.Supplier)
+            .Include(o => o.User)
+            .Include(o => o.ConsumableOrders)
+            .ThenInclude(o => o.Consumable).ToListAsync();
+
+            return View(orders);
+        }
+        public async Task<IActionResult> FullInventory()
+        {
+            var orders = await _context.Orders.Include(o => o.Ward)           
+            .Include(o => o.Supplier)
+            .Include(o => o.User)
+            .Include(o => o.ConsumableOrders)
+            .ThenInclude(o => o.Consumable)
+            .OrderByDescending(o => o.Status == "Pending")
+            .ToListAsync();
+
+            return View(orders);
+        }
+         // Add new Ward on the System
+        [HttpGet]
+
+        public IActionResult AddWard(bool partial = false)
+        {
+            if (partial)
+            {
+                return PartialView("AddWard", new Ward());
+            }
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddWard(Ward wardView)
+        { 
+            wardView.IsActive = true;
+         
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, See your system administrator.");
+                return View(wardView);
+            }
+            _context.Wards.Add(wardView);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
+            
         }
         public async Task<IActionResult> Wards(string searchString)
         {
@@ -158,7 +210,7 @@ namespace ONT_3rdyear_Project.Controllers
         //View Consumables inside a Ward
         public async Task<IActionResult> WardConsumables()
         {
-            var data = await _context.WardConsumables.Where(wc => wc.Consumable.IsDeleted == false)
+            var data = await _context.WardConsumables.Where(wc => wc.Consumable.IsDeleted == false )
                   .OrderBy(wc => wc.Ward.Name)
                   .Include(wc => wc.Ward)
                   .Include(wc => wc.Consumable)
@@ -193,6 +245,53 @@ namespace ONT_3rdyear_Project.Controllers
                   }).ToListAsync();
 
             return View(data);
+        }
+        // Search Consumables in a Ward
+        [HttpGet]
+        public async Task<IActionResult> SearchConsumablesInWard(int wardId, string searchString)
+        {   
+            var consumables = _context.WardConsumables
+                .Where(wc => wc.Consumable.IsDeleted == false);
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                consumables = consumables.Where(wc => wc.Consumable.Name.Contains(searchString) || wc.Consumable.Category.Contains(searchString));
+            }
+
+            var result = await consumables
+                .Include(wc => wc.Ward)
+                .Include(wc => wc.Consumable)
+                .Select(wc => new WardConsumableViewModel
+                {
+                    WardID = wardId,
+                    WardName = wc.Ward.Name,
+                    ConsumableID = wc.ConsumableID,
+                    ConsumableName = wc.Consumable.Name,
+                    Category = wc.Consumable.Category,
+                    SystemQuantity = wc.Consumable.StockTakeItems
+                      .Where(sti => sti.ConsumableID == wc.ConsumableID && sti.StockTake.WardID == wc.WardID)
+                      .OrderByDescending(sti => sti.StockTake.StockTakeDate)
+                      .Select(sti => sti.SystemQuantity)
+                      .FirstOrDefault(),
+                    QuantityCounted = wc.Consumable.StockTakeItems
+                      .Where(sti => sti.ConsumableID == wc.ConsumableID && sti.StockTake.WardID == wc.WardID)
+                      .OrderByDescending(sti => sti.StockTake.StockTakeDate)
+                      .Select(sti => sti.QuantityCounted)
+                      .FirstOrDefault(),
+                    Discrepancy = wc.Consumable.StockTakeItems
+                      .Where(sti => sti.ConsumableID == wc.ConsumableID && sti.StockTake.WardID == wc.WardID)
+                      .OrderByDescending(sti => sti.StockTake.StockTakeDate)
+                      .Select(sti => sti.Discrepancy)
+                      .FirstOrDefault(),
+                    LastUpdated = wc.Consumable.StockTakeItems
+                      .Where(sti => sti.ConsumableID == wc.ConsumableID && sti.StockTake.WardID == wc.WardID)
+                      .OrderByDescending(sti => sti.StockTake.StockTakeDate)
+                      .Select(sti => sti.StockTake.StockTakeDate)
+                      .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return View("WardConsumables",result);
         }
         //Retrieve data for stock take as Json
         public async Task<IActionResult> GetConsumablesByWard(int wardId)
@@ -501,7 +600,7 @@ namespace ONT_3rdyear_Project.Controllers
             //temp
             model.SupplierID = s.SupplierId;
             model.OrderDate = DateTime.Now;
-            model.Status = "pending";          
+            model.Status = "Pending";          
             model.ConsumableOrders
             .Where(i => i.ConsumableId > 0 && i.QuantityRequested > 0)
             .Select(i =>  new ConsumableOrder 
@@ -516,8 +615,8 @@ namespace ONT_3rdyear_Project.Controllers
             ViewBag.Consumables = new SelectList(_context.Consumables.Include(c => c.WardConsumables).Where(c => c.WardConsumables.Any(ws => ws.WardID == i)), "ConsumableId", "Name");
             _context.Orders.Add(model);
             await _context.SaveChangesAsync();
-
-            return RedirectToAction("Index");
+            TempData["Message"] = "Order of Consumables Successful";
+            return RedirectToAction("Dashboard");
         }
         //Get a list of Order Requests
         [HttpGet]
@@ -607,13 +706,8 @@ namespace ONT_3rdyear_Project.Controllers
                     }
 
                 }
-            }
-            
-
-        
-
+            } 
             await _context.SaveChangesAsync();
-
             return RedirectToAction("ListOfOrders");
         }
     }

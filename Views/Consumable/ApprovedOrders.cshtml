@@ -1,7 +1,7 @@
 @model IEnumerable<ONT_3rdyear_Project.Models.Order>
 
 @{
-    ViewData["Title"] = "Approved Requests";
+    ViewData["Title"] = "Approved Orders";
 }
 
 
@@ -9,10 +9,8 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class=" mb-0 text-nowrap">Approved Requests</h1>
-                <div class="btn-group gap-2">
-                    <a asp-controller="Consumable" asp-action="StockTake" class="btn btn-primary mt-2">New Stock Take</a>
-                    <a asp-controller="Consumable" asp-action="OrderConsumables" class="btn btn-success mt-2">New Order</a>
+                <h1 class=" mb-0 text-nowrap">Approved Orders</h1>
+                <div class="btn-group gap-2">                   
                     <a asp-controller="Consumable" asp-action="Dashboard" class="btn btn-secondary mt-2 text-nowrap">Back</a>
                 </div>
             </div>

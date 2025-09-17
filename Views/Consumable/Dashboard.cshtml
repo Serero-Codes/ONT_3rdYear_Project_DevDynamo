@@ -69,16 +69,19 @@
                         <a asp-controller="Consumable" asp-action="ApprovedOrders" class="btn btn-outline-success btn-block mb-2">
                             <i class="fas fa-arrow-down"></i> Receive Delivery
                         </a>
-                        <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="WardConsumables">WardConsumables</a>
+                        <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="WardConsumables">Stock Management</a>
                         <a asp-controller="Consumable" asp-action="ListOfOrders" class="btn btn-secondary mb-2 text-nowrap">View Requests</a>
                         <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="Index">Consumables</a>
                         <a class="btn btn-outline-success btn-block mb-2" asp-area="" asp-controller="Consumable" asp-action="Wards">Wards</a>
 
                     </div>
                     <div class="col-md-6">
-                        <a href="/StockManager/Orders" class="btn btn-outline-info btn-block mb-2">
-                            <i class="fas fa-list"></i> View Orders History
+                         <a asp-action="FullInventory" class="btn btn-outline-secondary btn-block mb-2">
+                            <i class="fas fa-chart-bar"></i> Full Inventory
                         </a>
+                        <a asp-action="OrderHistory" class="btn btn-outline-info btn-block mb-2">
+                            <i class="fas fa-list"></i> View Orders History
+                        </a>                        
                         <a href="/StockManager/Reports" class="btn btn-outline-secondary btn-block mb-2">
                             <i class="fas fa-chart-bar"></i> Generate Reports
                         </a>
@@ -89,7 +92,8 @@
     </div>
 </div>
 <!-- Recent Activity -->
-<div class="row">
+<div  class="row">
+<a asp-action="OrderHistory" class="text-decoration-none text-dark">
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
@@ -137,9 +141,11 @@
                     }
             </div>
         </div>
+        </a>
     </div>
 
     <div class="col-md-6">
+    <a asp-action="ApprovedOrders" class="text-decoration-none text-dark">
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">Upcoming Deliveries</h5>
@@ -201,6 +207,7 @@
               
             </div>
         </div>
-    </div>
+          </a>
+    </div>  
 </div>
 
