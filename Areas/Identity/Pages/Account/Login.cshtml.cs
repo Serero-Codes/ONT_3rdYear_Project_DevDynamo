@@ -117,6 +117,12 @@ namespace ONT_3rdyear_Project.Areas.Identity.Pages.Account
                     else if (await _userManager.IsInRoleAsync(user, "Admin"))
                     {
                         return LocalRedirect("~/Admin/Dashboard"); // Adjust path to your admin dashboard
+                    }else if (await _userManager.IsInRoleAsync(user, "ScriptManager"))
+                    {
+                        return LocalRedirect("~/Script/Dashboard"); // Adjust path to your admin dashboard
+                    }else if (await _userManager.IsInRoleAsync(user, "ConsumableManager"))
+                    {
+                        return LocalRedirect("~/Consumable/Dashboard"); // Adjust path to your admin dashboard
                     }
 
                     // Default redirect
