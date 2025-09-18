@@ -22,6 +22,16 @@
         </div>
 
         <div class="medication-form-card">
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <p>@error.ErrorMessage</p>
+                    }
+                </div>
+            }
             <form asp-action="CreateAdminister" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="PatientId" />
