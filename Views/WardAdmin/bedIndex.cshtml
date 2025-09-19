@@ -1,81 +1,487 @@
 ﻿@model IEnumerable<ONT_3rdyear_Project.Models.Bed>
 @{
-	ViewData["Title"] = "Available Beds";
+	ViewData["Title"] = "Bed Management";
+    var totalBeds = ViewBag.TotalBeds ?? 0;
+    var occupiedBeds = ViewBag.OccupiedBeds ?? 0;
+    var occupancyRate = totalBeds > 0 ? (int)((occupiedBeds * 100.0) / totalBeds) : 0;
 }
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-hospital-bed me-2"></i> Available Beds</h4>
 
-            <!-- Filter Form -->
-            <form method="get" asp-action="bedIndex" class="d-flex">
-                <select name="wardId" class="form-select me-2" onchange="this.form.submit()"
-                        asp-items="ViewBag.WardsSelectList">
-                    <option value="">-- All Wards --</option>
-                </select>
-                <noscript>
-                    <button type="submit" class="btn btn-light">Filter</button>
-                </noscript>
-            </form>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"> 
+<link href="~/css/WardAdmin/BedIndex.css" rel="stylesheet" />
+
+<div class="bed-management-wrapper">
+    <!-- Header Section -->
+    <div class="bed-header">
+        <div class="header-content">
+            <div class="back-navigation">
+                <a asp-action="Index" asp-controller="WardAdmin" class="btn-back">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="bed-title-section">
+                <h1 class="bed-title">
+                    <i class="bi bi-hospital"></i>
+                    Bed Management System
+                </h1>
+                <p class="bed-subtitle">Monitor bed availability and occupancy across all wards</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="refreshBedStatus()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Refresh Status
+                </button>
+                <button class="btn btn-outline-secondary" onclick="exportBedData()">
+                    <i class="bi bi-download"></i>
+                    Export
+                </button>
+            </div>
         </div>
+    </div>
 
-        <div class="card-body">
-            <!-- Summary Count -->
-            <div class="alert alert-secondary shadow-sm">
-                <i class="bi bi-info-circle-fill me-2"></i>
-                <strong>@ViewBag.AvailableCount</strong> bed(s) available
-                @if (ViewBag.SelectedWardId != null)
-                {
-                    <span> in this ward.</span>
-                }
-                else
-                {
-                    <span> across all wards.</span>
-                }
+    <!-- Statistics Dashboard -->
+    <div class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-card total-beds">
+                <div class="stat-icon">
+                    <i class="bi bi-hospital-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">@ViewBag.TotalBeds</h3>
+                    <p class="stat-label">Total Beds</p>
+                </div>
+            </div>
+            <div class="stat-card available-beds">
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number pulse">@ViewBag.AvailableBeds</h3>
+                    <p class="stat-label">Available</p>
+                </div>
+            </div>
+            <div class="stat-card occupied-beds">
+                <div class="stat-icon">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">@ViewBag.OccupiedBeds</h3>
+                    <p class="stat-label">Occupied</p>
+                </div>
+            </div>
+            <div class="stat-card occupancy-rate">
+                <div class="stat-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">@occupancyRate%</h3>
+                    <p class="stat-label">Occupancy Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search Section -->
+    <div class="filters-section">
+        <div class="filters-container">
+            <div class="search-section">
+                <div class="search-input-group">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" id="bedSearch" class="search-input" placeholder="Search by bed number or ward..." />
+                    <button class="search-clear" onclick="clearSearch()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
             </div>
 
-            @if (!Model.Any())
-            {
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle-fill me-2"></i>
-                    No available beds found for the selected ward.
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Bed No</th>
-                                <th>Ward</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var bed in Model)
-                            {
-                                <tr>
-                                    <td>@bed.BedNo</td>
-                                    <td>@bed.Ward.Name</td>
-                                    <td>
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle-fill"></i> Available
-                                        </span>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+            <div class="filter-controls">
+                <form method="get" asp-action="bedIndex" class="filter-form">
+                    <div class="filter-group">
+                        <label class="filter-label">Ward Filter:</label>
+                        <select name="wardId" class="filter-select" onchange="this.form.submit()" asp-items="ViewBag.WardsSelectList">
+                            <option value="">All Wards</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Status:</label>
+                        <select class="filter-select" id="statusFilter" onchange="filterByStatus()">
+                            <option value="">All Status</option>
+                            <option value="available">Available</option>
+                            <option value="occupied">Occupied</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">View:</label>
+                        <div class="view-toggle">
+                            <button type="button" class="view-btn active" data-view="grid" onclick="toggleView('grid')">
+                                <i class="bi bi-grid-3x3"></i>
+                            </button>
+                            <button type="button" class="view-btn" data-view="table" onclick="toggleView('table')">
+                                <i class="bi bi-table"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-            <!-- Back Button -->
-            <div class="d-flex justify-content-end mt-3">
-                <a asp-action="Index" asp-controller="WardAdmin" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Back
-                </a>
+    <!-- Bed Content Section -->
+    <div class="bed-content">
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-hospital"></i>
+                </div>
+                <h3 class="empty-state-title">No Beds Found</h3>
+                <p class="empty-state-description">
+                    No beds match your current filter criteria. Try adjusting your filters or check back later.
+                </p>
+                <button class="btn btn-primary" onclick="clearAllFilters()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Clear Filters
+                </button>
+            </div>
+        }
+        else
+        {
+            <!-- Grid View (Default) -->
+            <div class="bed-grid-view active" id="gridView">
+                <div class="ward-sections">
+                    @{
+                        var bedsByWard = Model.GroupBy(b => b.Ward?.Name ?? "Unassigned Ward");
+                    }
+                    @foreach (var wardGroup in bedsByWard)
+                    {
+                        var availableCount = wardGroup.Count(b => !b.IsOccupied);
+                        <div class="ward-section">
+                            <div class="ward-header">
+                                <h3 class="ward-title">
+                                    <i class="bi bi-building"></i>
+                                    @wardGroup.Key
+                                </h3>
+                                <div class="ward-stats">
+                                    <span class="ward-bed-count">@wardGroup.Count() beds</span>
+                                    <span class="ward-availability">@availableCount available</span>
+                                </div>
+                            </div>
+                            <div class="bed-grid">
+                                @foreach (var bed in wardGroup.OrderBy(b => b.BedNo))
+                                {
+                                    <div class="bed-card" data-bed-id="@bed.BedId" data-status="@(bed.IsOccupied ? "occupied" : "available")" data-ward="@bed.Ward?.Name">
+                                        <div class="bed-card-header">
+                                            <div class="bed-number">@bed.BedNo</div>
+                                            <div class="bed-status-indicator @(bed.IsOccupied ? "occupied" : "available")">
+                                                <i class="bi @(bed.IsOccupied ? "bi-person-fill" : "bi-check-circle-fill")"></i>
+                                            </div>
+                                        </div>
+                                        <div class="bed-card-body">
+                                            <div class="bed-info">
+                                                <div class="bed-detail">
+                                                    <i class="bi bi-building text-muted"></i>
+                                                    <span>@bed.Ward?.Name</span>
+                                                </div>
+                                                <div class="bed-detail">
+                                                    <i class="bi @(bed.IsOccupied ? "bi-person text-warning" : "bi-check-circle text-success")"></i>
+                                                    <span>@(bed.IsOccupied ? "Occupied" : "Available")</span>
+                                                </div>   
+                                            </div>
+                                            <div class="bed-actions">
+                                                <button class="bed-action-btn" onclick="viewBedDetails(@bed.BedId)" title="View Details">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                @if (!bed.IsOccupied)
+                                                {
+                                                    <a asp-action="AdmitPatientStep1" class="bed-action-btn" title="Assign Patient">
+                                                        <i class="bi bi-person-plus"></i>
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <button class="bed-action-btn" onclick="viewPatientDetails(@bed.BedId)" title="View Patient">
+                                                        <i class="bi bi-person"></i>
+                                                    </button>
+                                                }
+                                                <button class="bed-action-btn" onclick="setBedMaintenance(@bed.BedId)" title="Set Maintenance">
+                                                    <i class="bi bi-tools"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Table View -->
+            <div class="bed-table-view" id="tableView">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">Bed Inventory</h3>
+                        <div class="table-controls">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="selectAllBeds()">
+                                <i class="bi bi-check-square"></i> Select All
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="bulkActions()">
+                                <i class="bi bi-gear"></i> Bulk Actions
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="beds-table" id="bedsTable">
+                            <thead>
+                                <tr>
+                                    <th class="select-column">
+                                        <input type="checkbox" class="select-all-checkbox" onchange="toggleSelectAll()">
+                                    </th>
+                                    <th class="sortable" data-sort="bedNo">
+                                        <i class="bi bi-hospital"></i> Bed Number
+                                        <i class="bi bi-chevron-expand sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="ward">
+                                        <i class="bi bi-building"></i> Ward
+                                        <i class="bi bi-chevron-expand sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="status">
+                                        Status
+                                        <i class="bi bi-chevron-expand sort-icon"></i>
+                                    </th>                                 
+                                    <th class="sortable" data-sort="patient">
+                                        Current Patient
+                                        <i class="bi bi-chevron-expand sort-icon"></i>
+                                    </th>
+                                    <th class="actions-column">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var bed in Model.OrderBy(b => b.Ward.Name).ThenBy(b => b.BedNo))
+                                {
+                                    <tr class="bed-row" data-bed-id="@bed.BedId" data-status="@(bed.IsOccupied ? "occupied" : "available")">
+                                        <td class="select-column">
+                                            <input type="checkbox" class="bed-checkbox" value="@bed.BedId">
+                                        </td>
+                                        <td class="bed-number-cell">
+                                            <div class="bed-number-display">
+                                                <strong>@bed.BedNo</strong>
+                                            </div>
+                                        </td>
+                                        <td class="ward-cell">
+                                            <div class="ward-info">
+                                                <i class="bi bi-building text-primary"></i>
+                                                <span>@bed.Ward?.Name</span>
+                                            </div>
+                                        </td>
+                                        <td class="status-cell">
+                                            <span class="status-badge status-@(bed.IsOccupied ? "occupied" : "available")">
+                                                <i class="bi @(bed.IsOccupied ? "bi-person-fill" : "bi-check-circle-fill")"></i>
+                                                @(bed.IsOccupied ? "Occupied" : "Available")
+                                            </span>
+                                        </td>
+                                        <td class="patient-cell">
+                                            @if (bed.IsOccupied)
+                                            {
+                                                <span class="has-patient">
+                                                    <i class="bi bi-person-check text-warning"></i>
+                                                    Patient Assigned
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="no-patient">
+                                                    <i class="bi bi-dash-circle text-muted"></i>
+                                                    No patient assigned
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="actions-cell">
+                                            <div class="table-actions">
+                                                <button class="action-btn btn-view" onclick="viewBedDetails(@bed.BedId)" title="View Details">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                @if (!bed.IsOccupied)
+                                                {
+                                                    <a asp-action="AdmitPatientStep1" class="action-btn btn-assign" title="Assign Patient">
+                                                        <i class="bi bi-person-plus"></i>
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <button class="action-btn btn-patient" onclick="viewPatientDetails(@bed.BedId)" title="View Patient">
+                                                        <i class="bi bi-person"></i>
+                                                    </button>
+                                                }
+                                                <button class="action-btn btn-maintenance" onclick="setBedMaintenance(@bed.BedId)" title="Maintenance">
+                                                    <i class="bi bi-tools"></i>
+                                                </button>
+                                                <div class="dropdown">
+                                                    <button class="action-btn btn-more dropdown-toggle" data-bs-toggle="dropdown">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <a class="dropdown-item" href="#" onclick="viewBedHistory(@bed.BedId)">
+                                                                <i class="bi bi-clock-history"></i> View History
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="#" onclick="editBedDetails(@bed.BedId)">
+                                                                <i class="bi bi-pencil"></i> Edit Details
+                                                            </a>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <a class="dropdown-item text-danger" href="#" onclick="deactivateBed(@bed.BedId)">
+                                                                <i class="bi bi-x-circle"></i> Deactivate
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Bed Details Modal -->
+<div class="modal fade" id="bedDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-hospital"></i>
+                    Bed Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="bedDetailsContent">
+                <!-- Content will be loaded dynamically -->
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // View toggle functionality
+        function toggleView(viewType) {
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-view="${viewType}"]`).classList.add('active');
+
+            document.getElementById('gridView').classList.toggle('active', viewType === 'grid');
+            document.getElementById('tableView').classList.toggle('active', viewType === 'table');
+        }
+
+        // Filter functionality
+        function filterByStatus() {
+            const status = document.getElementById('statusFilter').value;
+            const bedCards = document.querySelectorAll('.bed-card');
+            const bedRows = document.querySelectorAll('.bed-row');
+
+            [bedCards, bedRows].forEach(collection => {
+                collection.forEach(item => {
+                    const itemStatus = item.getAttribute('data-status');
+                    if (!status || itemStatus === status) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('bedSearch').value = '';
+            filterBeds();
+        }
+
+        function clearAllFilters() {
+            document.getElementById('bedSearch').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.querySelectorAll('.bed-card, .bed-row').forEach(item => {
+                item.style.display = '';
+            });
+        }
+
+        // Search functionality
+        document.getElementById('bedSearch').addEventListener('input', function() {
+            filterBeds();
+        });
+
+        function filterBeds() {
+            const searchTerm = document.getElementById('bedSearch').value.toLowerCase();
+            const bedCards = document.querySelectorAll('.bed-card');
+            const bedRows = document.querySelectorAll('.bed-row');
+
+            [bedCards, bedRows].forEach(collection => {
+                collection.forEach(item => {
+                    const bedNumber = item.querySelector('.bed-number, .bed-number-display')?.textContent.toLowerCase() || '';
+                    const wardName = item.getAttribute('data-ward') || '';
+                    const matchesSearch = bedNumber.includes(searchTerm) || wardName.toLowerCase().includes(searchTerm);
+
+                    item.style.display = matchesSearch ? '' : 'none';
+                });
+            });
+        }
+
+        // Selection functionality
+        function toggleSelectAll() {
+            const selectAll = document.querySelector('.select-all-checkbox').checked;
+            document.querySelectorAll('.bed-checkbox').forEach(checkbox => {
+                checkbox.checked = selectAll;
+            });
+        }
+
+        function selectAllBeds() {
+            document.querySelector('.select-all-checkbox').checked = true;
+            toggleSelectAll();
+        }
+
+        // Placeholder functions for actions
+        function viewBedDetails(bedId) {
+            // Implement AJAX call to load bed details
+            console.log('View bed details:', bedId);
+        }
+
+        function setBedMaintenance(bedId) {
+            // Implement maintenance functionality
+            console.log('Set bed maintenance:', bedId);
+        }
+
+        function viewPatientDetails(bedId) {
+            // Implement patient view functionality
+            console.log('View patient details for bed:', bedId);
+        }
+
+        function refreshBedStatus() {
+            location.reload();
+        }
+
+        function exportBedData() {
+            // Implement export functionality
+            console.log('Export bed data');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+}

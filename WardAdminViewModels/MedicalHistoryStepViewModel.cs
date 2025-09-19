@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ONT_3rdyear_Project.ViewModels
+namespace ONT_3rdyear_Project.WardAdminViewModels
 {
     public class MedicalHistoryStepViewModel
     {
-        [Required]
         public int AdmissionID { get; set; }
-
         [Required]
         public int PatientID { get; set; }
 

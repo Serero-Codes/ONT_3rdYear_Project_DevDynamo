@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ONT_3rdyear_Project.ViewModels
+namespace ONT_3rdyear_Project.WardAdminViewModels
 {
     public class MedicalHistoryItemViewModel
     {
@@ -12,6 +12,6 @@ namespace ONT_3rdyear_Project.ViewModels
 
         public DateTime RecorderDate { get; set; }
 
-        public string ConditonSeverity { get; set; }
+        public string ConditionSeverity { get; set; }
     }
 }

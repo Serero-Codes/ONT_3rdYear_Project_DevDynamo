@@ -8,11 +8,10 @@ namespace ONT_3rdyear_Project.Models
 		[Key]
 		public int DischargeID { get; set; }
 
-
 		[Required]
 		[ForeignKey("User")]
-		public int ApplicationUserID { get; set; }
 
+		public int ApplicationUserID { get; set; }
 
 		[ForeignKey("Patient")]
 		public int PatientID { get; set; }
@@ -22,7 +21,7 @@ namespace ONT_3rdyear_Project.Models
 
 		public string DischargeInstructions { get; set; }
 
-		public bool IsDischarged { get; set; }
+		public bool? IsDischarged { get; set; }
 
 		public virtual ApplicationUser User { get; set; }
 		public virtual Patient Patient { get; set; }

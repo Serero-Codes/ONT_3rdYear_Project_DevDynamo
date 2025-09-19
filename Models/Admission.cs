@@ -6,7 +6,7 @@ namespace ONT_3rdyear_Project.Models
 	public class Admission
 	{
 		[Key]
-		public int AdmisionID { get; set; }
+		public int AdmissionID { get; set; }
 
 
 		[Required]

@@ -1,0 +1,199 @@
+﻿:root {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary-color: #64748b;
+    --success-color: #059669;
+    --success-light: #d1fae5;
+    --warning-color: #d97706;
+    --warning-light: #fef3c7;
+    --danger-color: #dc2626;
+    --danger-light: #fee2e2;
+    --info-color: #0891b2;
+    --info-light: #cffafe;
+    --medical-blue: #1e40af;
+    --medical-blue-light: #dbeafe;
+    --medical-green: #065f46;
+    --medical-green-light: #d1fae5;
+    --medical-gray: #374151;
+    --medical-gray-light: #f9fafb;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --border-color: #d1d5db;
+    --border-focus: #3b82f6;
+    --background-light: #f8fafc;
+    --background-white: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-xl: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Modal Styling */
+#editPatientModal .modal-dialog {
+    max-width: 900px;
+}
+
+#editPatientModal .modal-content {
+    border-radius: var(--border-radius-xl);
+    border: none;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+}
+
+#editPatientModal .modal-header {
+    background: linear-gradient(135deg, var(--medical-blue) 0%, var(--primary-color) 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-bottom: none;
+    position: relative;
+}
+
+    #editPatientModal .modal-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="modal-pattern" patternUnits="userSpaceOnUse" width="20" height="20"><path d="M8 8h4v4h-4z" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23modal-pattern)"/></svg>') repeat;
+        opacity: 0.1;
+    }
+
+.modal-title-section {
+    position: relative;
+    z-index: 1;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+    .modal-title i {
+        font-size: 1.3rem;
+        opacity: 0.9;
+    }
+
+.modal-subtitle {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin: 0;
+    font-weight: 300;
+}
+
+.btn-close {
+    position: relative;
+    z-index: 2;
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+    .btn-close:hover {
+        opacity: 1;
+    }
+
+/* Modal Body */
+#editPatientModal .modal-body {
+    padding: 2rem;
+    background: var(--background-light);
+}
+
+/* Patient Preview Card */
+.patient-preview-card {
+    background: var(--background-white);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+    .patient-preview-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    }
+
+.preview-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--medical-blue-light), #e0f2fe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+    .preview-avatar i {
+        font-size: 2.5rem;
+    }
+
+.preview-info {
+    flex: 1;
+}
+
+.current-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.patient-id {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.current-age {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.admission-status {
+    flex-shrink: 0;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+    .status-badge.admitted {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .status-badge.available {
+        background: var(--warning-light);
+        color: var(--warning-color);
+    }
+
+    .status-badge i {
+        font-size: 0.8rem;
+    }
+

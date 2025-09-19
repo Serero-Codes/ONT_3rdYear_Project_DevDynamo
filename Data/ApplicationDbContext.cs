@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.EntityFrameworkCore;
 using ONT_3rdyear_Project.Models;
 
@@ -325,15 +326,23 @@ namespace ONT_3rdyear_Project.Data
 
             // Seed Patients
             modelBuilder.Entity<Patient>().HasData(
-                new Patient{PatientID = 1, FirstName = "Naledi",LastName = "Kgomo", DateOfBirth = new DateOnly(2000, 01, 15),Gender = "Female",ChronicIllness = "Hypertension", Admitted = false},
-                new Patient{PatientID = 2, FirstName = "Tshepo",LastName = "Mabasa",DateOfBirth = new DateOnly(1995, 06, 21),Gender = "Male",ChronicIllness = "Diabetes", Admitted = true},
-                new Patient { PatientID = 3, FirstName = "Thando", LastName = "Smith", DateOfBirth = new DateOnly(2003, 02, 28), Gender = "Female", ChronicIllness = "Herpertension", Admitted = true}
+                new Patient{PatientID = 1, FirstName = "Naledi",LastName = "Kgomo", DateOfBirth = new DateTime(2000, 01, 15),Gender = "Female",ChronicIllness = "Hypertension", Admitted = false},
+                new Patient{PatientID = 2, FirstName = "Tshepo",LastName = "Mabasa",DateOfBirth = new DateTime(1995, 06, 21),Gender = "Male",ChronicIllness = "Diabetes", Admitted = true},
+                new Patient { PatientID = 3, FirstName = "Thando", LastName = "Smith", DateOfBirth = new DateTime(2003, 02, 28), Gender = "Female", ChronicIllness = "Herpertension", Admitted = true}
             );
 
+            // seed allergies
+            modelBuilder.Entity<Allergy>().HasData(
+                new Allergy { AllergyId = 1, Name = "Penicillin", Description = "Allergic reaction to penicillin antibiotics" },
+                new Allergy { AllergyId = 2, Name = "Peanuts", Description = "Allergic reaction to peanut proteins" },
+                new Allergy { AllergyId = 3, Name = "Shellfish", Description = "Allergic reaction to shellfish" },
+                new Allergy { AllergyId = 4, Name = "Latex", Description = "Allergic reaction to latex materials" },
+                new Allergy { AllergyId = 5, Name = "Dust Mites", Description = "Allergic reaction to dust mite proteins" }
+            );
             // Seed admission
             modelBuilder.Entity<Admission>().HasData(
-                new Admission { AdmisionID = 1, PatientID = 2, WardID = 2, DoctorId = 1, BedID = 4, AdmissionDate = new DateOnly(2025, 09, 04), DischargeDate = null, Notes = null, ReasonForAdmission = "Surgery"},
-                new Admission { AdmisionID = 2, PatientID = 3, WardID = 1, DoctorId = 1, BedID = 2, AdmissionDate = new DateOnly(2025, 09, 04), DischargeDate = null, Notes = null, ReasonForAdmission = "Patient was admitted for having severe migraine" }
+                new Admission { AdmissionID = 1, PatientID = 2, WardID = 2, DoctorId = 1, BedID = 4, AdmissionDate = new DateOnly(2025, 09, 04), DischargeDate = null, Notes = null, ReasonForAdmission = "Surgery"},
+                new Admission { AdmissionID = 2, PatientID = 3, WardID = 1, DoctorId = 1, BedID = 2, AdmissionDate = new DateOnly(2025, 09, 04), DischargeDate = null, Notes = null, ReasonForAdmission = "Patient was admitted for having severe migraine" }
             );
 
             // Seed Wards

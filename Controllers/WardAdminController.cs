@@ -2,9 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using ONT_3rdyear_Project.Data;
 using ONT_3rdyear_Project.Models;
-using ONT_3rdyear_Project.ViewModels;
+using ONT_3rdyear_Project.WardAdminViewModels;
 using System.Security.Claims;
 
 namespace ONT_3rdyear_Project.Controllers
@@ -20,6 +21,22 @@ namespace ONT_3rdyear_Project.Controllers
             }
         public IActionResult Index()
         {
+            
+            
+                ViewBag.ActivePatients = _context.Patients
+                    .Count();
+
+                ViewBag.AvailableBeds = _context.Beds
+                    .Count(b => !b.IsOccupied);
+
+                var totalBeds = _context.Beds.Count();
+                var occupiedBeds = _context.Beds.Count(b => b.IsOccupied);
+                ViewBag.BedOccupancy = totalBeds > 0 ? (occupiedBeds * 100 / totalBeds) : 0; ;
+
+            ViewBag.PendingAdmissions = _context.Patients
+                .Count(p => !p.Admitted);
+            ViewBag.TotalAdmissions = _context.Patients.Count(p=>p.Admitted);
+
             return View();
         }
         // Search for patients
@@ -27,6 +44,8 @@ namespace ONT_3rdyear_Project.Controllers
         public async Task<IActionResult> Search(string query)
         {
             var patients = await _context.Patients
+                .Include(p => p.Admissions)
+                .ThenInclude(a => a.Bed)
                 .Where(p => !p.IsDeleted &&
                            (p.FirstName.Contains(query) || p.LastName.Contains(query)))
                 .Select(p => new
@@ -35,7 +54,9 @@ namespace ONT_3rdyear_Project.Controllers
                     FullName = p.FirstName + " " + p.LastName,
                     p.Gender,
                     p.DateOfBirth,
-                    IsAdmitted = p.Admissions != null && p.Admissions.DischargeDate == null
+                    IsAdmitted = p.Admissions != null && p.Admissions.DischargeDate == null,
+                    AdmissionWard = p.Admissions.Ward.Name,
+                    AdmissionBed = p.Admissions.Bed.BedNo
                 })
                 .OrderBy(p => p.FullName)
                 .ToListAsync();
@@ -70,14 +91,16 @@ namespace ONT_3rdyear_Project.Controllers
             {
                 _context.Patients.Add(patient);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Patient added successfully!";
-                return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] = $"Patient {patient.FirstName} {patient.LastName} has been successfully registered and added to the system.";
+                TempData["SuccessType"] = "success";
+                TempData["PatientId"] = patient.PatientID;
+                return RedirectToAction(nameof(AllPatients));
             }
             return View(patient);
         }
 
-        // Edit patient info
-        public async Task<IActionResult> Edit(int id)
+        // GET: Edit patient info
+        public async Task<IActionResult> EditPatient(int id)
         {
             var patient = await _context.Patients.FindAsync(id);
             if (patient == null || patient.IsDeleted)
@@ -87,18 +110,113 @@ namespace ONT_3rdyear_Project.Controllers
             return View(patient);
         }
 
+        // GET: Edit patient modal
+        public async Task<IActionResult> EditPatientModal(int id)
+        {
+            var patient = await _context.Patients.FindAsync(id);
+            if (patient == null || patient.IsDeleted)
+            {
+                return NotFound();
+            }
+            return PartialView("_EditPatientModal", patient);
+        }
+
+        // POST: Edit patient info
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Patient patient)
+        public async Task<IActionResult> EditPatient(int id, string firstName, string lastName, string gender, DateTime dateOfBirth, string chronicIllness)
         {
-            if (ModelState.IsValid)
+            try
             {
+                var patient = await _context.Patients.FindAsync(id);
+                if (patient == null || patient.IsDeleted)
+                {
+                    return Json(new { success = false, message = "Patient not found." });
+                }
+
+                // Only update the fields that should be editable
+                patient.FirstName = firstName;
+                patient.LastName = lastName;
+                patient.Gender = gender;
+                patient.DateOfBirth = dateOfBirth;
+                patient.ChronicIllness = chronicIllness;
+
+                // Don't update Admitted status or other system properties
                 _context.Update(patient);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Patient edited successfully!";
-                return RedirectToAction(nameof(Index));
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Patient {firstName} {lastName} has been updated successfully.",
+                    patientId = id
+                });
             }
-            return View(patient);
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = $"Error updating patient: {ex.Message}"
+                });
+            }
+        }
+
+        // Alternative: Using explicit property updates 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditPatientSecure(Patient model)
+        {
+            if (!ModelState.IsValid)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Please correct the validation errors." });
+                }
+                return View(model);
+            }
+
+            try
+            {
+                // Fetch the existing patient from database
+                var existingPatient = await _context.Patients.FindAsync(model.PatientID);
+                if (existingPatient == null || existingPatient.IsDeleted)
+                {
+                    return Json(new { success = false, message = "Patient not found." });
+                }
+
+                // Only update editable properties
+                existingPatient.FirstName = model.FirstName;
+                existingPatient.LastName = model.LastName;
+                existingPatient.Gender = model.Gender;
+                existingPatient.DateOfBirth = model.DateOfBirth;
+                existingPatient.ChronicIllness = model.ChronicIllness;
+
+                await _context.SaveChangesAsync();
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Patient {model.FirstName} {model.LastName} has been updated successfully.",
+                        patientId = model.PatientID
+                    });
+                }
+
+                TempData["SuccessMessage"] = "Patient updated successfully!";
+                return RedirectToAction(nameof(AllPatients));
+            }
+            catch (Exception ex)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = $"Error updating patient: {ex.Message}" });
+                }
+
+                ModelState.AddModelError("", $"Error updating patient: {ex.Message}");
+                return View(model);
+            }
         }
 
         // Soft delete
@@ -174,83 +292,6 @@ namespace ONT_3rdyear_Project.Controllers
                     .ToList();
 
                 return View();
-            }
-
-            // Admit Patient
-            [HttpPost]
-            [ValidateAntiForgeryToken]
-            public async Task<IActionResult> AdmitPatient(Patient patient, int bedId, int doctorId, string reason, string Notes)
-            {
-                if (ModelState.IsValid)
-                {
-                    using var transaction = await _context.Database.BeginTransactionAsync();
-                    try
-                    {               
-                        // Assign bed
-                        var bed = await _context.Beds.FindAsync(bedId);
-                        if (bed == null || bed.IsOccupied)
-                        {
-                            ModelState.AddModelError("", "Bed is already occupied or invalid");
-                            ViewBag.Beds = _context.Beds.Where(b => !b.IsOccupied).Include(b => b.Ward).ToList();
-                            ViewBag.Doctors = _context.Users.Where(u => u.RoleType == "Doctor").ToList();
-                            return View(patient);
-                        }
-
-                        // Validate doctor
-                        var doctor = await _context.Users.FirstOrDefaultAsync(u => u.Id == doctorId && u.RoleType == "Doctor");
-                        if (doctor == null)
-                        {
-                            ModelState.AddModelError("", "Invalid doctor selected");
-                            ViewBag.Beds = _context.Beds.Where(b => !b.IsOccupied).Include(b => b.Ward).ToList();
-                            ViewBag.Doctors = _context.Users.Where(u => u.RoleType == "Doctor").ToList();
-                            return View(patient);
-                        }
-
-                        // Add patient
-                        _context.Add(patient);
-                        await _context.SaveChangesAsync();
-
-                        // Create admission record
-                        var admission = new Admission
-                        {
-                            PatientID = patient.PatientID,
-                            BedID = bedId,
-                            WardID = bed.WardID,
-                            AdmissionDate = DateOnly.FromDateTime(DateTime.Now),
-                            ReasonForAdmission = reason,
-                            Notes = Notes
-                        };
-
-                        // Create doctor assignment
-                        var doctorAssignment = new DoctorAssignment
-                        {
-                            DoctorID = doctorId,
-                            PatientID = patient.PatientID,
-                            AssignmentDate = DateTime.Now,
-                            IsActive = true
-                        };
-
-                        // Update bed status
-                        bed.IsOccupied = true;
-
-                        _context.Add(admission);
-                        _context.Add(doctorAssignment);
-                        await _context.SaveChangesAsync();
-
-                        await transaction.CommitAsync();
-                        TempData["Success"] = "Patient admitted successfully";
-                        return RedirectToAction("Index");
-                    }
-                    catch (Exception ex)
-                    {
-                        await transaction.RollbackAsync();
-                        ModelState.AddModelError("", $"Error admitting patient: {ex.Message}");
-                    }
-                }
-
-                ViewBag.Beds = _context.Beds.Where(b => !b.IsOccupied).Include(b => b.Ward).ToList();
-                ViewBag.Doctors = _context.Users.Where(u => u.RoleType == "Doctor").ToList();
-                return View(patient);
             }
 
         public async Task<IActionResult> ActiveAdmission()
@@ -339,7 +380,8 @@ namespace ONT_3rdyear_Project.Controllers
                         DischargeInstructions = instructions,
                         IsDischarged = true
                     };
-
+                // update patient admission status
+                admission.Patient.Admitted = false;
                     // Free bed
                     admission.Bed.IsOccupied = false;
 
@@ -369,14 +411,55 @@ namespace ONT_3rdyear_Project.Controllers
                 }
             }
 
-        public async Task<IActionResult> ViewPatients()
+        public async Task<IActionResult> ViewPatients(string filter = "today")
         {
             var admittedPatients = await _context.Admissions
+               .Include(a => a.ApplicationUser)
                .Include(a => a.Patient)
                .Include(a => a.Ward)
                .Include(a => a.Bed)
                .Where(a => a.DischargeDate == null) // only active admissions
                .ToListAsync();
+
+            // Total currently admitted patients
+            var totalAdmissions = await _context.Admissions
+                .Where(a => a.DischargeDate == null)
+                .CountAsync();
+
+            // Active wards
+            var wardCount = await _context.Wards
+                .Where(w => w.IsActive)
+                .CountAsync();
+
+            // Available beds
+            var availableBeds = await _context.Beds
+                .Where(b => !b.IsOccupied)
+                .CountAsync();
+
+            // Date filter logic
+            DateTime startDate = filter switch
+            {
+                "7days" => DateTime.Now.AddDays(-7),
+                "30days" => DateTime.Now.AddDays(-30),
+                _ => DateTime.Today // default: today
+            };
+
+            //Movements within selected range
+            var recentMovements = await _context.Movements
+                .Where(m => m.TimeStamp >= startDate)
+                .CountAsync();
+
+            ViewBag.Wards = _context.Wards
+                    .Where(w => w.IsActive)
+                    .Select(w => new { w.WardID, WardName = w.Name })
+                    .ToList();
+
+            ViewBag.TotalAdmissions = totalAdmissions;
+            ViewBag.WardCount = wardCount;
+            ViewBag.AvailableBeds = availableBeds;
+            ViewBag.RecentMovements = recentMovements;
+
+
 
             return View(admittedPatients);
         }
@@ -394,9 +477,33 @@ namespace ONT_3rdyear_Project.Controllers
                 return NotFound();
             }
 
+            // Get last movement if exists
+            var lastMovement = await _context.Movements
+                .Where(m => m.PatientID == patientId)
+                .OrderByDescending(m => m.TimeStamp)
+                .FirstOrDefaultAsync();
+
+            string currentLocation;
+            List<string> destinations = new List<string>();
+
+            if (lastMovement == null || lastMovement.ToLocation.StartsWith("Ward"))
+            {
+                // Patient is in ward/bed
+                currentLocation = $"Ward: {admission.Ward.Name} - Bed: {admission.Bed.BedNo}";
+                destinations.Add("X-Ray");
+                destinations.Add("Theatre");
+            }
+            else
+            {
+                // Patient is outside (X-Ray or Theatre)
+                currentLocation = lastMovement.ToLocation;
+                destinations.Add($"Ward: {admission.Ward.Name} - Bed: {admission.Bed.BedNo}");
+            }
+
             ViewBag.PatientID = admission.PatientID;
             ViewBag.PatientName = $"{admission.Patient.FirstName} {admission.Patient.LastName}";
-            ViewBag.CurrentLocation = $"Ward: {admission.Ward.Name}, Bed: {admission.Bed.BedNo}";
+            ViewBag.CurrentLocation = currentLocation;
+            ViewBag.Destinations = destinations;
             return View();
         }
         // Record patient movement
@@ -418,8 +525,15 @@ namespace ONT_3rdyear_Project.Controllers
                     {
                         return Json(new { success = false, message = "Patient is not currently admitted" });
                     }
-                    var fromLocation = $" ward: {admission.Ward.Name} - Bed: {admission.Bed.BedNo}";
-                    var movement = new Movement
+
+                var lastMovement = await _context.Movements
+                    .Where(m => m.PatientID == model.PatientID)
+                    .OrderByDescending(m => m.TimeStamp)
+                    .FirstOrDefaultAsync();
+
+                var fromLocation = lastMovement?.ToLocation
+                                ?? $"Ward: {admission.Ward.Name} - Bed: {admission.Bed.BedNo}";
+                var movement = new Movement
                     {
                         PatientID = model.PatientID,
                         WardID = admission.WardID,
@@ -456,9 +570,11 @@ namespace ONT_3rdyear_Project.Controllers
                     .OrderByDescending(m => m.TimeStamp)
                     .ToListAsync();
 
+                TempData["SuccessMessage"] = $"Movement for {patient.FirstName} {patient.LastName} logged successfully";
+                TempData["Success"] = $" Movement for {patient.FirstName} {patient.LastName} edited  successfully";
                 ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
                 return View(movements);
-            }
+            }                                                                     
 
         public async Task<IActionResult> EditMovement(int id)
         {
@@ -476,10 +592,10 @@ namespace ONT_3rdyear_Project.Controllers
                                      .Include(a => a.Ward)
                                      .Include(a => a.Bed)
                                      .FirstOrDefaultAsync(a => a.PatientID == movement.PatientID && a.DischargeDate == null);
-
-            ViewBag.WardLocation = admission != null
-                ? $"Ward: {admission.Ward.Name} - Bed: {admission.Bed.BedNo}"
-                : "Ward";
+           
+            ViewBag.WardLocation = $"Ward: {admission?.Ward?.Name} - Bed: {admission?.Bed?.BedNo}";
+            var destinations = new List<string> { "X-Ray", "Theatre", ViewBag.WardLocation };
+            ViewBag.Destinations = destinations;
 
             return View(movement);
         }
@@ -492,18 +608,19 @@ namespace ONT_3rdyear_Project.Controllers
                 return View(updated);
             }
 
-            var movement = await _context.Movements.FindAsync(updated.MovementID);
-            if (movement == null)
-            {
-                return NotFound();
-            }
-            movement.ToLocation = updated.ToLocation;
-            movement.TimeStamp = updated.TimeStamp;
+            var existingMovement = await _context.Movements
+                    .FirstOrDefaultAsync(m => m.MovementID == updated.MovementID);
 
-            _context.Update(updated);
+            if (existingMovement == null)
+                return NotFound();
+
+            //Update only the fields we allow to change
+            existingMovement.ToLocation = updated.ToLocation;
+            existingMovement.TimeStamp = DateTime.Now; 
+
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Movement updated successfully!";
+            //TempData["SuccessMessage"] = "Movement updated successfully!";
             return RedirectToAction("MovementHistory", new { patientId = updated.PatientID });
         }
 
@@ -679,7 +796,7 @@ namespace ONT_3rdyear_Project.Controllers
         //get bed by ward
         public async Task<IActionResult> bedIndex(int? wardId)
         {
-            var beds = _context.Beds.Include(b => b.Ward).Where(b=>!b.IsOccupied).AsQueryable();
+            var beds = _context.Beds.Include(b => b.Ward).AsQueryable();
 
             if (wardId.HasValue)
             {
@@ -698,9 +815,12 @@ namespace ONT_3rdyear_Project.Controllers
                 wardId 
             );
 
-            // Summary count
-            ViewBag.AvailableCount = await beds.CountAsync();
+            ViewBag.WardId = wardId;
 
+            // Summary count
+            ViewBag.TotalBeds = await beds.CountAsync();
+            ViewBag.AvailableCount = await beds.CountAsync(b => b.IsOccupied == false);
+            ViewBag.OccupiedBeds = await beds.CountAsync(b => b.IsOccupied == true);
             return View(await beds.ToListAsync());
         }
 
@@ -721,42 +841,46 @@ namespace ONT_3rdyear_Project.Controllers
             return Json(new { success = true, fromLocation });
         }
 
-        // GET: Step 1 - Basic Admission Info
+        //get bed by ward
+        [HttpGet]
+        public JsonResult GetBedsByWard(int wardId)
+        {
+            var beds = _context.Beds
+                .Where(b => b.WardID == wardId && !b.IsOccupied)
+                .Select(b => new { value = b.BedId, text = b.BedNo })
+                .ToList();
+
+            return Json(beds);
+        }
+
+        // STEP 1 - GET
         public IActionResult AdmitPatientStep1(int? patientId)
         {
             var model = new AdmissionStep1ViewModel
             {
                 Patients = _context.Patients
-                    .Where(p => !p.IsDeleted)
-                    .Select(p => new SelectListItem
-                    {
-                        Value = p.PatientID.ToString(),
-                        Text = p.FirstName + " " + p.LastName
-                    }).ToList(),
-
-                Beds = _context.Beds
-                    .Where(b => !b.IsOccupied)
-                    .Select(b => new SelectListItem
-                    {
-                        Value = b.BedId.ToString(),
-                        Text = b.BedNo
-                    }).ToList(),
+            .Where(p => !p.IsDeleted && !p.Admitted)
+            .Select(p => new SelectListItem
+            {
+                Value = p.PatientID.ToString(),
+                Text = p.FirstName + " " + p.LastName
+            }).ToList(),
 
                 Wards = _context.Wards
-                    .Where(w => w.IsActive)
-                    .Select(w => new SelectListItem
-                    {
-                        Value = w.WardID.ToString(),
-                        Text = w.Name
-                    }).ToList(),
+            .Where(w => w.IsActive)
+            .Select(w => new SelectListItem
+            {
+                Value = w.WardID.ToString(),
+                Text = w.Name
+            }).ToList(),
 
                 Doctors = _context.Users
-                    .Where(u => u.RoleType == "Doctor")
-                    .Select(d => new SelectListItem
-                    {
-                        Value = d.Id.ToString(),
-                        Text = d.FullName
-                    }).ToList(),
+            .Where(u => u.RoleType == "Doctor")
+            .Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.FullName
+            }).ToList(),
 
                 AdmissionDate = DateOnly.FromDateTime(DateTime.Now)
             };
@@ -767,198 +891,336 @@ namespace ONT_3rdyear_Project.Controllers
             return View(model);
         }
 
-        // Save Basic Admission Info
+        // STEP 1 - POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AdmitPatientStep1(AdmissionStep1ViewModel model)
+        public IActionResult AdmitPatientStep1(AdmissionStep1ViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                // repopulate dropdowns so Step 1 can show again if invalid
-                model.Patients = _context.Patients
-                    .Where(p => !p.IsDeleted)
-                    .Select(p => new SelectListItem
-                    {
-                        Value = p.PatientID.ToString(),
-                        Text = p.FirstName + " " + p.LastName
-                    }).ToList();
-
-                model.Beds = _context.Beds
-                    .Where(b => !b.IsOccupied)
-                    .Select(b => new SelectListItem
-                    {
-                        Value = b.BedId.ToString(),
-                        Text = b.BedNo
-                    }).ToList();
-
-                model.Wards = _context.Wards
-                    .Where(w => w.IsActive)
-                    .Select(w => new SelectListItem
-                    {
-                        Value = w.WardID.ToString(),
-                        Text = w.Name
-                    }).ToList();
-
-                model.Doctors = _context.Users
-                    .Where(u => u.RoleType == "Doctor")
-                    .Select(d => new SelectListItem
-                    {
-                        Value = d.Id.ToString(),
-                        Text = d.FullName
-                    }).ToList();
                 return View(model);
             }
+
+            TempData["Step1"] = JsonConvert.SerializeObject(model);
+
+            return RedirectToAction("AdmitPatientStep2", new { patientId = model.PatientID, admissionId = model.AdmissionID });
+        }
+
+        // STEP 2 - GET
+        public IActionResult AdmitPatientStep2(int patientId, int admissionId)
+        {
+            var allergyOptions = _context.Allergies
+                .Where(a => !a.IsDeleted)
+                .Select(a => new SelectListItem
+                {
+                    Value = a.AllergyId.ToString(),
+                    Text = a.Name
+                })
+                .ToList();
+
+            allergyOptions.Add(new SelectListItem { Value = "0", Text = "Other (Specify)" });
+
+            var model = new AllergiesStepViewModel
+            {
+                PatientID = patientId,
+                AdmissionID = admissionId, 
+                AllergyOptions = allergyOptions,
+                Allergies = new List<AllergyEntry>()
+            };
+
+            return View(model);
+        }
+
+        // STEP 2 - POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AdmitPatientStep2(AllergiesStepViewModel model)
+        {
+            if (model.Allergies == null || model.Allergies.Count == 0)
+            {
+                ModelState.AddModelError("", "Please add at least one allergy.");
+                return View(model);
+            }
+
+            TempData["Step2"] = JsonConvert.SerializeObject(model);
+
+            return RedirectToAction("AdmitPatientStep3", new { patientId = model.PatientID, admissionId = model.AdmissionID });
+        }
+
+        // STEP 3 - GET
+        public IActionResult AdmitPatientStep3(int patientId, int admissionId)
+        {
+            var model = new MedicalHistoryStepViewModel
+            {
+                PatientID = patientId,
+                AdmissionID = admissionId,  // ✅ carry admissionId
+                MedicalHistories = new List<MedicalHistoryItemViewModel>()
+            };
+
+            return View(model);
+        }
+
+        // STEP 3 - POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AdmitPatientStep3(MedicalHistoryStepViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            TempData["Step3"] = JsonConvert.SerializeObject(model);
+
+            // ✅ carry admissionId forward
+            return RedirectToAction("AdmissionSummary", new { patientId = model.PatientID, admissionId = model.AdmissionID });
+        }
+
+        // STEP 4 - GET SUMMARY
+        public IActionResult AdmissionSummary(int patientId, int admissionId)
+        {
+            var step1 = JsonConvert.DeserializeObject<AdmissionStep1ViewModel>(TempData.Peek("Step1").ToString());
+            var step2 = JsonConvert.DeserializeObject<AllergiesStepViewModel>(TempData.Peek("Step2").ToString());
+            var step3 = JsonConvert.DeserializeObject<MedicalHistoryStepViewModel>(TempData.Peek("Step3").ToString());
+
+            // Fetch actual names from DB
+            var patient = _context.Patients
+                .Where(p => p.PatientID == step1.PatientID)
+                .Select(p => p.FirstName + " " + p.LastName)
+                .FirstOrDefault();
+
+            var ward = _context.Wards
+                .Where(w => w.WardID == step1.WardID)
+                .Select(w => w.Name)
+                .FirstOrDefault();
+
+            var bedNo = _context.Beds
+                .Where(b => b.BedId == step1.BedID)
+                .Select(b => b.BedNo)
+                .FirstOrDefault();
+
+            var doctor = _context.Users
+                .Where(d => d.Id == step1.DoctorID)
+                .Select(d => d.FullName)
+                .FirstOrDefault();
+            var allergyIds = step2.Allergies
+                .Where(a => a.SelectedAllergyId > 0)
+                .Select(a => a.SelectedAllergyId)
+                .ToList();
+
+            var allergyMap = _context.Allergies
+                .Where(a => allergyIds.Contains(a.AllergyId))
+                .ToDictionary(a => a.AllergyId, a => a.Name);
+
+            foreach (var allergy in step2.Allergies)
+            {
+                if (allergy.SelectedAllergyId > 0 && allergyMap.ContainsKey(allergy.SelectedAllergyId))
+                {
+                    allergy.ResolvedName = allergyMap[allergy.SelectedAllergyId];
+                }
+                else if (allergy.SelectedAllergyId == 0)
+                {
+                    allergy.ResolvedName = allergy.OtherAllergyName;
+                }
+            }
+
+            var model = new AdmissionSummaryViewModel
+            {
+                Step1 = step1,
+                Step2 = step2,
+                Step3 = step3,
+
+                PatientName = patient,
+                WardName = ward,
+                BedNo = bedNo,
+                DoctorName = doctor
+            };
+
+            return View(model);
+        }
+
+        // STEP 4 - POST FINAL SUBMIT
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmAdmission()
+        {
+            var step1 = JsonConvert.DeserializeObject<AdmissionStep1ViewModel>(TempData["Step1"].ToString());
+            var step2 = JsonConvert.DeserializeObject<AllergiesStepViewModel>(TempData["Step2"].ToString());
+            var step3 = JsonConvert.DeserializeObject<MedicalHistoryStepViewModel>(TempData["Step3"].ToString());
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Assign bed
-                var bed = await _context.Beds.FindAsync(model.BedID);
-                if (bed == null || bed.IsOccupied)
-                {
-                    ModelState.AddModelError("", "Selected bed is invalid or occupied.");
-                    return View(model);
-                }
-
-                // Validate doctor
-                var doctor = await _context.Users.FirstOrDefaultAsync(u => u.Id == model.DoctorID && u.RoleType == "Doctor");
-                if (doctor == null)
-                {
-                    ModelState.AddModelError("", "Invalid doctor selected.");
-                    return View(model);
-                }
-
-                // Create admission
+                 //Create new Admission
                 var admission = new Admission
                 {
-                    PatientID = model.PatientID,
-                    BedID = bed.BedId,
-                    WardID = bed.WardID,
-                    DoctorId = model.DoctorID,
+                    PatientID = step1.PatientID,
+                    BedID = step1.BedID,
+                    WardID = step1.WardID,
+                    DoctorId = step1.DoctorID,
                     AdmissionDate = DateOnly.FromDateTime(DateTime.Now),
-                    ReasonForAdmission = model.ReasonForAdmission,
-                    Notes = model.Notes
+                    ReasonForAdmission = step1.ReasonForAdmission,
+                    Notes = step1.Notes
                 };
+                _context.Admissions.Add(admission);
+                await _context.SaveChangesAsync();
 
-                // Assign doctor
+                //Update patient admission status
+                var patient = await _context.Patients.FindAsync(step1.PatientID);
+                patient.Admitted = true;
+                await _context.SaveChangesAsync();
+
+                //Doctor Assignment
                 var doctorAssignment = new DoctorAssignment
                 {
-                    DoctorID = model.DoctorID,
-                    PatientID = model.PatientID,
+                    DoctorID = step1.DoctorID,
+                    PatientID = step1.PatientID,
                     AssignmentDate = DateTime.Now,
                     IsActive = true
                 };
-
-                bed.IsOccupied = true;
-
-                _context.Admissions.Add(admission);
                 _context.DoctorAssignments.Add(doctorAssignment);
                 await _context.SaveChangesAsync();
 
-                await transaction.CommitAsync();
-
-                return RedirectToAction("AdmitPatientStep2", new { admissionId = admission.AdmisionID });
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                ModelState.AddModelError("", $"Error: {ex.Message}");
-                return View(model);
-            }
-        }
-
-        // GET: Step 2 - Record Allergies
-        public IActionResult AdmitPatientStep2(int admissionId)
-        {
-            ViewBag.AdmissionId = admissionId;
-            return View(new AllergiesStepViewModel { AdmissionID = admissionId });
-        }
-
-        // POST: Save Allergies
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AdmitPatientStep2(AllergiesStepViewModel model)
-        {
-            if (model.PatientAllergy != null && model.PatientAllergy.Any())
-            {
-                foreach (var allergyName in model.PatientAllergy)
+                //Allergies
+                foreach (var entry in step2.Allergies)
                 {
-                    var allergy = new PatientAllergy
+                    int allergyId = entry.SelectedAllergyId;
+
+                    if (allergyId == 0 && !string.IsNullOrWhiteSpace(entry.OtherAllergyName))
                     {
-                        PatientId = model.PatientID,
-                        AdmissionId = model.AdmissionID,
-                        Name = allergyName,
-                        Severity = model.Severity 
+                        var existing = await _context.Allergies
+                            .FirstOrDefaultAsync(a => a.Name.ToLower() == entry.OtherAllergyName.ToLower());
+
+                        if (existing != null)
+                        {
+                            allergyId = existing.AllergyId;
+                        }
+                        else
+                        {
+                            var newAllergy = new Allergy
+                            {
+                                Name = entry.OtherAllergyName,
+                                Description = entry.OtherAllergyDescription
+                            };
+                            _context.Allergies.Add(newAllergy);
+                            await _context.SaveChangesAsync();
+                            allergyId = newAllergy.AllergyId;
+                        }
+                    }
+
+                    var patientAllergy = new PatientAllergy
+                    {
+                        PatientId = step1.PatientID,
+                        AdmissionId = admission.AdmissionID,
+                        AllergyId = allergyId,
+                        Notes = entry.Notes,
+                        Severity = entry.Severity
                     };
-                    _context.PatientAllergies.Add(allergy);
+                    _context.PatientAllergies.Add(patientAllergy);
                 }
                 await _context.SaveChangesAsync();
-            }
 
-            return RedirectToAction("AdmitPatientStep3", new { admissionId = model.AdmissionID });
-        }
-
-        // GET: Step 3 - Medical History
-        public IActionResult AdmitPatientStep3(int admissionId)
-        {
-            ViewBag.AdmissionId = admissionId;
-            return View(new MedicalHistoryStepViewModel { AdmissionID = admissionId });
-        }
-
-        // POST: Save Medical History
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AdmitPatientStep3(MedicalHistoryStepViewModel model)
-        {
-            if (model.MedicalHistories != null && model.MedicalHistories.Any())
-            {
-                var admission = await _context.Admissions
-                    .FirstOrDefaultAsync(a => a.AdmisionID == model.AdmissionID);
-
-                if (admission == null)
-                {
-                    ModelState.AddModelError("", "Invalid admission ID.");
-                    return View(model);
-                }
-
-                foreach (var mh in model.MedicalHistories)
+                // 5. Medical History
+                foreach (var mh in step3.MedicalHistories)
                 {
                     var history = new MedicalHistory
                     {
-                        PatientId = admission.PatientID,
-                        AdmissionId = model.AdmissionID,
+                        PatientId = step1.PatientID,
+                        AdmissionId = admission.AdmissionID,
                         ChronicCondition = mh.ChronicCondition,
                         MedicationHistory = mh.MedicationHistory,
                         PastSurgicalHistory = mh.PastSurgicalHistory,
-                        RecorderDate = mh.RecorderDate,
+                        RecorderDate = DateTime.Now,
+                        ConditonSeverity = mh.ConditionSeverity
                     };
                     _context.MedicalHistories.Add(history);
                 }
                 await _context.SaveChangesAsync();
-            }
 
-            return RedirectToAction("AdmissionSummary", new { admissionId = model.AdmissionID });
+                //Update bed occupancy
+                var bed = await _context.Beds.FindAsync(step1.BedID);
+                bed.IsOccupied = true;
+
+                await transaction.CommitAsync();
+
+                //Success message
+                //admission.Patient = patient;
+                TempData["Success"] = $"{patient.FirstName} {patient.LastName} has been admitted successfully!";
+
+                return RedirectToAction("ActiveAdmission");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                TempData["Error"] = $"Error during admission: {ex.Message}";
+                Console.WriteLine($"Error occured: {ex}");
+                return RedirectToAction("AdmitPatientStep1");
+            }
         }
 
-        public IActionResult AdmissionSummary(int admissionId)
+        [HttpGet]
+        public async Task<IActionResult> GetQuickInfo(int patientId)
         {
-            var admission = _context.Admissions
-                .Include(a => a.Patient)
-                .Include(a => a.Bed)
+            var patient = await _context.Patients
+                .Include(p => p.Admissions)
+                .ThenInclude(a => a.Bed)
                 .ThenInclude(b => b.Ward)
-                .FirstOrDefault(a => a.AdmisionID == admissionId);
+                .Include(p => p.DoctorAssignments.Where(da => da.IsActive))
+                .ThenInclude(da => da.ApplicationUser)
+                .Include(p => p.Movements.OrderByDescending(m => m.TimeStamp).Take(5))
+                .FirstOrDefaultAsync(p => p.PatientID == patientId);
 
-            var allergies = _context.PatientAllergies.Where(a => a.AdmissionId == admissionId).ToList();
-            var history = _context.MedicalHistories.Where(h => h.AdmissionId == admissionId).ToList();
+            if (patient == null)
+                return NotFound();
 
-            var model = new AdmissionSummaryViewModel
+            var admission = patient.Admissions;
+
+            var result = new
             {
-                Admission = admission,
-                PatientAllergies = allergies,
-                MedicalHistory = history
+                patient.PatientID,
+                FullName = $"{patient.FirstName} {patient.LastName}",
+                patient.DateOfBirth,
+                AdmissionDate = admission?.AdmissionDate.ToString("yyyy-MM-dd"),
+                Ward = admission?.Ward?.Name,
+                Bed = admission?.Bed?.BedNo,
+                Doctor = patient.DoctorAssignments.FirstOrDefault()?.ApplicationUser?.FullName,
+                Movements = patient.Movements.Select(m => new
+                {
+                    m.FromLocation,
+                    m.ToLocation,
+                    Time = m.TimeStamp.ToString("dd/MM/yyyy HH:mm")
+                })
             };
 
-            return View(model);
+            return Json(result);
+        }
+
+        public async Task<IActionResult> GetBedDetails(int id)
+        {
+            var bed = await _context.Beds
+                .Include(b => b.Ward)
+                .Include(b => b.Admissions)
+                    .ThenInclude(a => a.Patient)
+                .FirstOrDefaultAsync(b => b.BedId == id);
+
+            if (bed == null)
+            {
+                return NotFound();
+            }
+
+            var activeAdmission = bed.Admissions;
+
+            return Json(new
+            {
+                bedId = bed.BedId,
+                bedNo = bed.BedNo,
+                ward = bed.Ward?.Name,
+                isOccupied = bed.IsOccupied,
+                patient = activeAdmission?.Patient != null
+                    ? $"{activeAdmission.Patient.FirstName} {activeAdmission.Patient.LastName}"
+                    : null,
+                lastOccupied = activeAdmission?.AdmissionDate.ToString("MMM dd, yyyy"),
+            });
         }
     }
 }
