@@ -1,78 +1,192 @@
 ﻿@model ONT_3rdyear_Project.Models.Treatment
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 
-<h2>Edit Treatment</h2>
+@{
+	var user = await UserManager.GetUserAsync(User);
+	var roles = await UserManager.GetRolesAsync(user);
+}
 
-<form asp-action="EditTreatment" method="post">
-    <input type="hidden" asp-for="TreatmentID" />
-    <input type="hidden" asp-for="PatientID" />
+<style>
+	:root {
+		--primary-blue: #2c5aa0;
+		--secondary-blue: #4a90c2;
+		--light-blue: #e8f4fd;
+		--accent-blue: #1e3a5f;
+		--success-green: #28a745;
+		--secondary-gray: #6c757d;
+		--border-color: #d1e7ff;
+		--text-dark: #2c3e50;
+		--white: #ffffff;
+		--light-gray: #f8f9fa;
+	}
 
-    <div class="form-group">
-        <label>Patient</label>
-        <input type="text" class="form-control" value="@Model.Patient?.FirstName @Model.Patient?.LastName" disabled />
-    </div>
+	body {
+		background: url('/images/background3.jpg');
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		min-height: 100vh;
+		font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		margin: 0;
+		/* padding: 20px 0; */
+	}
 
-    @* <div class="form-group">
-        <label asp-for="VisitID"></label>
-        <select asp-for="VisitID" class="form-control" asp-items="@(ViewBag.VisitList as SelectList)">
-            <option value="">-- Select Visit --</option>
-        </select>
-    </div> *@
+	.form-content {
+		max-width: 600px;
+		margin: 0 auto;
+		padding: 20px;
+		background: #fff;
+		border-radius: 12px;
+		box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+	}
 
-    <div class="form-group">
-        <label asp-for="TreatmentType" class="control-label"></label>
-        <select asp-for="TreatmentType" class="form-control" asp-items="ViewBag.TreatmentTypes"></select>
-        <span asp-validation-for="TreatmentType" class="text-danger"></span>
-    </div>
+	.form-group {
+		margin-bottom: 15px;
+	}
 
-    <div class="form-group mt-2">
-        <input type="text" id="TreatmentTypeOther" name="TreatmentTypeOther" class="form-control" placeholder="Enter custom treatment" style="display:none;" />
-    </div>
+		.form-group label {
+			font-weight: 600;
+			margin-bottom: 5px;
+			display: block;
+			color: #1e3a5f;
+		}
 
-    <div class="form-group">
-        <label asp-for="TreatmentDate"></label>
-        <input asp-for="TreatmentDate" class="form-control" type="datetime-local" />
-        <span asp-validation-for="TreatmentDate" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label>Recorded By</label>
-        <input class="form-control" value="@ViewBag.NurseName" disabled />
-        <input type="hidden" asp-for="ApplicationUserID" />
-    </div>
+	.form-control {
+		width: 100%;
+		padding: 10px 12px;
+		border: 1px solid #d1e7ff;
+		border-radius: 8px;
+		font-size: 1em;
+	}
 
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-    <a asp-action="Treatments" class="btn btn-secondary">Back to List</a>
-</form>
+	.action-buttons {
+		display: flex;
+		gap: 10px;
+		justify-content: flex-start;
+		margin-top: 20px;
+	}
+
+	.vitals-container {
+		max-width: 800px;
+		margin: 0 auto;
+		background: var(--white);
+		border-radius: 15px;
+		box-shadow: 0 10px 30px rgba(44, 90, 160, 0.15);
+		overflow: hidden;
+		margin-top: 40px;
+	}
+
+	.header-section {
+		background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+		color: var(--white);
+		padding: 10px;
+		text-align: center;
+		position: relative;
+	}
+
+		.header-section::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="20" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+			opacity: 0.3;
+		}
+
+	.header-title {
+		font-size: 2.2em;
+		font-weight: 600;
+		margin: 0;
+		position: relative;
+		z-index: 1;
+	}
+
+	.header-subtitle {
+		font-size: 1.1em;
+		opacity: 0.9;
+		margin: 10px 0 0 0;
+		position: relative;
+		z-index: 1;
+	}
+</style>
+
+
+<div class="vitals-container">
+	<div class="header-section">
+		<h1 class="header-title">Edit Treatment</h1>
+	</div>
+
+	<div class="form-content">
+		<form asp-action="EditTreatment" method="post">
+			<input type="hidden" asp-for="TreatmentID" />
+
+			<!-- Patient Name -->
+			<div class="form-group">
+				<label asp-for="PatientID">Patient Name</label>
+				<input type="text" class="form-control" value="@Model.Patient?.FirstName @Model.Patient?.LastName" disabled />
+			</div>
+
+			<!-- Treatment Type -->
+			<div class="form-group">
+				<label asp-for="TreatmentType">Treatment Type</label>
+				<select asp-for="TreatmentType" class="form-control" asp-items="ViewBag.TreatmentTypes"></select>
+				<span asp-validation-for="TreatmentType" class="text-danger"></span>
+			</div>
+
+			<!-- Custom Treatment -->
+			<div class="form-group" id="other-treatment-wrapper" style="display:none;">
+				<input type="text" id="TreatmentTypeOther" name="TreatmentTypeOther"
+					   class="form-control" placeholder="Enter custom treatment" />
+
+			</div>
+
+			<!-- Treatment Date -->
+			<div class="form-group">
+				<label asp-for="TreatmentDate">Treatment Date</label>
+				<input asp-for="TreatmentDate" class="form-control" type="datetime-local" />
+				<span asp-validation-for="TreatmentDate" class="text-danger"></span>
+			</div>
+
+			<!-- Recorded By -->
+			<div class="form-group">
+				<label>Recorded By</label>
+				<input class="form-control" value="@ViewBag.NurseName" disabled />
+				<input type="hidden" asp-for="ApplicationUserID" />
+			</div>
+
+			<!-- Action Buttons -->
+			<div class="action-buttons">
+				<button type="submit" class="btn btn-success">Save Changes</button>
+				<a  asp-action="Treatments" class="btn btn-secondary">Back to List</a>
+			</div>
+		</form>
+	</div>
+</div>
 
 @section Scripts {
-    <script>
-        // Show/hide "Other" input based on treatment type selection
-        const treatmentSelect = document.querySelector("select[name='TreatmentType']");
-        const otherInput = document.getElementById("TreatmentTypeOther");
+	<script>
+		const treatmentSelect = document.querySelector("select[name='TreatmentType']");
+		const otherWrapper = document.getElementById("other-treatment-wrapper");
 
-        function toggleOtherInput() {
-            if (treatmentSelect.value === "Other") {
-                otherInput.style.display = "block";
-            } else {
-                otherInput.style.display = "none";
-                otherInput.value = "";
-            }
-        }
+		function toggleOther() {
+			if (treatmentSelect.value === "Other") {
+				otherWrapper.style.display = "block";
+				 document.getElementById("TreatmentTypeOther").setAttribute("required", "required");
+			} else {
+				otherWrapper.style.display = "none";
+				const otherInput = document.getElementById("TreatmentTypeOther");
+				otherInput.removeAttribute("required");
+				otherInput.value = "";
+			}
+		}
 
-        treatmentSelect.addEventListener("change", toggleOtherInput);
+		treatmentSelect.addEventListener("change", toggleOther);
+		toggleOther(); // run on page load
+	</script>
 
-        // Trigger on page load (in case "Other" was selected)
-        toggleOtherInput();
-
-        // Optionally pre-fill Other if treatment type is custom
-        // You can do this by checking if the current treatment type matches any of the predefined values
-        const predefined = ["Wound Dressing", "IV Drip", "Catheter Change", "Physiotherapy", "Other"];
-        if (!predefined.includes(treatmentSelect.value)) {
-            treatmentSelect.value = "Other";
-            otherInput.style.display = "block";
-            otherInput.value = treatmentSelect.value;
-        }
-    </script>
-
-    @await Html.PartialAsync("_ValidationScriptsPartial")
-
+	@await Html.PartialAsync("_ValidationScriptsPartial")
 }

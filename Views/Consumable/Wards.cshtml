@@ -10,8 +10,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class=" mb-0 text-nowrap">All Wards</h1>
                 <div class="btn-group gap-2">
-                    <button class="btn btn-primary" id="openModalBtn2">Add Consumable</button>
-                    <div id="modalContainer2"></div>
+                   
                     <button class="btn btn-primary" id="openModalBtn">Add Ward</button>
                     <div id="modalContainer"></div>
                     <a asp-controller="Consumable" asp-action="Dashboard" class="btn btn-secondary text-nowrap">Back</a>
@@ -19,6 +18,11 @@
             </div>
         </div>
     </div>
+    <form asp-action="Wards" method="get" class="mb-3">
+    <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" 
+           placeholder="Search wards..." class="form-control d-inline-block w-auto" />
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -36,7 +40,8 @@
                 <td>@ward.Capacity</td>
                  <td>
                     <a asp-action="GetConsumablesByWard" asp-controller="Consumable" asp-route-wardId="@ward.WardID" class="btn btn-warning">Edit</a>
-
+                      <a data-ward-id="@ward.WardID" data-ward-name="@ward.Name" class="btn btn-primary openModalBtn2" >Add Consumable</a>
+                    <div id="modalContainer2"></div>
                 </td>
             </tr>
         }
@@ -45,19 +50,30 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-             document.addEventListener("DOMContentLoaded", function () {
-                const openModalBtn = document.getElementById("openModalBtn2");
+             document.addEventListener("DOMContentLoaded", function () {          
                 const modalContainer = document.getElementById("modalContainer2");
 
-                openModalBtn.addEventListener("click", function () {
-                    fetch('@Url.Action("AddConsumableDirect", "Consumable", new { partial = true })')
-                        .then(response => response.text())
-                        .then(html => {
-                            modalContainer.innerHTML = html;
-                            const addConsumableToWardModal = new bootstrap.Modal(document.getElementById('addConsumableDirectModal'));
-                            addConsumableToWardModal.show();
-                        });
+                 document.querySelectorAll(".openModalBtn2").forEach(button => {
+                    button.addEventListener("click", function () {
+                        const wardId = this.dataset.wardId;
+                        const wardName = this.dataset.wardName;
+
+                        fetch(`@Url.Action("AddConsumableDirect", "Consumable")?wardId=${wardId}`)
+                            .then(response => response.text())
+                            .then(html => {
+                                modalContainer.innerHTML = html;
+
+                                // Optional: set modal title dynamically
+                                const modalTitle = document.getElementById("addConsumableModalTitle");
+                                if (modalTitle) modalTitle.textContent = `Add Consumable to ${wardName}`;
+
+                                const modal = new bootstrap.Modal(document.getElementById('addConsumableDirectModal'));
+                                modal.show();
+                            });
+                    });
                 });
+
+                
             });
         document.addEventListener("DOMContentLoaded", function () {
             const openModalBtn = document.getElementById("openModalBtn");

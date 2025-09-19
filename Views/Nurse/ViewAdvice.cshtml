@@ -1,15 +1,487 @@
 ﻿@model ONT_3rdyear_Project.Models.Instruction
-
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
-	ViewData["Title"] = "View Doctor Advice"; 
+    ViewData["Title"] = "View Doctor Advice";
+}
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+
+    var isNurse = roles.Contains("Nurse") || roles.Contains("Sister");
+
+    // Check if there's actual advice
+    var hasActualAdvice = !string.IsNullOrWhiteSpace(Model.Instructions) &&
+                         Model.Instructions != "No advice from doctor";
+
+    // Generate a unique codw that includes advice content hash
+    var adviceHash = hasActualAdvice ? Model.Instructions.GetHashCode().ToString() : "no_advice";
+    var instructionKey = $"patient_{Model.PatientID}_advice_{adviceHash}";
 }
 
-<h3>Doctor's Response</h3>
+<style>
+    .advice-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        margin-top:20px;
+    }
 
-<p><strong>Patient:</strong> @Model.Patient.FirstName @Model.Patient.LastName</p>
-<p><strong>Requested Advice:</strong> @Model.NurseRequest</p>
-<p><strong>Doctor's Advice:</strong> @Model.Instructions</p>
-<p><strong>Responded At:</strong> @Model.RespondedAt?.ToString("g")</p>
+    .advice-header {
+        background: #D9D9D9;
+        color: white;
+        padding: 30px;
+        text-align: center;
+        position: relative;
+    }
 
-<a asp-action="InstructionList" class="btn btn-secondary">Back to List</a>
+        .advice-header::before {
+            content: '🩺';
+            font-size: 3rem;
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            opacity: 0.3;
+        }
 
+        .advice-header::after {
+            content: '📋';
+            font-size: 2.5rem;
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            opacity: 0.3;
+        }
+
+    .advice-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .advice-content {
+        padding: 40px;
+        background: white;
+    }
+
+    .patient-info {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-left: 5px solid #17a2b8;
+        position: relative;
+    }
+
+        .patient-info::before {
+            content: '👤';
+            font-size: 1.5rem;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0.6;
+        }
+
+    .patient-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .patient-name {
+        font-size: 1.4rem;
+        color: #2c3e50;
+        font-weight: 700;
+    }
+
+    .advice-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        border-left: 5px solid #28a745;
+        position: relative;
+        min-height: 120px;
+    }
+
+        .advice-section::before {
+            content: '💡';
+            font-size: 1.5rem;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0.6;
+        }
+
+    .advice-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 15px;
+    }
+
+    .advice-text {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        line-height: 1.7;
+        font-weight: 400;
+    }
+
+    .no-advice {
+        color: #6c757d;
+        font-style: italic;
+        text-align: center;
+        padding: 20px;
+        background: rgba(255, 193, 7, 0.1);
+        border-radius: 10px;
+        border: 2px dashed #ffc107;
+    }
+
+        .no-advice::before {
+            content: '⚠️ ';
+            margin-right: 8px;
+        }
+
+    .action-section {
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        border: none;
+    }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-secondary::before {
+            content: '←';
+            font-weight: bold;
+        }
+
+    .read-status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        border-left: 5px solid #17a2b8;
+    }
+
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 50px;
+    }
+
+    .status-read {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-unread {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .btn-mark-read {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #28a745;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        border: none;
+        cursor: pointer;
+    }
+
+        .btn-mark-read:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+            color: white;
+        }
+
+        .btn-mark-read:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+    .read-timestamp {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .no-advice-message {
+        text-align: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border-left: 5px solid #6c757d;
+    }
+
+    .new-advice-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        background: #dc3545;
+        color: white;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        margin-left: 10px;
+        animation: pulse 2s infinite;
+    }
+
+    @@media (max-width: 768px) {
+        .advice-container
+
+    {
+        margin: 0 10px;
+        border-radius: 15px;
+    }
+
+    .advice-header {
+        padding: 25px 20px;
+    }
+
+    .advice-title {
+        font-size: 1.8rem;
+    }
+
+    .advice-content {
+        padding: 25px 20px;
+    }
+
+    .patient-info, .advice-section {
+        padding: 20px;
+    }
+
+    .advice-header::before,
+    .advice-header::after {
+        display: none;
+    }
+
+    }
+
+    @@media (max-width: 480px) {
+        .advice-title
+
+    {
+        font-size: 1.5rem;
+    }
+
+    .patient-name {
+        font-size: 1.2rem;
+    }
+
+    .advice-text {
+        font-size: 1rem;
+    }
+
+        .read-status {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+    }
+</style>
+
+<div class="advice-container">
+    <div class="advice-header">
+        <h3 class="advice-title">Doctor's Instructions</h3>
+    </div>
+
+    <div class="advice-content">
+        @if (isNurse && hasActualAdvice)
+        {
+            <div class="read-status">
+                <div>
+                    <span class="status-indicator status-unread" id="statusIndicator">
+                        <span>● Unread</span>
+                        <span class="new-advice-badge" id="newAdviceBadge" style="display: none;">NEW</span>
+                    </span>
+                    <div class="read-timestamp" id="readTimestamp" style="display: none;">
+                        Read on: <span id="timestampValue"></span>
+                    </div>
+                    <div class="read-timestamp" id="previousReadInfo" style="display: none;">
+                        Previously read: <span id="previousTimestampValue"></span>
+                    </div>
+                </div>
+                <button type="button" class="btn-mark-read" id="markAsReadBtn">
+                    <span>Mark as Read</span>
+                </button>
+            </div>
+        }
+        else if (isNurse && !hasActualAdvice)
+        {
+            <div class="no-advice-message">
+                <p>No advice available to mark as read</p>
+            </div>
+        }
+        <div class="patient-info">
+            <div class="patient-label">Patient Information</div>
+            <p class="patient-name">@Model.Patient.FirstName @Model.Patient.LastName</p>
+        </div>
+
+       
+
+        <div class="advice-section">
+            <div class="advice-label">Doctor's Advice</div>
+            @if (string.IsNullOrWhiteSpace(Model.Instructions) || Model.Instructions == "No advice from doctor")
+            {
+                <p class="advice-text no-advice">
+                    No advice from doctor
+                </p>
+            }
+            else
+            {
+                <p class="advice-text">
+                    @Model.Instructions
+                </p>
+            }
+        </div>
+
+        <div class="action-section">
+            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Only run if user is a nurse and there's actual advice
+            @if (isNurse && hasActualAdvice)
+            {
+                    <text>
+                    const instructionKey = '@instructionKey';
+                    const patientKey = 'patient_@Model.PatientID';
+                    const markAsReadBtn = document.getElementById('markAsReadBtn');
+                    const statusIndicator = document.getElementById('statusIndicator');
+                    const readTimestamp = document.getElementById('readTimestamp');
+                    const timestampValue = document.getElementById('timestampValue');
+                    const previousReadInfo = document.getElementById('previousReadInfo');
+                    const previousTimestampValue = document.getElementById('previousTimestampValue');
+                    const newAdviceBadge = document.getElementById('newAdviceBadge');
+
+                    // Check if this specific advice version is marked as read
+                    checkReadStatus();
+
+                    // Add click event to mark as read button
+                    markAsReadBtn.addEventListener('click', function() {
+                        markAsRead();
+                    });
+
+                    function checkReadStatus() {
+                        // Check if this specific advice version is read
+                        const readStatus = localStorage.getItem(instructionKey);
+
+                        if (readStatus) {
+                            // This specific advice version is read
+                            const readData = JSON.parse(readStatus);
+                            updateUIAsRead(readData.displayDate);
+                        } else {
+                            // Check if previous advice versions were read
+                            const previousReadStatus = localStorage.getItem(patientKey + '_last_read');
+
+                            if (previousReadStatus) {
+                                // There was previous advice that was read, so this is NEW
+                                const previousReadData = JSON.parse(previousReadStatus);
+                                statusIndicator.className = 'status-indicator status-new';
+                                statusIndicator.innerHTML = '<span>● New Advice</span>';
+                                newAdviceBadge.style.display = 'inline-block';
+
+                                // Show when previous advice was read
+                                previousTimestampValue.textContent = previousReadData.displayDate;
+                                previousReadInfo.style.display = 'block';
+                            }
+                        }
+                    }
+
+                    function markAsRead() {
+                        const now = new Date();
+                        const readData = {
+                            timestamp: now.toISOString(),
+                            displayDate: now.toLocaleString(),
+                            adviceHash: '@adviceHash'
+                        };
+
+                        // Store this specific advice version as read
+                        localStorage.setItem(instructionKey, JSON.stringify(readData));
+
+                        // Also store as the last read advice for this patient
+                        localStorage.setItem(patientKey + '_last_read', JSON.stringify(readData));
+
+                        // Also set cookies as backup (lasts 30 days)
+                        document.cookie = `${instructionKey}=${JSON.stringify(readData)}; max-age=${30*24*60*60}; path=/`;
+                        document.cookie = `${patientKey}_last_read=${JSON.stringify(readData)}; max-age=${30*24*60*60}; path=/`;
+
+                        // Update UI
+                        updateUIAsRead(readData.displayDate);
+                    }
+
+                    function updateUIAsRead(timestamp) {
+                        // Update status indicator
+                        statusIndicator.className = 'status-indicator status-read';
+                        statusIndicator.innerHTML = '<span>✓ Read</span>';
+                        newAdviceBadge.style.display = 'none';
+
+                        // Show timestamp
+                        timestampValue.textContent = timestamp;
+                        readTimestamp.style.display = 'block';
+
+                        // Hide previous read info
+                        previousReadInfo.style.display = 'none';
+
+                        // Disable button
+                        markAsReadBtn.disabled = true;
+                        markAsReadBtn.textContent = 'Marked as Read';
+                    }
+                    </text>
+            }
+        });
+    </script>
+}

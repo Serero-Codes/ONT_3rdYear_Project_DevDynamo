@@ -1,0 +1,127 @@
+@model IEnumerable<ONT_3rdyear_Project.Models.Order>
+
+@{
+    ViewData["Title"] = "Order History";
+}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class=" mb-0 text-nowrap">Order History</h1>
+                <div class="btn-group gap-2">                   
+                    <a asp-controller="Consumable" asp-action="Dashboard" class="btn btn-secondary mt-2 text-nowrap">Back</a>
+                </div>
+            </div>
+        </div>
+    </div>    
+@if (Model.Any())
+{
+     <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Ward</th>
+                <th>Date</th>
+                <th>Requested By</th>
+                <th>Consumables</th>
+                <th>Supplier</th>
+                <th>Remarks</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+           
+            @foreach (var req in Model)
+            {
+              
+                <tr>  
+                  
+                    <td>@req.Ward.Name</td>
+                    <td>@req.OrderDate.ToShortDateString()</td>
+                    <td>@req.User.FullName</td>
+                    <td>
+                        <ul class="mb-0 list-unstyled ps-3">
+                            
+                            @foreach (var item in req.ConsumableOrders)
+                            {
+                                 @if ( @req.Status == "Delivered")
+                                    {
+                                       <li>
+                                            <strong>@item.Consumable?.Name</strong>
+                                            (Requested: @item.QuantityRequested,
+                                            Approved: @(item.QuantityApproved))
+                                        </li>
+                                    }
+                                else if ( @req.Status == "Rejected")
+                                    {
+                                        <li>
+                                            <strong>@item.Consumable?.Name</strong>
+                                            (Requested: @item.QuantityRequested)
+                                        </li>
+                                    }
+                                else 
+                                    {
+                                        <li>
+                                            <strong>@item.Consumable?.Name</strong>
+                                            (Requested: @item.QuantityRequested)
+                                        </li>
+                                    }
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        @if (req.Supplier != null)
+                        {
+                            @req.Supplier.SupplierName
+                        }
+                        else
+                        {
+                            <em>No supplier assigned</em>
+                        }
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(req.Remark))
+                        {
+                            @req.Remark
+                        }
+                        else
+                        {
+                            <em>No remarks</em>
+                        }
+                    </td>
+                       
+                    <td>                   
+                     <div class="col-4 content-center text-center">
+                                            <small>
+                                               @if ( @req.Status == "Delivered")
+                                                {
+                                                    <span class="badge bg-success"> @req.Status</span>
+                                                }
+                                                else if ( @req.Status == "Approved")
+                                                {
+                                                    <span class="badge bg-primary"> @req.Status</span>
+                                                }
+                                                else if ( @req.Status == "Rejected")
+                                                {
+                                                    <span class="badge bg-danger"> @req.Status</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark"> @req.Status</span>
+                                                }
+                                            </small>
+                                        </div>
+                    </td>
+                   
+                   
+                </tr>
+            }
+        </tbody>
+    </table>
+   
+}
+else
+{
+    <p>No approved requests yet.</p>
+}

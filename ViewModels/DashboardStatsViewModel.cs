@@ -5,6 +5,7 @@
         public int TotalPatients { get; set; }
         public int TreatmentsToday { get; set; }
         public int MedicationsGivenToday { get; set; }
-        public int HoursOnDuty { get; set; }  // if you want to calculate or keep static
+        //public int HoursOnDuty { get; set; }  // if you want to calculate or keep static
+        public int TotalVitals {get; set;}
     }
 }

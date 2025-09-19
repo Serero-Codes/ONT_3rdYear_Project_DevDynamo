@@ -1,8 +1,102 @@
 ﻿@model ONT_3rdyear_Project.Models.Treatment
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     ViewData["Title"] = "Add Treatment";
 }
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+}
 
+
+
+<div class="treatment-form-container">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="form-header">
+            <h1 class="page-title">
+                <i class="fas fa-procedures" style="color: #28a745; margin-right: 15px;"></i>
+                Add Treatment Plan
+            </h1>
+            <p style="color: #6c757d; font-weight: 500; margin: 0;">Create a comprehensive treatment record</p>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="treatment-form-card">
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <p>@error.ErrorMessage</p>
+                    }
+                </div>
+            }
+
+
+            <!-- Treatment Form -->
+            <form asp-action="CreateTreatment" method="post">
+                <input type="hidden" asp-for="PatientID" />
+
+                <!-- Patient Name (Disabled) -->
+                <div class="form-group-custom">
+                    <label class="form-label-custom">
+                        
+                        Patient
+                    </label>
+                    <input type="text" class="form-control form-control-custom" value="@ViewBag.PatientName" disabled />
+                </div>
+
+                <!-- Treatment Type Selection -->
+                <div class="form-group-custom">
+                    <label asp-for="TreatmentType" class="form-label-custom">
+                       
+                        Treatment Type
+                    </label>
+                    <div class="select-wrapper">
+                        <select asp-for="TreatmentType" class="form-control form-control-custom" asp-items="ViewBag.TreatmentTypes">
+                            <option value="">-- Select Treatment Type --</option>
+                        </select>
+                    </div>
+                    <div class="treatment-type-hint">
+                        <i class="fas fa-lightbulb" style="margin-right: 5px;"></i>
+                        Note if you select other you cant submit without specifying
+                    </div>
+                    <span asp-validation-for="TreatmentType" class="text-danger"></span>
+                </div>
+
+                <!-- Custom Treatment Input (Hidden by default) -->
+                <div class="form-group-custom">
+                    <div class="other-treatment-container" id="otherTreatmentDiv">
+                        <label class="form-label-custom">
+                            Custom Treatment
+                        </label>
+                        <input type="text" id="TreatmentTypeOther" name="TreatmentTypeOther" class="form-control form-control-custom other-treatment-input" placeholder="Enter custom treatment details..." />
+                        
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-save" >
+                        <i class="fas fa-save" style="margin-right: 8px;"></i>
+                        Save Treatment
+                    </button>
+                    <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-back">
+                        <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+                        Back
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
     .treatment-form-container {
         background: url('/images/background3.jpg');
@@ -22,6 +116,9 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         text-align: center;
+        width: 62%;
+        margin: auto;
+        margin-bottom: 10px;
     }
 
     .treatment-form-card {
@@ -188,24 +285,7 @@
             color: white;
         }
 
-    .text-danger {
-        color: #e74c3c !important;
-        font-weight: 500;
-        font-size: 13px;
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        background: rgba(231, 76, 60, 0.1);
-        border-radius: 8px;
-        border-left: 3px solid #e74c3c;
-    }
 
-        .text-danger:before {
-            content: "⚠";
-            margin-right: 8px;
-            font-size: 14px;
-        }
 
     .page-title {
         color: #2c3e50;
@@ -243,109 +323,18 @@
     }
 
     @@media (max-width: 768px) {
-        .treatment-form-card
+        .treatment-form-card {
+            padding: 25px;
+            margin: 0 15px;
+        }
 
-    {
-        padding: 25px;
-        margin: 0 15px;
-    }
-
-    .btn-save, .btn-back {
-        width: 100%;
-        margin-bottom: 10px;
-        margin-right: 0;
-    }
-
+        .btn-save, .btn-back {
+            width: 100%;
+            margin-bottom: 10px;
+            margin-right: 0;
+        }
     }
 </style>
-
-<div class="treatment-form-container">
-    <div class="container">
-        <!-- Page Header -->
-        <div class="form-header">
-            <h1 class="page-title">
-                <i class="fas fa-procedures" style="color: #28a745; margin-right: 15px;"></i>
-                Add Treatment Plan
-            </h1>
-            <p style="color: #6c757d; font-weight: 500; margin: 0;">Create a comprehensive treatment record</p>
-        </div>
-
-        <!-- Main Form Card -->
-        <div class="treatment-form-card">
-            <!-- Patient Info Section -->
-            <div class="patient-info-card">
-                <h3 style="margin: 0; font-size: 1.4rem;">
-                    <i class="fas fa-user-injured" style="margin-right: 10px;"></i>
-                    @ViewBag.PatientName
-                </h3>
-                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Treatment Plan for Patient</p>
-            </div>
-
-           
-
-            <!-- Treatment Form -->
-            <form asp-action="CreateTreatment" method="post">
-                <input type="hidden" asp-for="PatientID" />
-
-                <!-- Patient Name (Disabled) -->
-                <div class="form-group-custom">
-                    <label class="form-label-custom">
-                        
-                        Patient
-                    </label>
-                    <input type="text" class="form-control form-control-custom" value="@ViewBag.PatientName" disabled />
-                </div>
-
-                <!-- Treatment Type Selection -->
-                <div class="form-group-custom">
-                    <label asp-for="TreatmentType" class="form-label-custom">
-                       
-                        Treatment Type
-                    </label>
-                    <div class="select-wrapper">
-                        <select asp-for="TreatmentType" class="form-control form-control-custom" asp-items="ViewBag.TreatmentTypes">
-                            <option value="">-- Select Treatment Type --</option>
-                        </select>
-                    </div>
-                    <div class="treatment-type-hint">
-                        <i class="fas fa-lightbulb" style="margin-right: 5px;"></i>
-                        Choose from predefined treatments or select "Other" for custom entry
-                    </div>
-                    <span asp-validation-for="TreatmentType" class="text-danger"></span>
-                </div>
-
-                <!-- Custom Treatment Input (Hidden by default) -->
-                <div class="form-group-custom">
-                    <div class="other-treatment-container" id="otherTreatmentDiv">
-                        <label class="form-label-custom">
-                            Custom Treatment
-                        </label>
-                        <input type="text" id="TreatmentTypeOther" name="TreatmentTypeOther" class="form-control form-control-custom other-treatment-input" placeholder="Enter custom treatment details..." />
-                        <div class="treatment-type-hint" style="color: #856404;">
-                            <i class="fas fa-edit" style="margin-right: 5px;"></i>
-                            Provide detailed description of the custom treatment plan
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-save">
-                        <i class="fas fa-save" style="margin-right: 8px;"></i>
-                        Save Treatment
-                    </button>
-                    <a asp-action="Dashboard" class="btn btn-back">
-                        <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
-                        Back to Dashboard
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Font Awesome for Icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 @section Scripts {
     @{
@@ -367,14 +356,6 @@
         });
 
         // Add visual feedback for form validation
-        treatmentSelect.addEventListener("change", function() {
-            if (this.value !== "") {
-                this.style.borderColor = "#28a745";
-                this.style.backgroundColor = "#f8fff9";
-            } else {
-                this.style.borderColor = "#e9ecef";
-                this.style.backgroundColor = "#f8faff";
-            }
-        });
+       
     </script>
 }

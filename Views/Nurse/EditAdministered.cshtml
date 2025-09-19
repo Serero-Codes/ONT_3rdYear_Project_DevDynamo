@@ -1,40 +1,191 @@
 ﻿@model ONT_3rdyear_Project.Models.PatientMedicationScript
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 
-<h2>Edit Administered Medication</h2>
+@{
+	var user = await UserManager.GetUserAsync(User);
+	var roles = await UserManager.GetRolesAsync(user);
+}
 
-<form asp-action="EditAdministered" method="post">
-    <input type="hidden" asp-for="Id" />
-    <div class="mb-3">
-        <label class="form-label">Patient Name</label>
-        <input type="text" class="form-control" value="@Model.Patient?.FirstName @Model.Patient?.LastName" readonly />
-    </div>
 
-    <div class="form-group">
-        <label asp-for="MedicationId">Medication</label>
-        <select asp-for="MedicationId" class="form-control" asp-items="ViewBag.MedicationList">
-            <option value="">-- Select Medication --</option>
-        </select>
-        <span asp-validation-for="MedicationId" class="text-danger"></span>
-    </div>
+<style>
+	:root {
+		--primary-blue: #2c5aa0;
+		--secondary-blue: #4a90c2;
+		--light-blue: #e8f4fd;
+		--accent-blue: #1e3a5f;
+		--success-green: #28a745;
+		--secondary-gray: #6c757d;
+		--border-color: #d1e7ff;
+		--text-dark: #2c3e50;
+		--white: #ffffff;
+		--light-gray: #f8f9fa;
+	}
 
-    <div class="form-group">
-        <label asp-for="Dosage"></label>
-        <input asp-for="Dosage" class="form-control" />
-    </div>
+	body {
+		background: url('/images/background3.jpg');
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		min-height: 100vh;
+		font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		margin: 0;
+		/* padding: 20px 0; */
+	}
 
-    <div class="form-group">
-        <label asp-for="AdministeredDate"></label>
-        <input asp-for="AdministeredDate" type="date" class="form-control" />
-    </div>
+	.form-content {
+		max-width: 700px;
+		margin: 0 auto;
+		padding: 20px;
+		background: #fff;
+		border-radius: 12px;
+		box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+	}
 
-  
+	.form-group {
+		margin-bottom: 15px;
+	}
 
-    <button type="submit" class="btn btn-success">Save</button>
-    <a asp-action="MedicationIndex" class="btn btn-secondary">Back</a>
-</form>
+		.form-group label {
+			font-weight: 600;
+			margin-bottom: 5px;
+			display: block;
+			color: #1e3a5f;
+		}
 
+	.form-control {
+		width: 100%;
+		padding: 10px 12px;
+		border: 1px solid #d1e7ff;
+		border-radius: 8px;
+		font-size: 1em;
+	}
+
+	.action-buttons {
+		display: flex;
+		gap: 10px;
+		justify-content: flex-start;
+		margin-top: 20px;
+	}
+
+	.vitals-container {
+		max-width: 800px;
+		margin: 0 auto;
+		background: var(--white);
+		border-radius: 15px;
+		box-shadow: 0 10px 30px rgba(44, 90, 160, 0.15);
+		overflow: hidden;
+		margin-top: 40px;
+		max-height: 800px;
+	}
+
+	.header-section {
+		background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+		color: var(--white);
+		padding: 10px;
+		text-align: center;
+		position: relative;
+	}
+
+		.header-section::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="20" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+			opacity: 0.3;
+		}
+
+	.header-title {
+		font-size: 2.2em;
+		font-weight: 600;
+		margin: 0;
+		position: relative;
+		z-index: 1;
+	}
+
+	.header-subtitle {
+		font-size: 1.1em;
+		opacity: 0.9;
+		margin: 10px 0 0 0;
+		position: relative;
+		z-index: 1;
+	}
+</style>
+<div class="vitals-container">
+	<div class="header-section">
+		<h1 class="header-title">Edit Administered Medication</h1>
+	</div>
+
+	<div class="form-content">
+		<form asp-action="EditAdministered" method="post">
+			<input type="hidden" asp-for="Id" />
+
+			<div class="form-group">
+				<label class="form-label">Patient Name</label>
+				<input type="text" class="form-control" value="@Model.Patient?.FirstName @Model.Patient?.LastName" readonly />
+			</div>
+
+			@* <div class="form-group">
+				<label asp-for="MedicationId">Medication</label>
+				<select asp-for="MedicationId" class="form-control" asp-items="ViewBag.MedicationList">
+					<option value="">-- Select Medication --</option>
+				</select>
+				<span asp-validation-for="MedicationId" class="text-danger"></span>
+			</div> *@
+			<div class="form-group-custom">
+				<label asp-for="MedicationId" class="form-label-custom required-field">
+					Medication
+				</label>
+				<div class="select-wrapper">
+					<select asp-for="MedicationId" class="form-control form-control-custom" id="medicationSelect" required>
+						<option value="">-- Select Medication --</option>
+						@foreach (var med in ViewBag.MedicationList)
+						{
+							<option value="@med.MedicationId" data-schedule="@med.Schedule">
+								@med.Name (Schedule @med.Schedule)
+							</option>
+						}
+					</select>
+				</div>
+				<span asp-validation-for="MedicationId" class="text-danger"></span>
+			</div>
+
+
+			<div class="form-group">
+				<label asp-for="Dosage"></label>
+				<input asp-for="Dosage" class="form-control" />
+			</div>
+
+
+			<div class="form-group">
+				<label asp-for="AdministeredDate"></label>
+				<input asp-for="AdministeredDate" type="date" class="form-control" />
+			</div>
+
+			<div class="action-buttons">
+				<button type="submit" class="btn btn-success">Save</button>
+				<a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Administered" class="btn btn-secondary">Back</a>
+			</div>
+		</form>
+	</div>
+</div>
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+	<script>
+		document.querySelector('select[name="MedicationId"]').addEventListener("change", function () {
+			const selectedOption = this.options[this.selectedIndex];
+			const schedule = selectedOption.getAttribute("data-schedule");
+			if (schedule && parseInt(schedule) > 4) {
+				alert("⚠ You cannot administer medication with a schedule higher than 4.");
+				this.value = ""; // reset selection
+			}
+		});
+	</script>
+
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
 }

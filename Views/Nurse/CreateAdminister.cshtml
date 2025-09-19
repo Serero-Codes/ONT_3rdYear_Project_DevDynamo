@@ -1,6 +1,12 @@
 ﻿@model ONT_3rdyear_Project.Models.PatientMedicationScript
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 
-
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+}
 
 <div class="medication-form-container">
     <div class="container">
@@ -16,18 +22,21 @@
         <!-- Main Form Card -->
         <div class="medication-form-card">
 
-            <!-- Patient Info Section -->
-            <div class="patient-info-card">
-                <h3 style="margin: 0; font-size: 1.4rem;">
-                    <i class="fas fa-user-check" style="margin-right: 10px;"></i>
-                    @ViewBag.PatientName
-                </h3>
-                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Medication Administration Record</p>
-            </div>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <p>@error.ErrorMessage</p>
+                    }
+                </div>
+            }
 
             <!-- Medication Form -->
-            <form asp-action="Create" method="post">
-                <input type="hidden" name="PatientId" value="@ViewBag.PatientId" />
+            <form asp-action="CreateAdminister" method="post">
+                <input type="hidden" asp-for="PatientId" value="@ViewBag.PatientId" />
+                <!-- Add this hidden field inside your form -->
+                <input type="hidden" asp-for="ApplicationUserID" value="@UserManager.GetUserId(User)" />
 
                 <!-- Patient Name (Read-only) -->
                 <div class="form-group-custom">
@@ -35,22 +44,37 @@
                         Patient
                     </label>
                     <input type="text" class="form-control form-control-custom" value="@ViewBag.PatientName" readonly />
-                    
+                    @if (ViewBag.PatientAllergies != null && ((List<string>)ViewBag.PatientAllergies).Count > 0)
+                    {
+                        <div class="safety-warning">
+                            <h4><i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>Allergy Warning!</h4>
+                            <p>Patient has the following allergies:</p>
+                            <ul>
+                                @foreach (var allergy in (List<string>)ViewBag.PatientAllergies)
+                                {
+                                    <li>@allergy</li>
+                                }
+                            </ul>
+                        </div>
+                    }
                 </div>
 
                 <!-- Medication Selection -->
+               
                 <div class="form-group-custom">
                     <label asp-for="MedicationId" class="form-label-custom required-field">
                         Medication
                     </label>
                     <div class="select-wrapper">
-                        <select asp-for="MedicationId" class="form-control form-control-custom" asp-items="ViewBag.MedicationList" required>
+                        <select asp-for="MedicationId" class="form-control form-control-custom" id="medicationSelect" required>
                             <option value="">-- Select Medication --</option>
+                            @foreach (var med in ViewBag.MedicationList)
+                            {
+                                <option value="@med.MedicationId" data-schedule="@med.Schedule">
+                                    @med.Name (Schedule @med.Schedule)
+                                </option>
+                            }
                         </select>
-                    </div>
-                    <div class="form-hint">
-                        <i class="fas fa-search" style="margin-right: 5px;"></i>
-                        Search and select the prescribed medication
                     </div>
                     <span asp-validation-for="MedicationId" class="text-danger"></span>
                 </div>
@@ -61,13 +85,10 @@
                         Dosage
                     </label>
                     <div class="dosage-input-group">
-                        <input asp-for="Dosage" class="form-control form-control-custom dosage-input" placeholder="e.g., 500" pattern="[0-9]+\.?[0-9]*" title="Please enter a valid dosage amount" required />
+                        <input asp-for="Dosage" class="form-control form-control-custom dosage-input" placeholder="e.g., 1 tablet with meals daily" pattern="[0-9]+\.?[0-9]*" title="Please enter a valid dosage amount" required />
                         <span class="dosage-unit">mg</span>
                     </div>
-                    <div class="form-hint">
-                        <i class="fas fa-balance-scale" style="margin-right: 5px;"></i>
-                        Enter the exact dosage amount as prescribed (numbers only)
-                    </div>
+                   
                     <span asp-validation-for="Dosage" class="text-danger"></span>
                 </div>
 
@@ -77,22 +98,14 @@
                         Administration Date
                     </label>
                     <div class="date-input-wrapper">
-                        <input asp-for="AdministeredDate" type="date" class="form-control form-control-custom date-input" required />
-                    </div>
-                    <div class="current-date-info">
-                        <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
-                        Select today's date for immediate administration
-                    </div>
-                    <div class="form-hint">
-                        <i class="fas fa-clock" style="margin-right: 5px;"></i>
-                        Select the date of administration
-                    </div>
+                        <input asp-for="AdministeredDate" type="datetime-local" class="form-control form-control-custom date-input" required />
+                    </div>                   
                     <span asp-validation-for="AdministeredDate" class="text-danger"></span>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-save">
+                    <button type="submit" class="btn btn-save" id="submitButton">
                         <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
                         Administer & Record
                     </button>
@@ -124,6 +137,9 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         text-align: center;
+        width: 62%;
+        margin: auto;
+        margin-bottom: 10px;
     }
 
     .medication-form-card {
@@ -351,24 +367,7 @@
             color: white;
         }
 
-    .text-danger {
-        color: #e74c3c !important;
-        font-weight: 500;
-        font-size: 13px;
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        background: rgba(231, 76, 60, 0.1);
-        border-radius: 8px;
-        border-left: 3px solid #e74c3c;
-    }
-
-        .text-danger:before {
-            content: "⚠";
-            margin-right: 8px;
-            font-size: 14px;
-        }
+    
 
     .page-title {
         color: #2c3e50;
@@ -440,28 +439,7 @@
         align-items: center;
     }
 
-    .required-field::after {
-        content: "*";
-        color: #dc3545;
-        margin-left: 3px;
-        font-weight: bold;
-    }
-
-    input:required:invalid {
-        border-color: #dc3545;
-    }
-
-    input:required:valid {
-        border-color: #28a745;
-    }
-
-    select:required:invalid {
-        border-color: #dc3545;
-    }
-
-    select:required:valid {
-        border-color: #28a745;
-    }
+    
 
     @@media (max-width: 768px) {
         .medication-form-card {
@@ -475,11 +453,48 @@
             margin-right: 0;
         }
     }
+
+    .btn-disabled {
+        background: #6c757d !important;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
 </style>
 <!-- Font Awesome for Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 @section Scripts {
+    <script>
+        document.getElementById("medicationSelect").addEventListener("change", function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const schedule = selectedOption.getAttribute("data-schedule");
+
+            if (schedule && parseInt(schedule) > 4) {
+                alert("⚠ You cannot administer medication with a schedule higher than 4.");
+                this.value = ""; // reset selection
+            }
+        });
+
+             var patientAllergies = @Html.Raw(Json.Serialize(ViewBag.PatientAllergies ?? new List<string>()));
+        var medicationSelect = document.getElementById("medicationSelect");
+        var saveButton = document.getElementById("submitButton");
+
+        function checkAllergy() {
+            var selectedMedication = medicationSelect.options[medicationSelect.selectedIndex].text || "";
+            var hasAllergyConflict = patientAllergies.some(a => selectedMedication.toLowerCase().includes(a.toLowerCase()));
+
+            if (hasAllergyConflict) {
+                saveButton.disabled = true;
+                saveButton.classList.add("btn-disabled");
+            } else {
+                saveButton.disabled = false;
+                saveButton.classList.remove("btn-disabled");
+            }
+        }
+
+        medicationSelect.addEventListener("change", checkAllergy);
+        checkAllergy();
+    </script>
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }

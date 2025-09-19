@@ -1,51 +1,14 @@
-﻿@* @model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
+﻿@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     ViewData["Title"] = "Patients";
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">Patients Records</h2>
-
-    <form method="get" class="mb-3">
-        <div class="input-group">
-            <input type="text" name="keyword" class="form-control" placeholder="Search by name..." value="@Context.Request.Query["keyword"]" />
-            <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-    </form>
-
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>Patient Name</th>
-                    <th>Ward</th>
-                    <th>Bed</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var patient in Model)
-                {
-                    <tr>
-                        <td>@patient.FirstName @patient.LastName</td>
-                        <td>@patient.WardName</td>
-                        <td>@patient.BedNo</td>
-                        <td>
-                            <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="btn btn-danger btn-sm">Vitals</a>
-                            <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="btn btn-success btn-sm">Treatment</a>
-                            <a asp-controller="Nurse" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="btn btn-warning btn-sm">Medication</a>
-                            <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="btn btn-info btn-sm">Instructions</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
- *@
-@model IEnumerable<ONT_3rdyear_Project.ViewModels.PatientDashboardViewModel>
 @{
-    ViewData["Title"] = "Patients";
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
 }
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -232,6 +195,7 @@
         overflow-x: auto;
         scrollbar-width: thin;
         scrollbar-color: var(--gray-300) transparent;
+        max-height: calc(3 * 84px + 50px);
     }
 
         .table-responsive::-webkit-scrollbar {
@@ -538,22 +502,26 @@
    
 
     <div class="search-section">
+        
+
         <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
 
+        
         <select id="wardFilter" class="filter-select">
             <option value="">All Wards</option>
-            <!-- Populate dynamically from your server or hardcoded options -->
-            <option value="General Ward A">General Ward A</option>
-            <option value="Ward2">Ward 2</option>
-            <option value="Ward3">Ward 3</option>
+            @foreach (var ward in ViewBag.Wards as SelectList)
+            {
+                <option value="@ward.Text">@ward.Text</option>
+            }
         </select>
 
+       
         <select id="bedFilter" class="filter-select">
             <option value="">All Beds</option>
-            <!-- Populate dynamically as well -->
-            <option value="Bed1">Bed 1</option>
-            <option value="Bed2">Bed 2</option>
-            <option value="Bed3">Bed 3</option>
+            @foreach (var bed in ViewBag.Beds as SelectList)
+            {
+                <option value="@bed.Text">@bed.Text</option>
+            }
         </select>
 
         <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
@@ -589,36 +557,66 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="ward-badge">@patient.WardName</span>
-                            </td>
-                            <td>
-                                <span class="bed-badge">Bed @patient.BedNo</span>
-                            </td>
-                            <td>
-                                @if (patient.Status == "Admitted")
+                                @if (patient.Status == "Discharged")
                                 {
-                                    <span class="badge bg-success">Admitted</span>
+                                    <span class="ward-badge">N/A</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-danger">Not Admitted</span>
+                                    <span class="ward-badge">@patient.WardName</span>
                                 }
                             </td>
                             <td>
+                                @if (patient.Status == "Discharged")
+                                {
+                                    <span class="bed-badge">N/A</span>
+                                }
+                                else
+                                {
+                                    <span class="bed-badge">Bed @patient.BedNo</span>
+                                }
+                            </td>
+                            <td>
+                                @switch (patient.Status)
+                                {
+                                    case "Admitted":
+                                        <span class="badge bg-success">Admitted</span>
+                                        ;
+                                        break;
+                                    case "Discharged":
+                                        <span class="badge bg-secondary">Discharged</span>
+                                        ;
+                                        break;
+                                    default:
+                                        <span class="badge bg-danger">Not Admitted</span>
+                                        ;
+                                        break;
+                                }
+                            </td>
+
+                            <td>
                                 <div class="action-buttons">
+                                    <a asp-controller="Nurse" asp-action="ViewAdvice" asp-route-patientId="@patient.PatientID" class="action-btn btn-view-instructions"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
+                                        <i class="fas fa-eye"></i>
+                                        View Instructions
+                                    </a>
                                     <a asp-controller="Nurse" asp-action="CreateVital" asp-route-patientId="@patient.PatientID" class="action-btn btn-vitals">
                                         <i class="fas fa-heartbeat"></i>
                                         Vitals
                                     </a>
-                                    <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment">
+                                    <a asp-controller="Nurse" asp-action="CreateTreatment" asp-route-patientId="@patient.PatientID" class="action-btn btn-treatment"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                         <i class="fas fa-user-md"></i>
                                         Treatment
                                     </a>
-                                    <a asp-controller="@medicationController" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication">
+                                    <a asp-controller="@medicationController" asp-action="CreateAdminister" asp-route-patientId="@patient.PatientID" class="action-btn btn-medication"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                         <i class="fas fa-pills"></i>
                                         Medication
                                     </a>
-                                    <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions">
+                                    <a asp-controller="Nurse" asp-action="CreateRequest" asp-route-patientId="@patient.PatientID" class="action-btn btn-instructions"
+                                       onclick="return checkAdmission(@(patient.Status == "Admitted" ? "true" : "false"))">
                                         <i class="fas fa-clipboard-list"></i>
                                         Instructions
                                     </a>
@@ -628,6 +626,25 @@
                     }
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Admission Warning Modal -->
+<div class="modal fade" id="admissionModal" tabindex="-1" aria-labelledby="admissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="admissionModalLabel">Action Not Allowed</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <i class="fas fa-warning"></i>
+                <p id="admissionModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok</button>
+            </div>
         </div>
     </div>
 </div>
@@ -667,6 +684,20 @@
     searchInput.addEventListener('input', performSearch);
     wardFilter.addEventListener('change', performSearch);
     bedFilter.addEventListener('change', performSearch);
+
+    function checkAdmission(isAdmitted) {
+        isAdmitted = (isAdmitted === true || isAdmitted === 'true'); // convert string to boolean
+        if (!isAdmitted) {
+            document.getElementById("admissionModalMessage").innerText =
+                "Cannot perform this action. Patient is not admitted.";
+
+            var modal = new bootstrap.Modal(document.getElementById('admissionModal'));
+            modal.show();
+            return false;
+        }
+        return true;
+    }
+
 </script>
 
 

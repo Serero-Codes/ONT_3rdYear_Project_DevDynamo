@@ -1,26 +1,51 @@
 ﻿@model ONT_3rdyear_Project.ViewModels.RequestInstructionViewModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     ViewData["Title"] = "Request Doctor Instruction";
 }
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+}
 
-@* <h3>Request Doctor Instruction</h3>
+<div class="instructions-form-container">
+    <div class="container">
+        <!-- Header -->
+        <div class="form-header">
+            <h1 class="page-title">Request Doctor Instruction</h1>
+        </div>
 
-<form asp-action="CreateRequest" method="post">
-    <input type="hidden" name="patientId" value="@ViewBag.PatientID" />
+        <!-- Form Card -->
+        <div class="instructions-form-card">
+            <!-- Patient Info -->
+            
 
-    <div class="form-group">
-        <label>Patient Name</label>
-        <input type="text" class="form-control" value="@ViewBag.PatientName" disabled />
+            <!-- Form -->
+            <form asp-action="CreateRequest" method="post">
+                <input type="hidden" asp-for="PatientID" />
+
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Patient Name</label>
+                    <input type="text" class="form-control" value="@Model.PatientName" disabled />
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="Message">Message or Note to Doctor </label>
+                    <textarea asp-for="Message" class="form-control" rows="4" placeholder="E.g., Patient is not responding to medication..."></textarea>
+                    <span asp-validation-for="Message" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Send Request</button>
+                <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-back">
+                    <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+                    Back
+                </a>
+            </form>
+        </div>
     </div>
-
-    <div class="form-group mt-2">
-        <label for="message">Message or Note to Doctor (optional):</label>
-        <textarea name="message" class="form-control" rows="4" placeholder="E.g., Patient is not responding to medication..."></textarea>
-    </div>
-
-    <button type="submit" class="btn btn-primary mt-2">Send Request</button>
-</form>
- *@
+</div>
 
 <style>
     .instructions-form-container {
@@ -41,6 +66,9 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         text-align: center;
+        width: 62%;
+        margin: auto;
+        margin-bottom: 10px;
     }
 
     .instructions-form-card {
@@ -77,36 +105,8 @@
     }
 </style>
 
-<div class="instructions-form-container">
-    <div class="container">
-        <!-- Header -->
-        <div class="form-header">
-            <h1 class="page-title">Request Doctor Instruction</h1>
-        </div>
-
-        <!-- Form Card -->
-        <div class="instructions-form-card">
-            <!-- Patient Info -->
-            <div class="patient-info-card">
-                <h3>@ViewBag.PatientName</h3>
-            </div>
-
-            <!-- Form -->
-            <form asp-action="CreateRequest" method="post">
-                <input type="hidden" name="patientId" value="@ViewBag.PatientID" />
-
-                <div class="form-group-custom">
-                    <label class="form-label-custom">Patient Name</label>
-                    <input type="text" class="form-control" value="@ViewBag.PatientName" disabled />
-                </div>
-
-                <div class="form-group-custom">
-                    <label class="form-label-custom" for="message">Message or Note to Doctor (optional)</label>
-                    <textarea name="message" class="form-control" rows="4" placeholder="E.g., Patient is not responding to medication..."></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Send Request</button>
-            </form>
-        </div>
-    </div>
-</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

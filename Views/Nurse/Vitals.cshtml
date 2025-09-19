@@ -1,12 +1,29 @@
 ﻿@model IEnumerable<ONT_3rdyear_Project.Models.Vital>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     ViewData["Title"] = "Vitals";
+}
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
 }
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: '@TempData["SuccessMessage"]',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    </script>
+}
 <style>
     :root {
         --primary-color: #2563eb;
@@ -30,13 +47,13 @@
     }
 
     body {
-    @*background: var(--light-bg);*@
-        background: url('/images/background3.jpg');
+        background: linear-gradient(to bottom right, #e6f7f7, #f0ffff) /*  url('/images/background3.jpg') */;
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         min-height: 100vh;
         font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow: hidden;
     }
 
     .patients-container {
@@ -184,14 +201,14 @@
     }
 
         .custom-table thead th {
-            background: linear-gradient(135deg, var(--dark-color) 0%, var(--gray-600) 100%);
+            background: var(--gray-500);
             color: var(--white);
-            padding: 1.25rem 1rem;
-            font-weight: 600;
-            font-size: 0.9rem;
+           padding: 1.25rem 1rem;
+            /* font-weight: 600;
+            font-size: 0.9rem; */
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: none;
+            /* letter-spacing: 0.5px;
+            border: none; */
             position: sticky;
             top: 0;
             z-index: 10;
@@ -238,7 +255,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        background: var(--gray-300);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -248,34 +265,12 @@
         flex-shrink: 0;
     }
 
-    .ward-info, .bed-info {
-        font-weight: 500;
-        color: var(--gray-600);
-    }
-
-    .ward-badge {
-        background: rgba(37, 99, 235, 0.1);
-        color: var(--primary-color);
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-
-    .bed-badge {
-        background: rgba(16, 185, 129, 0.1);
-        color: var(--success-color);
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-
     .action-buttons {
         display: flex;
         gap: 0.5rem;
-        flex-wrap: wrap;
-        align-items: center;
+        /* flex-wrap: wrap;
+        align-items: center; */
+        justify-content: center;
     }
 
     .action-btn {
@@ -286,12 +281,14 @@
         font-weight: 600;
         text-decoration: none;
         transition: all 0.3s ease;
-        display: inline-flex;
+        display: flex/* inline-flex */;
         align-items: center;
         gap: 0.4rem;
         position: relative;
         overflow: hidden;
         white-space: nowrap;
+        align-items: center;
+        justify-content: center;
     }
 
         .action-btn::before {
@@ -315,10 +312,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-    .btn-vitals {
-        background: linear-gradient(45deg, var(--danger-color), #ff6b6b);
-        color: var(--white);
-    }
+    
 
     .btn-treatment {
         background: linear-gradient(45deg, var(--success-color), #34d399);
@@ -326,14 +320,11 @@
     }
 
     .btn-medication {
-        background: linear-gradient(45deg, var(--warning-color), #fbbf24);
+        background: linear-gradient(45deg, var(--warning-color), red);
         color: var(--white);
     }
 
-    .btn-instructions {
-        background: linear-gradient(45deg, var(--info-color), #38bdf8);
-        color: var(--white);
-    }
+    
 
     .empty-state {
         text-align: center;
@@ -378,64 +369,88 @@
             }
 
     @@media (max-width: 768px) {
-        .patients-container {
-            padding: 1rem 0;
+        .patients-container
+
+    {
+        padding: 1rem 0;
+    }
+
+    .page-header {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-input {
+        min-width: auto;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .action-btn {
+        text-align: center;
+        justify-content: center;
+    }
+
+    .custom-table {
+        /* font-size: 0.9rem; */
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+    }
+
+        .custom-table thead th,
+        .custom-table tbody td {
+            padding: 1rem 0.5rem;
         }
 
-        .page-header {
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
+    .patient-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
 
-        .page-title {
-            font-size: 1.5rem;
-        }
+    .content-with-chart {
+        flex-direction: column !important;
+    }
 
-        .search-form {
-            flex-direction: column;
-            align-items: stretch;
-        }
+    .table-container {
+        width: 100% !important;
+    }
 
-        .search-input {
-            min-width: auto;
-        }
+    .chart-container {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 2rem;
+    }
 
-        .action-buttons {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .action-btn {
-            text-align: center;
-            justify-content: center;
-        }
-
-        .custom-table {
-            font-size: 0.9rem;
-        }
-
-            .custom-table thead th,
-            .custom-table tbody td {
-                padding: 1rem 0.5rem;
-            }
-
-        .patient-info {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
     }
 
     @@keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
+        from
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     }
 
     .patients-table-section {
@@ -458,18 +473,80 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        .table-scroll-container {
-    max-height: 400px;  
-    overflow-y: auto;   
-    /* Optional: fix table width or add horizontal scroll */
-    overflow-x: hidden; /* or auto if you want horizontal scroll */
+    .table-scroll-container {
+        max-height: 460px;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+
+    
+
+    /* Layout for side-by-side content */
+    .content-with-chart {
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+
+    .table-container {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .chart-container {
+        width: 400px;
+        height: 500px;
+        flex-shrink: 0;
+        background: var(--white);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+        display: flex;
+        flex-direction: column;
+        overflow-x: auto; /* This enables horizontal scrolling */
+    overflow-y: hidden;
+    }
+
+    #vitalsChart {
+        flex: 1;
+        min-height: 400px;
+        min-width: 400px;
+    }
+
+        .chart-container h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .chart-container h2:before {
+                content: '📊';
+                font-size: 1.2rem;
+            }
+
+    .chart-container::-webkit-scrollbar {
+    height: 8px;
 }
-#btn-back{
-    margin-left: 60%;
-    border-radius:40px;
+
+.chart-container::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 4px;
+}
+
+.chart-container::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 4px;
+}
+
+.chart-container::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
 }
 </style>
-
 
 <div class="container patient-container mt-3">
     <!--page header-->
@@ -479,95 +556,336 @@
             List of Vitals
         </h1>
     </div>
-   
 
     <div class="search-section">
-        <input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
-        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
-            <i class="fas fa-arrow-left"></i>
-            Back to Dashboard
-        </a>
+        <form method="get" asp-action="Vitals">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input type="text" name="searchPatient" class="form-control" placeholder="Search by patient name..." />
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="fromDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="toDate" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </div>
+            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Dashboard">
+                <i class="fas fa-home"></i>
+            </a>
+            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Back to List of Patients">
+                <i class="fas fa-users"></i>
+            </a>
+            <a asp-action="VitalsPdf" class="btn btn-danger">
+                <i class="fas fa-file-pdf"></i> Export All to PDF
+            </a>
+        </form>
     </div>
 
-    <div class="table-scroll-container">
-        <table class="custom-table mb-3">
-            <thead>
-                <tr>
-                    <th><i class="fas fa-user"></i>Patient Name</th>
-                    <th><i class="fas fa-heartbeat"></i>BP</th>
-                    <th><i class="fas fa-tint"></i>Sugar Level</th>
-                    <th><i class="fas fa-thermometer-half"></i>Temperature</th>
-                    <th><i class="fas fa-heartbeat"></i>Pulse Rate</th>
-                    <th><i class="fas fa-calendar"></i>Recorded On</th>
-                    <th><i class="fas fa-user"></i>Recorded by</th>
-                    <th><i class="fas fa-cog"></i>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="searchResults">
-                @foreach (var vital in Model)
-                {
-                    <tr>
-                        <td>
-                            <div class="patient-info">
-                                <div class="patient-avatar">
-                                    @(vital.Patient?.FirstName?.Substring(0, 1))@(vital.Patient?.LastName?.Substring(0, 1))
-                                </div>
-                                <div class="patient-name">@vital.Patient?.FirstName @vital.Patient?.LastName</div>
-                            </div>
-                         </td>
-                        <td>@vital.BP</td>
-                        <td>@vital.SugarLevel</td>
-                        <td>@vital.Temperature</td>
-                        <td>@vital.PulseRate</td>
-                        <td>@vital.Date</td>
-                        <td>@vital.User?.FullName</td>
-                        <td>
-                            <div class="action-buttons">
-                            <a asp-action="VitalsDetails" asp-route-id="@vital.VitalID" class="action-btn btn-vitals">Details</a>
-                            <a asp-action="EditVital" asp-route-id="@vital.VitalID" class=" action-btn btn-treatment">Edit</a>
-                            <a asp-action="DeleteVital" asp-route-id="@vital.VitalID" class="action-btn btn-medication">Delete</a>
-                            </div>
-                            
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-   </div> 
+    <!-- Content with side-by-side layout -->
+    <div class="content-with-chart">
+        <!-- Table container -->
+        <div class="table-container">
+            <div class="table-scroll-container">
+                <table class="custom-table mb-3">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-user"></i>Patient Name</th>
+                            <th><i class="fas fa-heartbeat"></i>BP</th>
+                            <th><i class="fas fa-tint"></i>Sugar Level</th>
+                            <th><i class="fas fa-thermometer-half"></i>Temperature</th>
+                            <th><i class="fas fa-heartbeat"></i>Pulse Rate</th>
+                            <th><i class="fas fa-cog"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="searchResults">
+                        @foreach (var vital in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="patient-info">
+                                        <div class="patient-avatar">
+                                            @(vital.Patient?.FirstName?.Substring(0, 1))@(vital.Patient?.LastName?.Substring(0, 1))
+                                        </div>
+                                        <div class="patient-name">@vital.Patient?.FirstName @vital.Patient?.LastName</div>
+                                    </div>
+                                </td>
+                                <td>@vital.BP mmHg</td>
+                                <td>@vital.SugarLevel mg/dL</td>
+                                <td>@vital.Temperature &deg;C</td>
+                                <td>@vital.PulseRate bpm</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a asp-action="EditVital" asp-route-id="@vital.VitalID" class="action-btn btn-treatment" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i class="fas fa-edit"></i></a>
+                                        @* <a href="javascript:void(0);" class="action-btn btn-medication" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@vital.VitalID" data-name="@vital.Patient?.FirstName @vital.Patient?.LastName" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><i class="fas fa-trash-alt"></i></a> *@
+                                        <button class="btn btn-danger delete-btn" data-id="@vital.VitalID" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                            Delete
+                                        </button>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Chart container on the side -->
+        <div class="chart-container">
+            <canvas id="vitalsChart"></canvas>
+        </div>
+    </div>
 </div>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: '@TempData["SuccessMessage"]',
-            timer: 2000,
-            showConfirmButton: false
-        });
-    </script>
-}
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this vital?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDelete" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const searchInput = document.getElementById('liveSearchInput');
+    let deleteVitalId = null;
+    let deleteRow = null;
 
-    function performSearch() {
-        const query = searchInput.value.trim();
+      // Get data for all vital signs
+    const patientData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+        Model.GroupBy(v => v.Patient?.FirstName + " " + v.Patient?.LastName)
+             .Select(g => new {
+                 PatientName = g.Key,
+                 LatestBP = g.OrderByDescending(v => v.Date).FirstOrDefault()?.BP,
+                 LatestPulse = g.OrderByDescending(v => v.Date).FirstOrDefault()?.PulseRate,
+                 LatestSugar = g.OrderByDescending(v => v.Date).FirstOrDefault()?.SugarLevel,
+                 LatestTemp = g.OrderByDescending(v => v.Date).FirstOrDefault()?.Temperature
+             })
+    ));
 
-        const url = query.length > 0
-            ? `/Nurse/LiveSearchVitals?query=${encodeURIComponent(query)}`
-            : `/Nurse/LiveSearchAllVitals`;
+    // Process the data
+    const patientNames = patientData.map(p => p.PatientName);
+    
+    const latestBP = patientData.map(p => {
+        if (!p.LatestBP) return null;
+        const parts = p.LatestBP.split('/');
+        return parts.length > 0 ? parseInt(parts[0]) : null;
+    });
 
-        fetch(url)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('searchResults').innerHTML = html;
-            })
-            .catch(error => {
-                console.error('Search failed:', error);
+    const latestPulse = patientData.map(p => p.LatestPulse);
+    const latestSugar = patientData.map(p => p.LatestSugar);
+    const latestTemp = patientData.map(p => p.LatestTemp);
+
+    // Create the chart
+    var ctx = document.getElementById('vitalsChart').getContext('2d');
+    
+    window.vitalsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: patientNames,
+            datasets: [
+                {
+                    label: 'BP (Systolic)',
+                    data: latestBP,
+                    backgroundColor: '#EF4444',
+                    borderColor: '#DC2626',
+                    borderWidth: 1,
+                    yAxisID: 'y',
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.7
+                },
+                {
+                    label: 'Pulse Rate',
+                    data: latestPulse,
+                    backgroundColor: '#10B981',
+                    borderColor: '#059669',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.7
+                },
+                {
+                    label: 'Sugar Level',
+                    data: latestSugar,
+                    backgroundColor: '#3B82F6',
+                    borderColor: '#1D4ED8',
+                    borderWidth: 1,
+                    yAxisID: 'y2',
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.7
+                },
+                {
+                    label: 'Temperature',
+                    data: latestTemp,
+                    backgroundColor: '#F59E0B',
+                    borderColor: '#D97706',
+                    borderWidth: 1,
+                    yAxisID: 'y3',
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.7
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Latest Vital Signs by Patient',
+                    font: { size: 16, weight: 'bold' }
+                },
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            // Show patient name in tooltip title
+                            return patientNames[context[0].dataIndex];
+                        },
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (context.parsed.y !== null) {
+                                // Add units to tooltip
+                                if (label.includes('BP')) label += ': ' + context.parsed.y + ' mmHg';
+                                else if (label.includes('Pulse')) label += ': ' + context.parsed.y + ' bpm';
+                                else if (label.includes('Sugar')) label += ': ' + context.parsed.y + ' mg/dL';
+                                else if (label.includes('Temp')) label += ': ' + context.parsed.y + ' °C';
+                                else label += ': ' + context.parsed.y;
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: { display: true, text: 'BP (mmHg)' },
+                    min: 60,
+                    max: 200
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: { display: true, text: 'Pulse (bpm)' },
+                    min: 40,
+                    max: 120,
+                    grid: { drawOnChartArea: false }
+                },
+                y2: {
+                    type: 'linear',
+                    display: false,
+                    title: { display: true, text: 'Sugar (mg/dL)' }
+                },
+                y3: {
+                    type: 'linear',
+                    display: false,
+                    title: { display: true, text: 'Temp (°C)' }
+                },
+                x: {
+                    display: false, // Hide patient names at bottom
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+
+    // Make chart container scrollable
+    const chartContainer = document.querySelector('.chart-container');
+    chartContainer.style.overflowX = 'auto';
+    chartContainer.style.overflowY = 'hidden';
+    
+    // Adjust canvas width based on number of patients
+    const canvas = document.getElementById('vitalsChart');
+    const minWidth = 400; // Minimum width
+    const patientWidth = 100; // Width per patient
+    const calculatedWidth = Math.max(minWidth, patientNames.length * patientWidth);
+    
+    canvas.style.minWidth = calculatedWidth + 'px';
+
+    // When delete button is clicked
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            deleteVitalId = this.getAttribute('data-id');
+            deleteRow = this.closest('tr');
+        });
+    });
+
+    // When confirm delete is clicked
+document.getElementById('confirmDelete').addEventListener('click', function () {
+    if (deleteVitalId) {
+        fetch(`/Nurse/DeleteVital/${deleteVitalId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Remove table row
+                if (deleteRow) deleteRow.remove();
+                
+                var modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                modal.hide();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Deleted!',
+                    text: 'Vitals successfully deleted!',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                // Refresh the page to update the chart instead of trying to update it manually
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error deleting vital.'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong.'
             });
+        });
     }
-
-    searchInput.addEventListener('input', performSearch);
+});
 </script>

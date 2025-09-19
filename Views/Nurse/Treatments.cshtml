@@ -1,6 +1,25 @@
 ﻿@model IEnumerable<ONT_3rdyear_Project.Models.Treatment>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 @{
 	ViewData["Title"] = "Treatments";
+}
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: '@TempData["SuccessMessage"]',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    </script>
 }
 
 
@@ -14,53 +33,106 @@
 	</div>
 
 	<div class="search-section">
-		<input type="text" id="liveSearchInput" class="search-input" placeholder="🔍 Search by patient name..." autocomplete="off" />
-        <a asp-action="Dashboard" class="btn btn-primary" id="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+		
+        <form method="get" asp-action="Treatments">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input type="text" name="searchPatient" class="form-control" placeholder="🔍 Search by patient name..." />
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="fromDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="toDate" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <button tupe="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </div>
+            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="Dashboard" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Dashboard">
+                <i class="fas fa-home"></i> 
+            </a>
+            <a asp-controller="@(roles.Contains("Nurse") ? "Nurse" : "NurseSister")" asp-action="PatientsList" class="btn btn-primary" id="btn-back" data-bs-toggle="tooltip" data-bs-placement="top" title="Back to List of Patients">
+                <i class="fas fa-users"></i>
+            </a>
+            <a asp-action="TreatmentsPdf" class="btn btn-danger"><i class="fas fa-file-pdf"></i>Export All to PDF</a>
+        </form>
+       
 	</div>
+    <div class="content-with-chart">
+        <div class="table-container">
+            <div class="table-scroll">
+	            <table class="table table-responsive custom-table">
+		            <thead>
+			            <tr>
+                            <th><i class="fas fa-user"></i>Patient</th>
+				            
+                            <th><i class="fas fa-user"></i>Treated by</th>
+				            <th><i class="fas fa-thermometer"></i>Treatment Type</th>
+				            <th><i class="fas fa-watch"></i>Treatment Time</th>
+                            <th><i class="fas fa-cogs"></i>Actions</th>
+			            </tr>
+		            </thead>
+                    <tbody id="searchResults">
+			            @foreach (var treatment in Model)
+			            {
+				            <tr>
+					            <td>
+                                    <div class="patient-info">
+                                        <div class="patient-avatar">
+                                            @(treatment.Patient?.FirstName.Substring(0, 1))@(treatment.Patient.LastName.Substring(0, 1))
+                                        </div>
+                                        <div class="patient-name">@treatment.Patient?.FirstName @treatment.Patient?.LastName</div>
+                                    </div>
+                                </td>
+					            <td>@treatment.User?.FullName</td>
+					            <td>@treatment.TreatmentType</td>
+					            <td>@treatment.TreatmentDate</td>
+					            <td>
+                                    <div class="action-buttons">
 
-	<table class="table table-responsive custom-table">
-		<thead>
-			<tr>
-                <th><i class="fas fa-user"></i>Patient</th>
-				@* <th>Visit Date</th> *@
-                <th><i class="fas fa-user"></i>Treated by</th>
-				<th><i class="fas fa-thermometer"></i>Treatment Type</th>
-				<th><i class="fas fa-watch"></i>Treatment Time</th>
-                <th><i class="fas fa-cogs"></i>Actions</th>
-			</tr>
-		</thead>
-        <tbody id="searchResults">
-			@foreach (var treatment in Model)
-			{
-				<tr>
-					<td>
-                        <div class="patient-info">
-                            <div class="patient-avatar">
-                                @(treatment.Patient?.FirstName.Substring(0, 1))@(treatment.Patient.LastName.Substring(0, 1))
-                            </div>
-                            <div class="patient-name">@treatment.Patient?.FirstName @treatment.Patient?.LastName</div>
-                        </div>
-                    </td>
-					@* <td>@treatment.VisitSchedule?.VisitDate</td> *@
-					<td>@treatment.User?.FullName</td>
-					<td>@treatment.TreatmentType</td>
-					<td>@treatment.TreatmentDate</td>
-					<td>
-                        <div class="action-buttons">
-                            <a asp-action="Details" asp-route-id="@treatment.TreatmentID" class="action-btn btn-medication">Details</a>
-                            <a asp-action="EditTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-instructions">Edit</a>
-                            <a asp-action="DeleteTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-vitals">Delete</a>
-                        </div>
+                                        <a asp-action="EditTreatment" asp-route-id="@treatment.TreatmentID" class="action-btn btn-instructions" data-bs-placement="top" title="Edit"><i class="fas fa-edit"></i></a>
+                                        <a href="javascript:void(0);" class="action-btn btn-treatment"
+                                           data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                           data-id="@treatment.TreatmentID"
+                                           data-name="@treatment.Patient?.FirstName">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </div>
 						
-					</td>
-				</tr>
-			}
-		</tbody>
-	</table>
+					            </td>
+				            </tr>
+			            }
+		            </tbody>
+	            </table>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="medicationsChart"></canvas>
+        </div>
+    </div>
 
 </div>
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete treatment for <strong id="deletePatientName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <style>
     :root {
@@ -92,6 +164,7 @@
         background-repeat: no-repeat;
         min-height: 100vh;
         font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow: hidden;
     }
 
     .patients-container {
@@ -161,38 +234,7 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-    .search-btn {
-        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
-        border: none;
-        border-radius: 12px;
-        padding: 0.75rem 2rem;
-        color: var(--white);
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: var(--shadow);
-        position: relative;
-        overflow: hidden;
-    }
-
-        .search-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.6s;
-        }
-
-        .search-btn:hover::before {
-            left: 100%;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
-        }
+    
 
     .patients-table-section {
         background: var(--white);
@@ -222,14 +264,7 @@
         gap: 0.5rem;
     }
 
-    .patient-count {
-        background: var(--primary-color);
-        color: var(--white);
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
+    
 
     .custom-table {
         width: 100%;
@@ -239,17 +274,17 @@
     }
 
         .custom-table thead th {
-            background: linear-gradient(135deg, var(--dark-color) 0%, var(--gray-600) 100%);
+            background: var(--gray-500)/* linear-gradient(135deg, var(--dark-color) 0%, var(--gray-600) 100%) */;
             color: var(--white);
-            padding: 1.25rem 1rem;
+            /* padding: 1.25rem 1rem;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.9rem; */
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: none;
+            /* letter-spacing: 0.5px;
+            border: none; */
             position: sticky;
-            top: 0;
-            z-index: 10;
+            /* top: 0;
+            z-index: 10; */
         }
 
             .custom-table thead th:first-child {
@@ -293,7 +328,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        background: var(--gray-300)/* linear-gradient(45deg, var(--primary-color), var(--accent-color)) */;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -308,7 +343,7 @@
     .action-buttons {
         display: flex;
         gap: 0.5rem;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
     }
 
@@ -349,18 +384,12 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-    .btn-vitals {
-        background: linear-gradient(45deg, var(--danger-color), #ff6b6b);
-        color: var(--white);
-    }
+    
+
+   
 
     .btn-treatment {
-        background: linear-gradient(45deg, var(--success-color), #34d399);
-        color: var(--white);
-    }
-
-    .btn-medication {
-        background: linear-gradient(45deg, var(--warning-color), #fbbf24);
+        background: linear-gradient(45deg, var(--warning-color), red);
         color: var(--white);
     }
 
@@ -476,43 +505,219 @@
         animation: fadeInUp 0.6s ease-out;
     }
 
-   #btn-back{
+   /* #btn-back{
        margin-left: 60%;
        border-radius: 50px;
-   }
-</style>
-@if (TempData["SuccessMessage"] != null)
-{
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: '@TempData["SuccessMessage"]',
-            timer: 2000,
-            showConfirmButton: false
-        });
-    </script>
-}
+   } */
 
-<script>
-    const searchInput = document.getElementById('liveSearchInput');
-
-    function performSearch() {
-        const query = searchInput.value.trim();
-
-        const url = query.length > 0
-            ? `/Nurse/LiveSearchTreatments?query=${encodeURIComponent(query)}`
-            : `/Nurse/LiveSearchAllTreatments`;
-
-        fetch(url)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('searchResults').innerHTML = html;
-            })
-            .catch(error => {
-                console.error('Search failed:', error);
-            });
+    .content-with-chart {
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
     }
 
-    searchInput.addEventListener('input', performSearch);
+    .table-container {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .chart-container {
+        width: 400px;
+        flex-shrink: 0;
+        background: var(--white);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+    }
+
+        .chart-container h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .chart-container h2:before {
+                content: '📊';
+                font-size: 1.2rem;
+            }
+
+    .table-scroll {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+    }
+
+
+        .table-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+
+            .table-scroll::-webkit-scrollbar-thumb:hover {
+                background: var(--gray-500);
+            }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let deleteTreatmentId = null;
+        let deleteRow = null;
+
+        const deleteModal = document.getElementById('deleteModal');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                deleteTreatmentId = button.getAttribute('data-id');
+                const patientName = button.getAttribute('data-name');
+
+                document.getElementById('deletePatientName').textContent = patientName;
+                deleteRow = button.closest('tr');
+            });
+
+            confirmDeleteBtn.addEventListener('click', function() {
+                if (!deleteTreatmentId) return;
+
+                fetch(`/Nurse/DeleteTreatment/${deleteTreatmentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        if (deleteRow){
+                            const treatmentType = deleteRow.querySelector('td:nth-child(3)').textContent.trim();
+                            deleteRow.remove();
+                            updateChart(treatmentType);
+                        }
+                        const modalInstance = bootstrap.Modal.getInstance(deleteModal);
+                        modalInstance.hide();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: 'Treatment successfully deleted.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        throw new Error('Delete failed');
+                    }
+                })
+                .catch(error => console.error(error));
+            });
+        }
+    });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+
+<script>
+    // Prepare chart data from your model
+    let treatments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.Select(t => new { t.TreatmentType })
+    ));
+
+    // Count treatments by type
+    function getTreatmentCounts(treatments) {
+        const counts = {};
+        treatments.forEach(t => {
+            counts[t.TreatmentType] = (counts[t.TreatmentType] || 0) + 1;
+        });
+        return counts;
+    }
+
+    // Build chart
+    const treatmentCounts = getTreatmentCounts(treatments);
+    const labels = Object.keys(treatmentCounts);
+    const data = Object.values(treatmentCounts);
+
+    const ctx = document.getElementById('medicationsChart').getContext('2d');
+
+    // Make chart global so we can update later
+       // Enhanced chart configuration
+    window.treatmentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Number of Treatments',
+                data: data,
+                backgroundColor: [
+                    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                    '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
+                ],
+                borderRadius: 6,
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Treatments by Type',
+                    font: { size: 16, weight: 'bold' },
+                    padding: { top: 10, bottom: 20 }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 14 },
+                    bodyFont: { size: 14 }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            }
+        }
+    });
+
+    // Function to update chart after deleting a treatment
+    function updateChart(treatmentType) {
+        const chart = window.treatmentChart;
+        const index = chart.data.labels.indexOf(treatmentType);
+
+        if (index !== -1) {
+            chart.data.datasets[0].data[index]--;
+            // Remove label if count becomes 0
+            if (chart.data.datasets[0].data[index] === 0) {
+                chart.data.labels.splice(index, 1);
+                chart.data.datasets[0].data.splice(index, 1);
+            }
+            chart.update();
+        }
+    }
+</script>
+
+

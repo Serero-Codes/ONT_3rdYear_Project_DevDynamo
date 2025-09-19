@@ -22,21 +22,19 @@ namespace ONT_3rdyear_Project.Models
         [ForeignKey("VisitSchedule")]
         public int? VisitID { get; set; }
 
-        // Message from Nurse
+        
         [Required]
         public string NurseRequest { get; set; }
 
         
         public string Instructions { get; set; }
 
-        
 
-       // public string? DoctorAdvice { get; set; } // 👈 This is the response
-
-        public DateTime? RespondedAt { get; set; } // 👈 Optional, for inferred status
+        public DateTime? RespondedAt { get; set; } 
 
         [Required]
         public DateTime DateRecorded { get; set; }
+        public bool isActive { get; set; } = true;
 
         public virtual ApplicationUser User { get; set; }
         public virtual TreatVisit TreatVisit { get; set; }

@@ -7,7 +7,6 @@ namespace ONT_3rdyear_Project.Models
 	public class Patient
 	{
 		[Key]
-		public int PatientID { get; set; }
         [Required]
 		[StringLength(50, ErrorMessage = "Name of the patient is required")]
 		public string FirstName { get; set; }
